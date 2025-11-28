@@ -12,7 +12,8 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        //
+        $customers = Customer::all();
+        return view('customers.index', compact('customers'));
     }
 
     /**
@@ -20,7 +21,7 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        //
+        return view('customers.create');
     }
 
     /**
@@ -28,7 +29,23 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama_customer' => 'required|string|max:255',
+            'no_hp' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'alamat' => 'required|string|max:255',
+            'point' => 'required|integer',
+        ]);
+
+        Customer::create([
+            'nama_customer' => $request->nama_customer,
+            'no_hp' => $request->no_hp,
+            'email' => $request->email,
+            'alamat' => $request->alamat,
+            'point' => $request->point,
+        ]);
+
+        return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
 
     /**
@@ -44,7 +61,7 @@ class CustomerController extends Controller
      */
     public function edit(Customer $customer)
     {
-        //
+        return view('customers.edit', compact('customer'));
     }
 
     /**
@@ -52,7 +69,23 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-        //
+        $request->validate([
+            'nama_customer' => 'required|string|max:255',
+            'no_hp' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'alamat' => 'required|string|max:255',
+            'point' => 'required|integer',
+        ]);
+
+        $customer->update([
+            'nama_customer' => $request->nama_customer,
+            'no_hp' => $request->no_hp,
+            'email' => $request->email,
+            'alamat' => $request->alamat,
+            'point' => $request->point,
+        ]);
+
+        return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
     }
 
     /**
@@ -60,6 +93,8 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        //
+        $customer->delete();
+
+        return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
     }
 }
