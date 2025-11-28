@@ -13,9 +13,11 @@
             <div class="max-w-auto">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="mb-4">{{ __('Users') }}</h3>
+                    @can('users.create')
                     <a href="{{ route('users.create') }}" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                         + Create User
                     </a>
+                    @endcan
                 </div>
 
                 @if(session('status'))
@@ -30,7 +32,9 @@
                             <th class="px-4 py-2 border text-left">Email</th>
                             <th class="px-4 py-2 border text-left">Status</th>
                             <th class="px-4 py-2 border text-left">Roles</th>
+                            @canany(['users.update','users.delete'])
                             <th class="px-4 py-2 border">Aksi</th>
+                            @endcanany
                         </tr>
                     </thead>
                     @if($users->isEmpty())
@@ -52,14 +56,20 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-2 border text-left">{{ $user->roles->pluck('name')->join(', ') ?: '-' }}</td>
+                                @canany(['users.update','users.delete'])
                                 <td class="px-4 py-2 border">
+                                    @can('users.update')
                                     <a href="{{ route('users.edit', $user) }}" class="text-blue-600 hover:underline">Edit</a>
+                                    @endcan
+                                    @can('users.delete')
                                     <form action="{{ route('users.destroy', $user) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:underline ms-4" onclick="return confirm('Delete user?')">Hapus</button>
                                     </form>
+                                    @endcan
                                 </td>
+                                @endcanany
                             </tr>
                         @endforeach
                     </tbody>

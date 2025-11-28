@@ -24,8 +24,8 @@
                     </a>
                 </li>
 
-                <!-- Users (Super Admin only) -->
-                @role('super-admin')
+                <!-- Users (permission-based) -->
+                @can('users.view')
                 <li>
                     <a href="{{ route('users.index') }}" title="User" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10" :class="sidebarCollapsed ? 'justify-center' : ''">
                         <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -38,10 +38,10 @@
                         <span x-show="!sidebarCollapsed" class="ms-2">Users</span>
                     </a>
                 </li>
-                @endrole
+                @endcan
 
-                <!-- Roles & Permissions (Super Admin only) -->
-                @role('super-admin')
+                <!-- Roles & Permissions (permission-based) -->
+                @can('roles.view')
                 <li x-data="{ open: false }" class="relative">
                     <button @click.prevent="open = !open" :aria-expanded="open.toString()" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10" :class="sidebarCollapsed ? 'justify-center' : ''">
                         <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -55,16 +55,20 @@
                         </svg>
                     </button>
                     <ul x-cloak x-show="open" x-transition class="mt-2 space-y-1 ps-10" style="display:none;">
+                        @can('roles.view')
                         <li>
                             <a href="{{ route('roles.index') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-sm">Roles</a>
                         </li>
+                        @endcan
+                        @can('permissions.view')
                         <li>
                             <a href="{{ route('permissions.index') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-sm">Permissions</a>
                         </li>
+                        @endcan
                         
                     </ul>
                 </li>
-                @endrole
+                @endcan
 
                 <!-- Master Products -->
                 <li x-data="{ open: false }" class="relative">
