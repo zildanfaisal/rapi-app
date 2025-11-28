@@ -19,8 +19,10 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'status',
     ];
 
     /**
@@ -44,5 +46,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function invoice()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function finance()
+    {
+        return $this->belongsTo(FinanceRecord::class);
     }
 }
