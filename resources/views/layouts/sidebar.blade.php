@@ -24,9 +24,10 @@
                     </a>
                 </li>
 
-                <!-- Users -->
+                <!-- Users (Super Admin only) -->
+                @role('super-admin')
                 <li>
-                    <a href="#" title="User" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10" :class="sidebarCollapsed ? 'justify-center' : ''">
+                    <a href="{{ route('users.index') }}" title="User" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10" :class="sidebarCollapsed ? 'justify-center' : ''">
                         <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
                                 <path d="M11.7 2.805a.75.75 0 0 1 .6 0A60.65 60.65 0 0 1 22.83 8.72a.75.75 0 0 1-.231 1.337 49.948 49.948 0 0 0-9.902 3.912l-.003.002c-.114.06-.227.119-.34.18a.75.75 0 0 1-.707 0A50.88 50.88 0 0 0 7.5 12.173v-.224c0-.131.067-.248.172-.311a54.615 54.615 0 0 1 4.653-2.52.75.75 0 0 0-.65-1.352 56.123 56.123 0 0 0-4.78 2.589 1.858 1.858 0 0 0-.859 1.228 49.803 49.803 0 0 0-4.634-1.527.75.75 0 0 1-.231-1.337A60.653 60.653 0 0 1 11.7 2.805Z" />
@@ -37,6 +38,33 @@
                         <span x-show="!sidebarCollapsed" class="ms-2">Users</span>
                     </a>
                 </li>
+                @endrole
+
+                <!-- Roles & Permissions (Super Admin only) -->
+                @role('super-admin')
+                <li x-data="{ open: false }" class="relative">
+                    <button @click.prevent="open = !open" :aria-expanded="open.toString()" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10" :class="sidebarCollapsed ? 'justify-center' : ''">
+                        <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                <path fill-rule="evenodd" d="M5.25 3A2.25 2.25 0 0 0 3 5.25v13.5A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V5.25A2.25 2.25 0 0 0 18.75 3H5.25Zm1.5 3a.75.75 0 0 0-.75.75v9a.75.75 0 0 0 .75.75h10.5a.75.75 0 0 0 .75-.75v-9a.75.75 0 0 0-.75-.75H6.75Z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        <span x-show="!sidebarCollapsed" class="ms-2 flex-1 text-start">Roles & Permissions</span>
+                        <svg x-show="!sidebarCollapsed" :class="open ? 'rotate-90' : ''" class="h-4 w-4 transform transition-transform text-white/80" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <ul x-cloak x-show="open" x-transition class="mt-2 space-y-1 ps-10" style="display:none;">
+                        <li>
+                            <a href="{{ route('roles.index') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-sm">Roles</a>
+                        </li>
+                        <li>
+                            <a href="{{ route('permissions.index') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-sm">Permissions</a>
+                        </li>
+                        
+                    </ul>
+                </li>
+                @endrole
 
                 <!-- Master Products -->
                 <li x-data="{ open: false }" class="relative">

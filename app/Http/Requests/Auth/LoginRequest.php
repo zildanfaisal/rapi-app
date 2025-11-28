@@ -49,6 +49,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Prevent inactive users from logging in
+        $user = Auth::user();
+        if ($user && ($user->status === 'inactive')) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'email' => __('Your account is inactive.'),
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
