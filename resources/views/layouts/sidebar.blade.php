@@ -71,6 +71,7 @@
                 @endcan
 
                 <!-- Master Products -->
+                 @can('products.view')
                 <li x-data="{ open: false }" class="relative">
                     <button @click.prevent="open = !open" :aria-expanded="open.toString()" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10" :class="sidebarCollapsed ? 'justify-center' : ''">
                         <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -87,17 +88,24 @@
 
                     <!-- submenu (desktop) -->
                     <ul x-cloak x-show="open" x-transition class="mt-2 space-y-1 ps-10" style="display:none;">
+                     @can('products.view')    
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-sm">Products</a>
+                            <a href="{{ route('products.index') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-sm">Products</a>
                         </li>
+                        @endcan
+                         @can('products.view') 
                         <li>
                             <a href="#" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-sm">Product Batches</a>
                         </li>
+                        @endcan
+                         @can('products.view') 
                         <li>
                             <a href="#" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-sm">Laporan Product Batches</a>
                         </li>
+                        @endcan
                     </ul>
                 </li>
+                @endcan
 
                 <!-- Master Penjualan -->
                 <li x-data="{ open: false }" class="relative">
