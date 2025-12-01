@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -59,6 +60,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
+    // Product Routes
+    Route::get('/products', [ProductController::class, 'index'])->middleware('permission:products.view')->name('products.index');
+    Route::get('/products/create', [ProductController::class, 'create'])->middleware('permission:products.create')->name('products.create');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 });
 
 require __DIR__.'/auth.php';
