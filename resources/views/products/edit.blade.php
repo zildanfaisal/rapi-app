@@ -11,6 +11,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
+
                     <h3 class="mb-4">{{ __('Edit Product') }}</h3>
 
                     <form method="POST" action="{{ route('products.update', $product->id) }}" enctype="multipart/form-data">
@@ -25,11 +26,10 @@
                             <input type="text" name="nama_produk" id="nama_produk"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                   required
-                                   value="{{ old('nama_produk', $product->nama_produk) }}">
+                                   value="{{ old('nama_produk', $product->nama_produk) }}" required>
                         </div>
 
-                        {{-- Barcode + GENERATE --}}
+                        {{-- Barcode + Generate --}}
                         <div class="mb-4">
                             <label for="barcode" class="block text-sm font-medium text-gray-700">
                                 {{ __('Barcode') }}
@@ -39,8 +39,7 @@
                                 <input type="text" name="barcode" id="barcode"
                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                               focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                       required
-                                       value="{{ old('barcode', $product->barcode) }}">
+                                       value="{{ old('barcode', $product->barcode) }}" required>
 
                                 {{-- Tombol Generate --}}
                                 <button type="button"
@@ -53,50 +52,55 @@
 
                         {{-- Kategori --}}
                         <div class="mb-4">
-                            <label for="kategori" class="block text-sm font-medium text-gray-700">{{ __('Kategori') }}</label>
+                            <label for="kategori" class="block text-sm font-medium text-gray-700">
+                                {{ __('Kategori') }}
+                            </label>
                             <input type="text" name="kategori" id="kategori"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                   required
-                                   value="{{ old('kategori', $product->kategori) }}">
+                                   value="{{ old('kategori', $product->kategori) }}" required>
                         </div>
 
                         {{-- Harga --}}
                         <div class="mb-4">
-                            <label for="harga" class="block text-sm font-medium text-gray-700">{{ __('Harga') }}</label>
+                            <label for="harga" class="block text-sm font-medium text-gray-700">
+                                {{ __('Harga') }}
+                            </label>
                             <input type="number" name="harga" id="harga"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                   required
-                                   value="{{ old('harga', $product->harga) }}">
+                                   value="{{ old('harga', $product->harga) }}" required>
                         </div>
 
                         {{-- Satuan --}}
                         <div class="mb-4">
-                            <label for="satuan" class="block text-sm font-medium text-gray-700">{{ __('Satuan') }}</label>
+                            <label for="satuan" class="block text-sm font-medium text-gray-700">
+                                {{ __('Satuan') }}
+                            </label>
                             <input type="text" name="satuan" id="satuan"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                   required
-                                   value="{{ old('satuan', $product->satuan) }}">
+                                   value="{{ old('satuan', $product->satuan) }}" required>
                         </div>
 
                         {{-- Foto Produk --}}
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Foto Produk') }}</label>
+                            <label class="block text-sm font-medium text-gray-700">Foto Produk</label>
 
-                            @if($product->foto_produk)
-                                <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $product->foto_produk) }}"
-                                         alt="Foto Produk"
-                                         class="w-32 h-32 object-cover rounded-md border mx-auto">
-                                </div>
-                            @endif
+                            {{-- Foto Lama --}}
+                            <div class="mb-3">
+                                <img id="previewImage"
+                                     src="{{ asset('storage/' . $product->foto_produk) }}"
+                                     class="w-32 h-32 object-cover rounded-md border"
+                                     alt="Foto Produk">
+                            </div>
 
-                            <input type="file" name="foto_produk" accept="image/*"
+                            {{-- Input File --}}
+                            <input type="file" name="foto_produk" id="foto_produk" accept="image/*"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                            <small class="text-gray-600">Biarkan kosong jika tidak ingin mengganti foto.</small>
+
+                            <small class="text-gray-600">Pilih foto baru untuk mengganti foto saat ini.</small>
                         </div>
 
                         {{-- Min Stok Alert --}}
@@ -107,20 +111,25 @@
                             <input type="number" name="min_stok_alert" id="min_stok_alert"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                   required
-                                   value="{{ old('min_stok_alert', $product->min_stok_alert) }}">
+                                   value="{{ old('min_stok_alert', $product->min_stok_alert) }}" required>
                         </div>
 
                         {{-- Status --}}
                         <div class="mb-4">
-                            <label for="status" class="block text-sm font-medium text-gray-700">{{ __('Status') }}</label>
+                            <label for="status" class="block text-sm font-medium text-gray-700">
+                                {{ __('Status') }}
+                            </label>
                             <select name="status" id="status"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                            focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                     required>
                                 <option disabled>Pilih Status</option>
-                                <option value="available" {{ old('status', $product->status) == 'available' ? 'selected' : '' }}>Available</option>
-                                <option value="unavailable" {{ old('status', $product->status) == 'unavailable' ? 'selected' : '' }}>Unavailable</option>
+                                <option value="available" {{ old('status', $product->status) == 'available' ? 'selected' : '' }}>
+                                    Available
+                                </option>
+                                <option value="unavailable" {{ old('status', $product->status) == 'unavailable' ? 'selected' : '' }}>
+                                    Unavailable
+                                </option>
                             </select>
                         </div>
 
@@ -147,6 +156,17 @@
 
 @push('scripts')
 <script>
+    // Ganti foto lama dengan preview saat upload
+    document.getElementById('foto_produk').addEventListener('change', function(e) {
+        let file = e.target.files[0];
+        let preview = document.getElementById('previewImage');
+
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+        }
+    });
+
+    // Generate barcode
     function generateBarcode() {
         let randomNumber = Math.floor(Math.random() * 100000000)
             .toString()

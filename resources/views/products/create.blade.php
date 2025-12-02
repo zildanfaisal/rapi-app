@@ -82,6 +82,14 @@
 
                         {{-- Foto Produk --}}
                         <div class="mb-4">
+
+                            {{-- Preview Foto --}}
+                            <div class="mt-3">
+                                <img id="previewImage"
+                                     src=""
+                                     class="hidden w-32 h-32 object-cover rounded-md border" />
+                            </div>
+
                             <label for="foto_produk" class="block text-sm font-medium text-gray-700">
                                 {{ __('Foto Produk') }}
                             </label>
@@ -90,6 +98,7 @@
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                    required>
+
                         </div>
 
                         {{-- Min Stok Alert --}}
@@ -131,6 +140,7 @@
                                 {{ __('Batal') }}
                             </a>
                         </div>
+
                     </form>
 
                 </div>
@@ -148,5 +158,19 @@
 
         document.getElementById('barcode').value = randomNumber;
     }
+
+    // Preview Foto Upload
+    document.getElementById('foto_produk').addEventListener('change', function(event) {
+        let preview = document.getElementById('previewImage');
+        let file = event.target.files[0];
+
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+        } else {
+            preview.classList.add('hidden');
+            preview.src = "";
+        }
+    });
 </script>
 @endpush
