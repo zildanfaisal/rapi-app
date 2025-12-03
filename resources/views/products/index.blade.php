@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Products'))
+@section('title', __('Produk'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Products') }}</h2>
+    <h2 class="text-xl font-semibold text-gray-800">{{ __('Produk') }}</h2>
 @endsection
 
 @section('content')
@@ -12,9 +12,9 @@
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-auto">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="mb-4">{{ __('Products') }}</h3>
+                        <h3 class="mb-4">{{ __('Produk') }}</h3>
                         <a href="{{ route('products.create') }}" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            + Tambah Products
+                            + Tambah Produk
                         </a>
                     </div>
                     <div class="overflow-x-auto">
@@ -42,7 +42,7 @@
                                         <div class="flex flex-col items-center justify-center">
                                             {{-- Barcode --}}
                                             <div class="flex justify-center">
-                                                {{-- {!! DNS1D::getBarcodeHTML($p->barcode, 'C128', 2, 60) !!} --}}
+                                                {!! DNS1D::getBarcodeHTML($p->barcode, 'C128', 2, 60) !!}
 
                                             </div>
 

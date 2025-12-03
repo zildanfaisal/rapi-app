@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Customers'))
+@section('title', __('Tambah Pelanggan'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Customers') }}</h2>
+    <h2 class="text-xl font-semibold text-gray-800">{{ __('Tambah Pelanggan') }}</h2>
 @endsection
 
 @section('content')
@@ -11,11 +11,11 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
-                    <h3 class="mb-4">{{ __('Tambah Customer') }}</h3>
+                    <h3 class="mb-4">{{ __('Tambah Pelanggan') }}</h3>
                     <form method="POST" action="{{ route('customers.store') }}">
                         @csrf
                         <div class="mb-4">
-                            <label for="nama_customer" class="block text-sm font-medium text-gray-700">{{ __('Nama customers') }}</label>
+                            <label for="nama_customer" class="block text-sm font-medium text-gray-700">{{ __('Nama Pelanggan') }}</label>
                             <input type="text" name="nama_customer" id="nama_customer" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         </div>
                         <div class="mb-4">
@@ -31,7 +31,7 @@
                             <textarea name="alamat" id="alamat" cols="30" rows="5" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required></textarea>
                         </div>
                         <div class="mb-4">
-                            <label for="point" class="block text-sm font-medium text-gray-700">{{ __('Point') }}</label>
+                            <label for="point" class="block text-sm font-medium text-gray-700">{{ __('Poin') }}</label>
                             <input type="number" name="point" id="point" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         </div>
                         <div class="flex items-center gap-4">

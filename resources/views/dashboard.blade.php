@@ -34,7 +34,7 @@
 
                     </span>
                     <h4 class="text-lg font-semibold text-gray-700">
-                        Products
+                        Produk
                     </h4>
                     <p class="text-3xl font-bold text-indigo-600 mt-2">
                         12
@@ -49,7 +49,7 @@
 
                     </span>
                     <h4 class="text-lg font-semibold text-gray-700">
-                        Customer
+                        Pelanggan
                     </h4>
                     <p class="text-3xl font-bold text-indigo-600 mt-2">
                         12

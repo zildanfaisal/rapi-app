@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Users'))
+@section('title', __('Pengguna'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Users') }}</h2>
+    <h2 class="text-xl font-semibold text-gray-800">{{ __('Pengguna') }}</h2>
 @endsection
 
 @section('content')
@@ -12,10 +12,10 @@
         <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
             <div class="max-w-auto">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="mb-4">{{ __('Users') }}</h3>
+                    <h3 class="mb-4">{{ __('Pengguna') }}</h3>
                     @can('users.create')
                     <a href="{{ route('users.create') }}" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        + Create User
+                        + Tambah Pengguna
                     </a>
                     @endcan
                 </div>
@@ -28,10 +28,10 @@
                     <thead class="bg-gray-100">
                         <tr>
                             <th class="px-4 py-2 border">No</th>
-                            <th class="px-4 py-2 border text-left">Name</th>
+                            <th class="px-4 py-2 border text-left">Nama</th>
                             <th class="px-4 py-2 border text-left">Email</th>
                             <th class="px-4 py-2 border text-left">Status</th>
-                            <th class="px-4 py-2 border text-left">Roles</th>
+                            <th class="px-4 py-2 border text-left">Peran</th>
                             @canany(['users.update','users.delete'])
                             <th class="px-4 py-2 border">Aksi</th>
                             @endcanany

@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Permissions'))
+@section('title', __('Izin'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Permissions') }}</h2>
+    <h2 class="text-xl font-semibold text-gray-800">{{ __('Izin') }}</h2>
 @endsection
 
 @section('content')
@@ -12,10 +12,10 @@
         <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
             <div class="max-w-auto">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="mb-4">{{ __('Permissions') }}</h3>
+                    <h3 class="mb-4">{{ __('Izin') }}</h3>
                     @can('permissions.create')
                     <a href="{{ route('permissions.create') }}" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        + Create Permission
+                        + Tambah Izin
                     </a>
                     @endcan
                 </div>
@@ -28,7 +28,7 @@
                     <thead class="bg-gray-100">
                         <tr>
                             <th class="px-4 py-2 border">No</th>
-                            <th class="px-4 py-2 border text-left">Name</th>
+                            <th class="px-4 py-2 border text-left">Nama</th>
                             @canany(['permissions.update','permissions.delete'])
                             <th class="px-4 py-2 border">Aksi</th>
                             @endcanany

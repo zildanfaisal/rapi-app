@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Create Role'))
+@section('title', __('Tambah Peran'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Roles') }}</h2>
+    <h2 class="text-xl font-semibold text-gray-800">{{ __('Peran') }}</h2>
 @endsection
 
 @section('content')
@@ -11,16 +11,16 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
         <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
             <div class="max-w-3xl">
-                <h3 class="mb-4">{{ __('Create Role') }}</h3>
+                <h3 class="mb-4">{{ __('Tambah Peran') }}</h3>
                 <form method="POST" action="{{ route('roles.store') }}" class="space-y-4">
                     @csrf
                     <div>
-                        <label class="block mb-1">Name</label>
+                        <label class="block mb-1">Nama</label>
                         <input type="text" name="name" value="{{ old('name') }}" class="w-full px-3 py-2 border rounded" required />
                         @error('name')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label class="block mb-2">Permissions</label>
+                        <label class="block mb-2">Izin</label>
                         <div class="grid grid-cols-2 gap-2">
                             @foreach($permissions as $perm)
                                 <label class="flex items-center gap-2">

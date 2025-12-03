@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Edit Product'))
+@section('title', __('Edit Produk'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Edit Product') }}</h2>
+    <h2 class="text-xl font-semibold text-gray-800">{{ __('Edit Produk') }}</h2>
 @endsection
 
 @section('content')
@@ -12,7 +12,7 @@
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
 
-                    <h3 class="mb-4">{{ __('Edit Product') }}</h3>
+                    <h3 class="mb-4">{{ __('Edit Produk') }}</h3>
 
                     <form method="POST" action="{{ route('products.update', $product->id) }}" enctype="multipart/form-data">
                         @csrf

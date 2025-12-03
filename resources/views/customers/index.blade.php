@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', __('Customers'))
+@section('title', __('Pelanggan'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Customers') }}</h2>
+    <h2 class="text-xl font-semibold text-gray-800">{{ __('Pelanggan') }}</h2>
 @endsection
 
 @section('content')
@@ -12,9 +12,9 @@
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-auto">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="mb-4">{{ __('Customers') }}</h3>
+                        <h3 class="mb-4">{{ __('Pelanggan') }}</h3>
                         <a href="{{ route('customers.create') }}" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            + Tambah Customers
+                            + Tambah Pelanggan
                         </a>
                     </div>
                     <div class="overflow-x-auto">
@@ -22,11 +22,11 @@
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="px-4 py-2 border">No</th>
-                                <th class="px-4 py-2 border">Nama Customer</th>
+                                <th class="px-4 py-2 border">Nama Pelanggan</th>
                                 <th class="px-4 py-2 border">No. HP</th>
                                 <th class="px-4 py-2 border">E-mail</th>
                                 <th class="px-4 py-2 border">Alamat</th>
-                                <th class="px-4 py-2 border">Point</th>
+                                <th class="px-4 py-2 border">Poin</th>
                                 <th class="px-4 py-2 border">Aksi</th>
                             </tr>
                         </thead>
