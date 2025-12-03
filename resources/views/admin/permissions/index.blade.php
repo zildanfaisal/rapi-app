@@ -23,8 +23,8 @@
                 @if(session('status'))
                     <div class="mb-4 px-4 py-2 bg-green-100 text-green-800 rounded">{{ session('status') }}</div>
                 @endif
-
-                <table class="min-w-full border border-gray-300">
+                <div class="overflow-x-auto">
+                <table class="min-w-full border border-gray-300" id="dataTables">
                     <thead class="bg-gray-100">
                         <tr>
                             <th class="px-4 py-2 border">No</th>
@@ -34,15 +34,8 @@
                             @endcanany
                         </tr>
                     </thead>
-                    @if(collect($permissions)->isEmpty())
-                        <tbody>
-                            <tr>
-                                <td colspan="3" class="text-center py-6">Belum Ada Permission.</td>
-                            </tr>
-                        </tbody>
-                    @endif
                     <tbody>
-                        @foreach ($permissions as $permission)
+                        @forelse ($permissions as $permission)
                             <tr class="text-center hover:bg-gray-50">
                                 <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                 <td class="px-4 py-2 border text-left">{{ $permission->name }}</td>
@@ -52,20 +45,33 @@
                                     <a href="{{ route('permissions.edit', $permission) }}" class="text-blue-600 hover:underline">Edit</a>
                                     @endcan
                                     @can('permissions.delete')
-                                    <form action="{{ route('permissions.destroy', $permission) }}" method="POST" style="display:inline;">
+                                    <form action="{{ route('permissions.destroy', $permission) }}" method="POST" style="display:inline;" data-confirm-delete>
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:underline ms-4" onclick="return confirm('Delete permission?')">Hapus</button>
+                                        <button type="submit" class="text-red-600 hover:underline ms-4"  >Hapus</button>
                                     </form>
                                     @endcan
                                 </td>
                                 @endcanany
                             </tr>
-                        @endforeach
+                         @empty
+                                <tr class="text-center">
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Customer.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                </tr>
+                        @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+    new DataTable('#dataTables');
+</script>
+@endpush

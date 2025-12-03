@@ -17,7 +17,8 @@
                             + Tambah Products
                         </a>
                     </div>
-                    <table class="min-w-full border border-gray-300">
+                    <div class="overflow-x-auto">
+                    <table class="min-w-full border border-gray-300" id="dataTables">
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="px-4 py-2 border">No</th>
@@ -32,27 +33,17 @@
                                 <th class="px-4 py-2 border">Aksi</th>
                             </tr>
                         </thead>
-                        @if($products->isEmpty())
-                            <tbody>
-                                <tr>
-                                    <td colspan="10" class="py-6">
-                                        <div class="text-center text-gray-600 text-lg font-medium">
-                                            Belum Ada Product.
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        @endif
 
                         <tbody>
-                            @foreach ($products as $p)
+                            @forelse ($products as $p)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">
                                         <div class="flex flex-col items-center justify-center">
                                             {{-- Barcode --}}
                                             <div class="flex justify-center">
-                                                {!! DNS1D::getBarcodeHTML($p->barcode, 'C128', 2, 60) !!}
+                                                {{-- {!! DNS1D::getBarcodeHTML($p->barcode, 'C128', 2, 60) !!} --}}
+
                                             </div>
 
                                             {{-- Kode Barcode --}}
@@ -77,18 +68,37 @@
                                     <td class="px-4 py-2 border">{{ $p->status }}</td>
                                     <td class="px-4 py-2 border">
                                         <a href="{{ route('products.edit', $p->id) }}" class="text-blue-600 hover:underline">Edit</a>
-                                        <form action="{{ route('products.destroy', $p->id) }}" method="POST" style="display:inline;">
+                                        <form action="{{ route('products.destroy', $p->id) }}" method="POST" style="display:inline;" data-confirm-delete>
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>
-                                        </form>    
+                                        </form>
                                     </td>
                                 </tr>
-                            @endforeach
+                                @empty
+                                <tr class="text-center">
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Product.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                </tr>
+                                @endforelse
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+@push('scripts')
+<script>
+    new DataTable('#dataTables');
+</script>
+@endpush

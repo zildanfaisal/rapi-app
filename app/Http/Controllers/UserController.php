@@ -43,7 +43,7 @@ class UserController extends Controller
             $user->syncRoles($validated['roles']);
         }
 
-        return redirect()->route('users.index')->with('status', 'User created');
+        return redirect()->route('users.index')->with('success', 'User berhasil dibuat!');
     }
 
     public function edit(User $user)
@@ -78,12 +78,12 @@ class UserController extends Controller
             $user->syncRoles($validated['roles'] ?? []);
         }
 
-        return redirect()->route('users.index')->with('status', 'User updated');
+        return redirect()->route('users.index')->with('success', 'User berhasil diupdate!');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-        return redirect()->route('users.index')->with('status', 'User deleted');
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
     }
 }

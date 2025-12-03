@@ -17,7 +17,8 @@
                             + Tambah Customers
                         </a>
                     </div>
-                    <table class="min-w-full border border-gray-300">
+                    <div class="overflow-x-auto">
+                   <table class="min-w-full border border-gray-300" id="dataTables">
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="px-4 py-2 border">No</th>
@@ -29,15 +30,9 @@
                                 <th class="px-4 py-2 border">Aksi</th>
                             </tr>
                         </thead>
-                        @if($customers->isEmpty())
-                            <tbody>
-                                <tr>
-                                    <td colspan="7" class="text-center py-6">Belum Ada Customer.</td>
-                                </tr>
-                            </tbody>
-                        @endif
+
                         <tbody>
-                            @foreach ($customers as $c)
+                            @forelse ($customers as $c)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">{{ $c->nama_customer }}</td>
@@ -47,18 +42,35 @@
                                     <td class="px-4 py-2 border">{{ $c->point }}</td>
                                     <td class="px-4 py-2 border">
                                         <a href="{{ route('customers.edit', $c->id) }}" class="text-blue-600 hover:underline">Edit</a>
-                                        <form action="{{ route('customers.destroy', $c->id) }}" method="POST" style="display:inline;">
+                                        <form action="{{ route('customers.destroy', $c->id) }}" method="POST" style="display:inline;" data-confirm-delete>
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>
-                                        </form>    
+                                        </form>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr class="text-center">
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Customer.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
+
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+@push('scripts')
+<script>
+    new DataTable('#dataTables');
+</script>
+@endpush
