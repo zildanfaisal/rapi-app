@@ -9,13 +9,50 @@
 @section('content')
 <div class="py-2">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+
+        <!-- Filter -->
+        <div class="bg-white p-4 rounded-lg shadow">
+            <form method="GET" action="{{ route('finance-records.history') }}" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter Periode</label>
+                    <select name="periode" class="w-full px-3 py-2 border rounded-lg">
+                        <option value="">Semua Periode</option>
+                        @foreach($availablePeriods as $p)
+                            <option value="{{ $p }}" {{ $periode == $p ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::parse($p . '-01')->format('F Y') }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                    <input type="date" name="start_date" value="{{ $startDate }}" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                    <input type="date" name="end_date" value="{{ $endDate }}" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div class="md:col-span-3 flex gap-2">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Filter</button>
+                    <a href="{{ route('finance-records.history') }}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Reset</a>
+                </div>
+            </form>
+        </div>
+
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             @php
                 $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
                 $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
                 $saldo = $totalPemasukan - $totalPengeluaran;
             @endphp
+
+            @if($budgetTarget)
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div class="text-sm text-purple-600 mb-1">Target Bulanan</div>
+                <div class="text-2xl font-bold text-purple-700">Rp {{ number_format($budgetTarget->budget_bulanan, 0, ',', '.') }}</div>
+            </div>
+            @endif
 
             <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div class="text-sm text-green-600 mb-1">Total Pemasukan</div>
@@ -32,6 +69,12 @@
                 <div class="text-2xl font-bold {{ $saldo >= 0 ? 'text-blue-700' : 'text-red-700' }}">
                     Rp {{ number_format($saldo, 0, ',', '.') }}
                 </div>
+                @if($budgetTarget)
+                <div class="text-xs text-gray-500 mt-1">
+                    {{ $saldo >= 0 ? 'Surplus' : 'Defisit' }}
+                    {{ number_format(abs(($saldo / $budgetTarget->budget_bulanan) * 100), 1) }}%
+                </div>
+                @endif
             </div>
         </div>
 
@@ -46,6 +89,7 @@
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="px-4 py-2 border">No</th>
+                                <th class="px-4 py-2 border">Periode</th>
                                 <th class="px-4 py-2 border">Tanggal</th>
                                 <th class="px-4 py-2 border">Tipe</th>
                                 <th class="px-4 py-2 border">Kategori</th>
@@ -59,6 +103,7 @@
                             @forelse ($financeRecords as $fr)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
+                                    <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($fr->periode . '-01')->format('M Y') }}</td>
                                     <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($fr->tanggal)->format('d/m/Y') }}</td>
                                     <td class="px-4 py-2 border">
                                         @if($fr->tipe === 'income')
@@ -76,12 +121,13 @@
                                     <td class="px-4 py-2 border text-left">{{ $fr->deskripsi ?? '-' }}</td>
                                     <td class="px-4 py-2 border">{{ $fr->user->name ?? 'Unknown' }}</td>
                                 </tr>
-                            @empty
+                             @empty
                                 <tr class="text-center">
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Product.</td>
+                                    <td class="px-4 py-2 border">Belum Ada Anggaran</td>
+                                    <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>

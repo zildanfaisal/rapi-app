@@ -11,23 +11,68 @@ class FinanceRecordController extends Controller
     /**
      * Display a listing of the resource (Input Keuangan).
      */
-    public function index()
+    public function index(Request $request)
     {
+        $periode = $request->get('periode', date('Y-m'));
+
         $financeRecords = FinanceRecord::with('user')
+            ->where('periode', $periode)
             ->orderBy('tanggal', 'desc')
             ->get();
-        return view('finance.finance-records.index', compact('financeRecords'));
+
+        // Get budget target for this periode
+        $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
+
+        // Calculate totals
+        $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
+        $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
+        $saldo = $totalPemasukan - $totalPengeluaran;
+
+        // Get available periods
+        $availablePeriods = FinanceRecord::selectRaw('DISTINCT periode')
+            ->whereNotNull('periode')
+            ->orderBy('periode', 'desc')
+            ->pluck('periode');
+
+        return view('finance.finance-records.index', compact('financeRecords', 'periode', 'budgetTarget', 'totalPemasukan', 'totalPengeluaran', 'saldo', 'availablePeriods'));
     }
 
     /**
      * Display history (Riwayat Keuangan - Read Only).
      */
-    public function history()
+    public function history(Request $request)
     {
-        $financeRecords = FinanceRecord::with('user')
-            ->orderBy('tanggal', 'desc')
-            ->get();
-        return view('finance.finance-records.history', compact('financeRecords'));
+        $periode = $request->get('periode');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = FinanceRecord::with('user');
+
+        // Filter by periode if selected
+        if ($periode) {
+            $query->where('periode', $periode);
+        }
+
+        // Filter by date range if provided
+        if ($startDate && $endDate) {
+            $query->whereBetween('tanggal', [$startDate, $endDate]);
+        }
+
+        $financeRecords = $query->orderBy('tanggal', 'desc')->get();
+
+        // Get budget target for selected periode
+        $budgetTarget = null;
+        if ($periode) {
+            $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
+        }
+
+        // Get available periods
+        $availablePeriods = FinanceRecord::selectRaw('DISTINCT periode')
+            ->whereNotNull('periode')
+            ->orderBy('periode', 'desc')
+            ->pluck('periode');
+
+        return view('finance.finance-records.history', compact('financeRecords', 'periode', 'startDate', 'endDate', 'budgetTarget', 'availablePeriods'));
     }
 
     /**
@@ -62,9 +107,12 @@ class FinanceRecordController extends Controller
 
         $validated['created_by'] = Auth::id();
 
+        // Auto set periode from tanggal (YYYY-MM)
+        $validated['periode'] = date('Y-m', strtotime($validated['tanggal']));
+
         FinanceRecord::create($validated);
 
-        return redirect()->route('finance-records.index')->with('success', 'Data keuangan berhasil ditambahkan');
+        return redirect()->route('finance-records.index', ['periode' => $validated['periode']])->with('success', 'Data keuangan berhasil ditambahkan');
     }
 
     /**
@@ -107,9 +155,12 @@ class FinanceRecordController extends Controller
 
         $validated['created_by'] = Auth::id();
 
+        // Auto set periode from tanggal (YYYY-MM)
+        $validated['periode'] = date('Y-m', strtotime($validated['tanggal']));
+
         $financeRecord->update($validated);
 
-        return redirect()->route('finance-records.index')->with('success', 'Data keuangan berhasil diperbarui');
+        return redirect()->route('finance-records.index', ['periode' => $validated['periode']])->with('success', 'Data keuangan berhasil diperbarui');
     }
 
     /**
