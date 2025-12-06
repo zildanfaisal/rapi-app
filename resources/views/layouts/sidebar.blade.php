@@ -177,12 +177,12 @@
                 </li>
 
                 <!-- Master Finance -->
-                <li x-data="{ open: false }" class="relative">
+                <li x-data="{ open: {{ request()->routeIs('budget-target.*') || request()->routeIs('finance-records.*') ? 'true' : 'false' }} }" class="relative">
                     <button @click.prevent="open = !open"
                             :aria-expanded="open.toString()"
-                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-slate-700 hover:bg-slate-50"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('budget-target.*') || request()->routeIs('finance-records.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
                             :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <span class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-all duration-200">
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('budget-target.*') || request()->routeIs('finance-records.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -199,15 +199,28 @@
                         </svg>
                     </button>
                     <ul x-cloak x-show="open" x-transition class="mt-1.5 space-y-1 pl-12" style="display:none;">
+
                         <li>
-                            <a href="{{ route('budget-target.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Target Anggaran</a>
+                            <a href="{{ route('budget-target.index') }}"
+                            class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('budget-target.*') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
+                                Target Anggaran
+                            </a>
                         </li>
+
                         <li>
-                            <a href="{{ route('finance-records.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Input Keuangan</a>
+                            <a href="{{ route('finance-records.index') }}"
+                            class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('finance-records.index') || request()->routeIs('finance-records.create') || request()->routeIs('finance-records.edit') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
+                                Input Keuangan
+                            </a>
                         </li>
+
                         <li>
-                            <a href="{{ route('finance-records.history') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Riwayat Keuangan</a>
+                            <a href="{{ route('finance-records.history') }}"
+                            class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('finance-records.history') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
+                                Riwayat Keuangan
+                            </a>
                         </li>
+
                     </ul>
                 </li>
                 <!-- Customers -->
