@@ -200,13 +200,13 @@
                     </button>
                     <ul x-cloak x-show="open" x-transition class="mt-1.5 space-y-1 pl-12" style="display:none;">
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Target Anggaran</a>
+                            <a href="{{ route('budget-target.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Target Anggaran</a>
                         </li>
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Input Keuangan</a>
+                            <a href="{{ route('finance-records.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Input Keuangan</a>
                         </li>
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Riwayat Keuangan</a>
+                            <a href="{{ route('finance-records.history') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Riwayat Keuangan</a>
                         </li>
                     </ul>
                 </li>
@@ -482,7 +482,7 @@
                     </button>
                     <ul x-cloak x-show="open" x-transition class="mt-1.5 space-y-1 pl-12" style="display:none;">
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Budget Target</a>
+                            <a href="{{ route('budget-target.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Budget Target</a>
                         </li>
                         <li>
                             <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Input Finance</a>

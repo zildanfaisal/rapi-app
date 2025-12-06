@@ -12,7 +12,8 @@ class BudgetTargetController extends Controller
      */
     public function index()
     {
-        //
+        $budgetTargets = BudgetTarget::orderBy('tanggal', 'desc')->get();
+        return view('finance.budget-target.index', compact('budgetTargets'));
     }
 
     /**
@@ -20,7 +21,7 @@ class BudgetTargetController extends Controller
      */
     public function create()
     {
-        //
+        return view('finance.budget-target.create');
     }
 
     /**
@@ -28,7 +29,20 @@ class BudgetTargetController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'tanggal' => 'required|date',
+            'budget_bulanan' => 'required|numeric|min:0',
+        ], [
+            'tanggal.required' => 'Tanggal harus diisi',
+            'tanggal.date' => 'Format tanggal tidak valid',
+            'budget_bulanan.required' => 'Budget bulanan harus diisi',
+            'budget_bulanan.numeric' => 'Budget bulanan harus berupa angka',
+            'budget_bulanan.min' => 'Budget bulanan tidak boleh kurang dari 0',
+        ]);
+
+        BudgetTarget::create($validated);
+
+        return redirect()->route('budget-target.index')->with('success', 'Target anggaran berhasil ditambahkan');
     }
 
     /**
@@ -36,7 +50,7 @@ class BudgetTargetController extends Controller
      */
     public function show(BudgetTarget $budgetTarget)
     {
-        //
+        return view('finance.budget-target.show', compact('budgetTarget'));
     }
 
     /**
@@ -44,7 +58,7 @@ class BudgetTargetController extends Controller
      */
     public function edit(BudgetTarget $budgetTarget)
     {
-        //
+        return view('finance.budget-target.edit', compact('budgetTarget'));
     }
 
     /**
@@ -52,7 +66,20 @@ class BudgetTargetController extends Controller
      */
     public function update(Request $request, BudgetTarget $budgetTarget)
     {
-        //
+        $validated = $request->validate([
+            'tanggal' => 'required|date',
+            'budget_bulanan' => 'required|numeric|min:0',
+        ], [
+            'tanggal.required' => 'Tanggal harus diisi',
+            'tanggal.date' => 'Format tanggal tidak valid',
+            'budget_bulanan.required' => 'Budget bulanan harus diisi',
+            'budget_bulanan.numeric' => 'Budget bulanan harus berupa angka',
+            'budget_bulanan.min' => 'Budget bulanan tidak boleh kurang dari 0',
+        ]);
+
+        $budgetTarget->update($validated);
+
+        return redirect()->route('budget-target.index')->with('success', 'Target anggaran berhasil diperbarui');
     }
 
     /**
@@ -60,6 +87,8 @@ class BudgetTargetController extends Controller
      */
     public function destroy(BudgetTarget $budgetTarget)
     {
-        //
+        $budgetTarget->delete();
+
+        return redirect()->route('budget-target.index')->with('success', 'Target anggaran berhasil dihapus');
     }
 }
