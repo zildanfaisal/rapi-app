@@ -63,10 +63,11 @@
                             <label for="harga" class="block text-sm font-medium text-gray-700">
                                 {{ __('Harga') }}
                             </label>
-                            <input type="number" name="harga" id="harga"
-                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
-                                          focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                   required>
+                           <input type="text" name="harga" id="harga"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
+                                    focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                            required>
+
                         </div>
 
                         {{-- Satuan --}}
@@ -151,6 +152,18 @@
 
 @push('scripts')
 <script>
+    const inputHarga = document.getElementById('harga');
+
+    inputHarga.addEventListener('input', function(e) {
+        let angka = this.value.replace(/[^\d]/g, "");
+        this.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    });
+    document.querySelector("form").addEventListener("submit", function() {
+        inputHarga.value = inputHarga.value.replace(/\./g, "");
+    });
+
+
+
     function generateBarcode() {
         const randomNumber = Math.floor(Math.random() * 100000000)
             .toString()

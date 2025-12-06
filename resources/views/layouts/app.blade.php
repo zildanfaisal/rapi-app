@@ -145,6 +145,9 @@
             @if(session('warning')) warning: @json(session('warning')), @endif
             @if(session('info')) info: @json(session('info')), @endif
         };
+         @if($errors->any())
+        window.FLASH_MESSAGES.error = "@foreach($errors->all() as $error) {{ addslashes($error) }}\n @endforeach";
+    @endif
     </script>
 
     {{-- Alpine: simple CDN fallback if Alpine isn't bundled in app.js (keeps mobile toggle working) --}}

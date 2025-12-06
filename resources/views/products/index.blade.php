@@ -27,7 +27,7 @@
                                 <th class="px-4 py-2 border">Harga</th>
                                 <th class="px-4 py-2 border">Satuan</th>
                                 <th class="px-4 py-2 border">Foto Produk</th>
-                                <th class="px-4 py-2 border">Min Pemberitahuan Stok</th>
+                                <th class="px-4 py-2 border">Stok</th>
                                 <th class="px-4 py-2 border">Status</th>
                                 <th class="px-4 py-2 border">Aksi</th>
                             </tr>
@@ -64,7 +64,7 @@
 
                                     <td class="px-4 py-2 border">{{ $p->nama_produk }}</td>
                                     <td class="px-4 py-2 border">{{ $p->kategori }}</td>
-                                    <td class="px-4 py-2 border">{{ $p->harga }}</td>
+                                    <td class="px-4 py-2 border"> Rp {{ number_format($p->harga, 0, ',', '.') }}</td>
                                     <td class="px-4 py-2 border">{{ $p->satuan }}</td>
                                     <td class="px-4 py-2 border">
                                         @if($p->foto_produk)
@@ -73,8 +73,14 @@
                                             N/A
                                         @endif
                                     </td>
-                                    <td class="px-4 py-2 border">{{ $p->min_stok_alert }}</td>
-                                    <td class="px-4 py-2 border">{{ $p->status }}</td>
+                                    <td class="px-4 py-2 border"> {{ $p->batches->sum('quantity_sekarang') }}</td>
+                                    <td class="px-4 py-2 border">
+                                        @if($p->batches->sum('quantity_sekarang') >= $p->min_stok_alert)
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">{{ $p->status }}</span>
+                                        @else
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">{{ $p->status }}</span>
+                                        @endif    
+                                    </td>
                                     <td class="px-4 py-2 border">
                                         <a href="{{ route('products.edit', $p->id) }}" class="text-blue-600 hover:underline">Edit</a>
                                         <form action="{{ route('products.destroy', $p->id) }}" method="POST" style="display:inline;">
