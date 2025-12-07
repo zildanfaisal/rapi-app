@@ -68,24 +68,22 @@
                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                     </div>
 
+                 
                     {{-- Qty Masuk --}}
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Qty Masuk</label>
-                        <input type="number" name="quantity_masuk"
-                               value="{{ old('quantity_masuk', $productBatch->quantity_masuk) }}"
-                               required
-                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <label class="block text-sm font-medium text-gray-700">Kuantitas Masuk</label>
+                        <input type="number" id="qty_masuk" name="quantity_masuk" required
+                        value="{{ old('quantity_masuk', $productBatch->quantity_masuk) }}"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                     </div>
 
-                    {{-- Qty Sekarang --}}
+                   {{-- Qty Sekarang (readonly) --}}
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Qty Sekarang</label>
-                        <input type="number" name="quantity_sekarang"
-                               value="{{ old('quantity_sekarang', $productBatch->quantity_sekarang) }}"
-                               required
-                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <label class="block text-sm font-medium text-gray-700">Kuantitas Sekarang</label>
+                        <input type="number" id="qty_sekarang" name="quantity_sekarang" readonly
+                        value="{{ old('quantity_sekarang', $productBatch->quantity_sekarang) }}"
+                            class="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm">
                     </div>
-
                     {{-- Supplier --}}
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700">Supplier</label>
@@ -134,5 +132,8 @@
 
         document.getElementById('batch_number').value = code;
     }
+    document.getElementById('qty_masuk').addEventListener('input', function() {
+        document.getElementById('qty_sekarang').value = this.value;
+    });
 </script>
 @endpush

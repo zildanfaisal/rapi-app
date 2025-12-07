@@ -29,8 +29,8 @@
                             <th class="px-4 py-2 border">Kode Batch</th>
                             <th class="px-4 py-2 border">Tanggal Masuk</th>
                             <th class="px-4 py-2 border">Tanggal Expired</th>
-                            <th class="px-4 py-2 border">Qty Awal</th>
-                            <th class="px-4 py-2 border">Qty Sekarang</th>
+                            <th class="px-4 py-2 border">Kuantitas Awal</th>
+                            <th class="px-4 py-2 border">Kuantitas Sekarang</th>
                             <th class="px-4 py-2 border">Supplier</th>
                             <th class="px-4 py-2 border">Status</th>
                             <th class="px-4 py-2 border">Aksi</th>
