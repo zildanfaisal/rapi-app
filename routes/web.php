@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductBatchController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -68,6 +69,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+    // Product Batch Routes
+    Route::get('/product-batches', [ProductBatchController::class, 'index'])->middleware('permission:product-batches.view')->name('product-batches.index');
+    Route::get('/product-batches/create', [ProductBatchController::class, 'create'])->middleware('permission:product-batches.create')->name('product-batches.create');
+    Route::post('/product-batches', [ProductBatchController::class, 'store'])->name('product-batches.store');
+    Route::get('/product-batches/{productBatch}/edit', [ProductBatchController::class, 'edit'])->name('product-batches.edit');
+    Route::put('/product-batches/{productBatch}', [ProductBatchController::class, 'update'])->name('product-batches.update');
+    Route::delete('/product-batches/{productBatch}', [ProductBatchController::class, 'destroy'])->name('product-batches.destroy');
+    Route::get('/product-batches/report', [ProductBatchController::class, 'report'])
+    ->name('product-batches.report');
+
 });
 
 require __DIR__.'/auth.php';
