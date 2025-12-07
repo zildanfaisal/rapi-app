@@ -55,7 +55,13 @@
 
                                     <td class="px-4 py-2 border">{{ $p->nama_produk }}</td>
                                     <td class="px-4 py-2 border">{{ $p->kategori }}</td>
-                                    <td class="px-4 py-2 border"> Rp {{ number_format($p->harga, 0, ',', '.') }}</td>
+                                    
+                                  
+
+                                    <td class="px-4 py-2 border"> Rp.{{ $p->harga }}</td>
+
+
+                                   
                                     <td class="px-4 py-2 border">{{ $p->satuan }}</td>
                                     <td class="px-4 py-2 border">
                                         @if($p->foto_produk)

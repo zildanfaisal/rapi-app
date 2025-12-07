@@ -69,7 +69,7 @@
                             <input type="text" name="harga" id="harga"
                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                   value="{{ old('harga', number_format($product->harga, 0, ',', '.')) }}" required>
+                                   value="{{ old('harga',$product->harga) }}" required>
                         </div>
 
                         {{-- Satuan --}}

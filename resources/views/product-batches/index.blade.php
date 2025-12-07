@@ -105,8 +105,17 @@
                         </tr>
                         @empty
                         <tr class="text-center">
-                            <td colspan="11" class="px-4 py-2 border">Belum Ada Batch.</td>
-                        </tr>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Product Batch.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                </tr>
                         @endforelse
                     </tbody>
                 </table>
