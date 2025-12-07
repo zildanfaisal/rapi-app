@@ -34,7 +34,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($suratJalans as $sj)
+                            @forelse($suratJalans as $sj)
                                 <tr class="text-center hover:bg-gray-50 cursor-pointer" data-href="{{ route('surat-jalan.show', $sj) }}">
                                     <td class="px-4 py-2 border">{{ $loop->iteration + ($suratJalans->currentPage() - 1) * $suratJalans->perPage() }}</td>
                                     <td class="px-4 py-2 border">{{ $sj->nomor_surat_jalan ?? '-' }}</td>
@@ -64,7 +64,19 @@
                                         </form>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr class="text-center">
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Data.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

@@ -69,7 +69,8 @@
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Customer.</td>
+                                    <td class="px-4 py-2 border">Belum Ada Data.</td>
+                                    <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>

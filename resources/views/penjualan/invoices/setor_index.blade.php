@@ -67,7 +67,14 @@
                                 </tr>
                             @empty
                                 <tr class="text-center">
-                                    <td class="px-4 py-2 border" colspan="8">Tidak ada data.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Data.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
                                 </tr>
                             @endforelse
                         </tbody>
