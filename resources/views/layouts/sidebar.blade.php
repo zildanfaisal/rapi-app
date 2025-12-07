@@ -97,12 +97,12 @@
 
                 <!-- Master Products -->
                 @can('products.view')
-               <li x-data="{ open: {{ request()->routeIs('products.*') ? 'true' : 'false' }} }" class="relative">
+               <li x-data="{ open: {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*')  ? 'true' : 'false' }} }" class="relative">
                 <button @click.prevent="open = !open"
                         :aria-expanded="open.toString()"
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('products.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*')  ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
                         :class="sidebarCollapsed ? 'justify-center' : ''">
-                    <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('products.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                    <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*')  ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                         </svg>
@@ -127,16 +127,20 @@
                             </a>
                         </li>
                         @endcan
-                        @can('products.view')
+                        @can('product-batches.view')
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Batch Produk</a>
+                            <a href="{{ route('product-batches.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('product-batches.index') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
+                                Batch Produk</a>
                         </li>
                         @endcan
-                        @can('products.view')
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Laporan Batch Produk</a>
+                            <button 
+                                @click.prevent="$dispatch('open-batch-report')"
+                                class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">
+                                Laporan Batch Produk
+                            </button>
                         </li>
-                        @endcan
+
                     </ul>
                 </li>
                 @endcan
@@ -536,3 +540,52 @@
         </nav>
     </div>
 </aside>
+<div 
+    x-data="{ open: false }"
+    x-on:open-batch-report.window="open = true"
+    x-show="open"
+    x-cloak
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+    <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-lg">
+        <h2 class="text-lg font-semibold mb-4">Filter Laporan Batch Produk</h2>
+
+        <form action="{{ route('product-batches.report') }}" method="GET" target="_blank">
+            <div class="mb-4">
+                <label class="block text-sm font-medium">Jenis Filter</label>
+                <select name="filter" class="mt-1 w-full border rounded p-2" required>
+                    <option value="all">Semua</option>
+                    <option value="tanggal_masuk">Tanggal Masuk</option>
+                    <option value="tanggal_expired">Tanggal Expired</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium">Dari Tanggal</label>
+                <input type="month" name="start_date" class="mt-1 w-full border rounded p-2">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium">Sampai Tanggal</label>
+                <input type="month" name="end_date" class="mt-1 w-full border rounded p-2">
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button type="button" @click="open = false" class="px-4 py-2 bg-red-500 text-white rounded">
+                    Batal
+                </button>
+
+                <!-- Tombol Reset -->
+                <button 
+                    type="reset" 
+                    class="px-4 py-2 bg-yellow-500 text-white rounded">
+                    Reset
+                </button>
+
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
+                    Generate PDF
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
