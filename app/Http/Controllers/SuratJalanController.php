@@ -2,64 +2,40 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSuratJalanRequest;
+use App\Models\Invoice;
 use App\Models\SuratJalan;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SuratJalanController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(StoreSuratJalanRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        return DB::transaction(function () use ($data) {
+            $invoice = Invoice::findOrFail($data['invoice_id']);
+
+            $grandTotal = $data['grand_total'] ?? ($invoice->grand_total + ($data['ongkos_kirim'] ?? 0));
+
+            $sj = SuratJalan::create([
+                'nomor_surat_jalan' => $data['nomor_surat_jalan'] ?? null,
+                'customer_id' => $data['customer_id'],
+                'invoice_id' => $invoice->id,
+                'tanggal' => $data['tanggal'],
+                'ongkos_kirim' => $data['ongkos_kirim'],
+                'grand_total' => $grandTotal,
+                'status_pembayaran' => $data['status_pembayaran'] ?? $invoice->status_pembayaran,
+                'alasan_cancel' => $data['alasan_cancel'] ?? null,
+            ]);
+
+            return redirect()->route('surat-jalan.show', $sj)->with('success', 'Surat Jalan created successfully');
+        });
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show(SuratJalan $suratJalan)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SuratJalan $suratJalan)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SuratJalan $suratJalan)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SuratJalan $suratJalan)
-    {
-        //
+        $suratJalan->load(['invoice', 'customer', 'transactions']);
+        return view('surat-jalan.show', compact('suratJalan'));
     }
 }

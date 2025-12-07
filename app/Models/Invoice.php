@@ -8,7 +8,6 @@ class Invoice extends Model
 {
     protected $fillable = [
         'invoice_number',
-        'surat_jalan_id',
         'customer_id',
         'user_id',
         'tanggal_invoice',
@@ -27,17 +26,17 @@ class Invoice extends Model
 
     public function customer()
     {
-        return $this->hasOne(Customer::class);
+        return $this->belongsTo(Customer::class);
     }
 
     public function user()
     {
-        return $this->hasOne(User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function surat_jalan()
     {
-        return $this->hasOne(SuratJalan::class);
+        return $this->hasOne(SuratJalan::class, 'invoice_id');
     }
 
     public function transactions()

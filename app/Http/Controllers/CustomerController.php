@@ -26,7 +26,7 @@ class CustomerController extends Controller
             'no_hp' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'alamat' => 'required|string|max:255',
-            'point' => 'required|integer',
+            'point' => 'nullable|integer',
         ]);
 
         Customer::create([
@@ -57,7 +57,7 @@ class CustomerController extends Controller
             'no_hp' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'alamat' => 'required|string|max:255',
-            'point' => 'required|integer',
+            'point' => 'nullable|integer',
         ]);
 
         $customer->update([

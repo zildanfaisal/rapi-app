@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nomor_surat_jalan')->unique();
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
+            $table->foreignId('invoice_id')->constrained('invoices')->onDelete('cascade');
             $table->date('tanggal');
             $table->decimal('ongkos_kirim', 15, 2);
             $table->decimal('grand_total', 15, 2);
