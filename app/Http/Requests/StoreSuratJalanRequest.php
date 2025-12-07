@@ -19,7 +19,7 @@ class StoreSuratJalanRequest extends FormRequest
             'tanggal' => ['required', 'date'],
             'ongkos_kirim' => ['required', 'numeric', 'min:0'],
             'grand_total' => ['nullable', 'numeric', 'min:0'],
-            'status_pembayaran' => ['nullable', 'in:unpaid,partial,paid'],
+            'status_pembayaran' => ['nullable', 'in:pending,lunas,cancel'],
             'alasan_cancel' => ['nullable', 'string'],
         ];
     }

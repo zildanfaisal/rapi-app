@@ -20,7 +20,7 @@ return new class extends Migration
             $table->decimal('ongkos_kirim', 15, 2);
             $table->decimal('grand_total', 15, 2);
             $table->enum('status_pembayaran', ['pending', 'lunas', 'cancel']);
-            $table->string('alasan_cancel');
+            $table->string('alasan_cancel')->nullable();
             $table->timestamps();
         });
     }

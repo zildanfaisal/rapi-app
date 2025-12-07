@@ -171,7 +171,7 @@
                             <a href="{{ route('invoices.setor') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Setor Penjualan</a>
                         </li>
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Surat Jalan</a>
+                            <a href="{{ route('surat-jalan.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Surat Jalan</a>
                         </li>
                         <li>
                             <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Riwayat Transaksi</a>
