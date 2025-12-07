@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductBatchController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SuratJalanController;
@@ -71,6 +72,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
+<<<<<<< HEAD
     // Penjualan Routes
     Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
@@ -97,6 +99,18 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+=======
+    // Product Batch Routes
+    Route::get('/product-batches', [ProductBatchController::class, 'index'])->middleware('permission:product-batches.view')->name('product-batches.index');
+    Route::get('/product-batches/create', [ProductBatchController::class, 'create'])->middleware('permission:product-batches.create')->name('product-batches.create');
+    Route::post('/product-batches', [ProductBatchController::class, 'store'])->name('product-batches.store');
+    Route::get('/product-batches/{productBatch}/edit', [ProductBatchController::class, 'edit'])->name('product-batches.edit');
+    Route::put('/product-batches/{productBatch}', [ProductBatchController::class, 'update'])->name('product-batches.update');
+    Route::delete('/product-batches/{productBatch}', [ProductBatchController::class, 'destroy'])->name('product-batches.destroy');
+    Route::get('/product-batches/report', [ProductBatchController::class, 'report'])
+    ->name('product-batches.report');
+
+>>>>>>> 50edd73d4408c820a6b04ee08ce88d9e57c90bbf
 });
 
 require __DIR__.'/auth.php';
