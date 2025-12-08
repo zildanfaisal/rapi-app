@@ -23,7 +23,7 @@
             <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <div class="text-sm text-gray-600 mb-1">Target Bulanan</div>
                 <div class="text-xl text-gray-500">Belum ada target untuk periode ini</div>
-                <a href="{{ route('budget-targets.create') }}" class="text-xs text-blue-600 hover:underline mt-2 inline-block">+ Tambah Target</a>
+                <a href="{{ route('budget-target.create') }}" class="text-xs text-blue-600 hover:underline mt-2 inline-block">+ Tambah Target</a>
             </div>
             @endif
 
@@ -132,7 +132,14 @@
                                 </tr>
                             @empty
                                 <tr class="text-center">
-                                    <td class="px-4 py-2 border" colspan="8">Belum Ada Data Keuangan untuk periode ini.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Data Keuangan.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
                                 </tr>
                             @endforelse
                         </tbody>

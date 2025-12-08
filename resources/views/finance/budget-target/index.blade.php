@@ -42,10 +42,12 @@
                                             <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>
                                         </form>
                                     </td>
-                                </tr>
-                            @empty
+                           @empty
                                 <tr class="text-center">
-                                    <td class="px-4 py-2 border" colspan="4">Belum Ada Target Anggaran.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Product.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
                                 </tr>
                             @endforelse
                         </tbody>

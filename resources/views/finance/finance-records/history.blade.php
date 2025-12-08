@@ -133,7 +133,14 @@
                                 </tr>
                             @empty
                                 <tr class="text-center">
-                                    <td class="px-4 py-2 border" colspan="8">Belum Ada Riwayat Keuangan.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Product.</td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
                                 </tr>
                             @endforelse
                         </tbody>
