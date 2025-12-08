@@ -2,64 +2,103 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSuratJalanRequest;
+use App\Models\Invoice;
 use App\Models\SuratJalan;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SuratJalanController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $suratJalans = SuratJalan::with(['customer', 'invoice'])
+            ->orderByDesc('created_at')
+            ->paginate(20);
+        return view('penjualan.surat_jalan.index', compact('suratJalans'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $invoices = Invoice::with(['customer'])
+            ->orderByDesc('created_at')
+            ->get();
+        return view('penjualan.surat_jalan.create', compact('invoices'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreSuratJalanRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        return DB::transaction(function () use ($data) {
+            $invoice = Invoice::findOrFail($data['invoice_id']);
+
+            $grandTotal = $data['grand_total'] ?? ($invoice->grand_total + ($data['ongkos_kirim'] ?? 0));
+
+            $sj = SuratJalan::create([
+                'nomor_surat_jalan' => $data['nomor_surat_jalan'] ?? strtoupper(Str::random(8)),
+                'customer_id' => $data['customer_id'],
+                'invoice_id' => $invoice->id,
+                'tanggal' => $data['tanggal'],
+                'ongkos_kirim' => $data['ongkos_kirim'],
+                'grand_total' => $grandTotal,
+                'status_pembayaran' => $data['status_pembayaran'] ?? $invoice->status_pembayaran,
+                'alasan_cancel' => $data['alasan_cancel'] ?? null,
+            ]);
+
+            return redirect()->route('surat-jalan.index', $sj)->with('success', 'Surat Jalan created successfully');
+        });
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(SuratJalan $suratJalan)
     {
-        //
+        $suratJalan->load(['invoice', 'customer', 'transactions']);
+        return view('penjualan.surat_jalan.show', compact('suratJalan'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function pdf(SuratJalan $suratJalan)
+    {
+        $suratJalan->load(['invoice', 'customer']);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('penjualan.surat_jalan.pdf', compact('suratJalan'))
+            ->setPaper('a4');
+        $filename = 'Surat-Jalan-' . ($suratJalan->nomor_surat_jalan ?? $suratJalan->id) . '.pdf';
+        return $pdf->stream($filename);
+    }
+
     public function edit(SuratJalan $suratJalan)
     {
-        //
+        $suratJalan->load(['invoice', 'customer']);
+        $invoices = Invoice::with(['customer'])->orderByDesc('created_at')->get();
+        return view('penjualan.surat_jalan.edit', compact('suratJalan', 'invoices'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, SuratJalan $suratJalan)
+    public function update(StoreSuratJalanRequest $request, SuratJalan $suratJalan)
     {
-        //
+        $data = $request->validated();
+
+        return DB::transaction(function () use ($data, $suratJalan) {
+            $invoice = Invoice::findOrFail($data['invoice_id']);
+            $grandTotal = $data['grand_total'] ?? ($invoice->grand_total + ($data['ongkos_kirim'] ?? 0));
+
+            $suratJalan->update([
+                'nomor_surat_jalan' => $data['nomor_surat_jalan'] ?? $suratJalan->nomor_surat_jalan,
+                'customer_id' => $data['customer_id'],
+                'invoice_id' => $invoice->id,
+                'tanggal' => $data['tanggal'],
+                'ongkos_kirim' => $data['ongkos_kirim'],
+                'grand_total' => $grandTotal,
+                'status_pembayaran' => $data['status_pembayaran'] ?? $invoice->status_pembayaran,
+                'alasan_cancel' => $data['alasan_cancel'] ?? null,
+            ]);
+
+            return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan updated successfully');
+        });
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(SuratJalan $suratJalan)
     {
-        //
+        return DB::transaction(function () use ($suratJalan) {
+            $suratJalan->delete();
+            return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan deleted successfully');
+        });
     }
 }

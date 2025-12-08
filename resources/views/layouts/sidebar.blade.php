@@ -146,12 +146,12 @@
                 @endcan
 
                <!-- Master Penjualan -->
-                <li x-data="{ open: false }" class="relative">
+                <li x-data="{ open: {{ request()->routeIs('invoices.*', 'surat-jalan.*') ? 'true' : 'false' }} }" class="relative">
                     <button @click.prevent="open = !open"
                             :aria-expanded="open.toString()"
-                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-slate-700 hover:bg-slate-50"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('invoices.*', 'surat-jalan.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
                             :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <span class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-all duration-200">
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('invoices.*', 'surat-jalan.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                             </svg>
@@ -169,10 +169,13 @@
                     </button>
                     <ul x-cloak x-show="open" x-transition class="mt-1.5 space-y-1 pl-12" style="display:none;">
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Penjualan</a>
+                            <a href="{{ route('invoices.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('invoices.index') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">Penjualan</a>
                         </li>
                         <li>
-                            <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Surat Jalan</a>
+                            <a href="{{ route('invoices.setor') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('invoices.setor') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">Setor Penjualan</a>
+                        </li>
+                        <li>
+                            <a href="{{ route('surat-jalan.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('surat-jalan.index') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">Surat Jalan</a>
                         </li>
                         <li>
                             <a href="#" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">Riwayat Transaksi</a>

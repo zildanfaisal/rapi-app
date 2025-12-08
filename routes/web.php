@@ -5,11 +5,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductBatchController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\SuratJalanController;
+use App\Http\Controllers\TransactionController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -80,6 +82,32 @@ Route::middleware('auth')->group(function () {
     Route::get('/product-batches/report', [ProductBatchController::class, 'report'])
     ->name('product-batches.report');
 
+    // Penjualan Routes
+    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
+    Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+    // Setor Penjualan (place BEFORE catch-all invoice routes)
+    Route::get('/invoices/setor', [InvoiceController::class, 'indexSetor'])->name('invoices.setor');
+    Route::get('/invoices/{invoice}/setor', [InvoiceController::class, 'editSetor'])->name('invoices.setor.edit');
+    Route::post('/invoices/{invoice}/setor', [InvoiceController::class, 'updateSetor'])->name('invoices.setor.update');
+
+    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+
+    Route::get('/surat-jalan', [SuratJalanController::class, 'index'])->name('surat-jalan.index');
+    Route::get('/surat-jalan/create', [SuratJalanController::class, 'create'])->name('surat-jalan.create');
+    Route::post('/surat-jalan', [SuratJalanController::class, 'store'])->name('surat-jalan.store');
+    Route::get('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'show'])->name('surat-jalan.show');
+    Route::get('/surat-jalan/{suratJalan}/edit', [SuratJalanController::class, 'edit'])->name('surat-jalan.edit');
+    Route::put('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'update'])->name('surat-jalan.update');
+    Route::get('/surat-jalan/{suratJalan}/pdf', [SuratJalanController::class, 'pdf'])->name('surat-jalan.pdf');
+    Route::delete('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'destroy'])->name('surat-jalan.destroy');
+
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
 });
 
 require __DIR__.'/auth.php';
