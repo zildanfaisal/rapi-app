@@ -23,6 +23,8 @@
                             <tr>
                                 <th class="px-4 py-2 border">No</th>
                                 <th class="px-4 py-2 border">Nomor Invoice</th>
+                                <th class="px-4 py-2 border">Produk</th>
+                                <th class="px-4 py-2 border">Quantity</th>
                                 <th class="px-4 py-2 border">Pembeli</th>
                                 <th class="px-4 py-2 border">Tanggal Invoice</th>
                                 <th class="px-4 py-2 border">Tanggal Jatuh Tempo</th>
@@ -37,6 +39,8 @@
                                 <tr class="text-center hover:bg-gray-50 cursor-pointer" data-href="{{ route('invoices.show', $c) }}">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">{{ $c->invoice_number }}</td>
+                                    <td class="px-4 py-2 border">{{ $c->items->map(fn($item) => $item->product->nama_produk ?? '')->join(', ') }}</td>
+                                    <td class="px-4 py-2 border">{{ $c->items->sum('quantity') }}</td>
                                     <td class="px-4 py-2 border">{{ $c->customer->nama_customer ?? '' }}</td>
                                     <td class="px-4 py-2 border">{{ $c->tanggal_invoice }}</td>
                                     <td class="px-4 py-2 border">{{ $c->tanggal_jatuh_tempo }}</td>
@@ -66,6 +70,8 @@
                                 </tr>
                             @empty
                                 <tr class="text-center">
+                                    <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>

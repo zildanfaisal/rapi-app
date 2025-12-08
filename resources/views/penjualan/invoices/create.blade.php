@@ -54,12 +54,21 @@
                             <h4 class="text-sm font-semibold mb-2">{{ __('Produk') }}</h4>
                             <div id="items-wrapper" class="space-y-3">
                                 <div class="item-row grid grid-cols-1 sm:grid-cols-4 gap-3">
-                                    <div class="sm:col-span-2">
+                                    <div>
                                         <label class="block text-xs text-gray-600">{{ __('Produk') }}</label>
                                         <select name="items[0][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                             <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
                                             @foreach($products as $product)
-                                                <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_product ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                                                <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
+                                        <select name="items[0][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                            <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
+                                            @foreach($batches as $batch)
+                                                <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -72,6 +81,11 @@
                                         <div class="mt-1 flex items-center">
                                             <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
                                             <input type="number" step="0.01" name="items[0][harga]" class="item-price w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                            <button type="button" class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Hapus item">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -126,12 +140,21 @@
             const tpl = document.createElement('div');
             tpl.className = 'item-row grid grid-cols-1 sm:grid-cols-4 gap-3';
             tpl.innerHTML = `
-                <div class="sm:col-span-2">
-                    <label class="block text-xs text-gray-600">Produk</label>
+                <div>
+                    <label class="block text-xs text-gray-600">{{ __('Produk') }}</label>
                     <select name="items[${index}][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
-                        <option value="" disabled selected>Pilih Produk</option>
+                        <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
                         @foreach($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_product ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                            <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
+                    <select name="items[${index}][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                        <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
+                        @foreach($batches as $batch)
+                            <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}">{{ $batch->batch_number }} — Stok: {{ $batch->quantity_sekarang }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -144,6 +167,11 @@
                     <div class="mt-1 flex items-center">
                         <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
                         <input type="number" step="0.01" name="items[${index}][harga]" class="item-price w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                        <button type="button" class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Hapus item">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             `;
@@ -169,12 +197,35 @@
                     priceInput.value = priceAttr;
                     recalc();
                 }
+                // Filter batch options matching selected product
+                const productId = e.target.value;
+                const batchSelect = row.querySelector('.item-batch');
+                if (batchSelect) {
+                    Array.from(batchSelect.options).forEach(opt => {
+                        if (!opt.value) return; // skip placeholder
+                        const p = opt.getAttribute('data-product');
+                        opt.hidden = (p !== productId);
+                    });
+                    // Reset selection
+                    batchSelect.value = '';
+                }
             }
         });
 
         // Recalculate on qty or harga change
         wrapper.addEventListener('input', function(e){
             if (e.target.matches('input[name$="[quantity]"]') || e.target.matches('input[name$="[harga]"]')) {
+                recalc();
+            }
+        });
+
+        // Remove item row on click "x / Hapus"
+        wrapper.addEventListener('click', function(e){
+            const btn = e.target.closest('.remove-item');
+            if (!btn) return;
+            const row = btn.closest('.item-row');
+            if (row) {
+                row.remove();
                 recalc();
             }
         });

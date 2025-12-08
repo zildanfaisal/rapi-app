@@ -9,6 +9,7 @@ class InvoiceItem extends Model
     protected $fillable = [
         'invoice_id',
         'product_id',
+        'batch_id',
         'quantity',
         'harga',
         'sub_total',
