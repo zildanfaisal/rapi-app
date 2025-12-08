@@ -10,8 +10,6 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductBatchController;
 use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\FinanceRecordController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BudgetTargetController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
