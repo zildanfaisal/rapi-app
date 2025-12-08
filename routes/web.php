@@ -8,6 +8,11 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductBatchController;
+use App\Http\Controllers\UserRoleController;
+use App\Http\Controllers\FinanceRecordController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\BudgetTargetController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SuratJalanController;
@@ -108,6 +113,25 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+    // Budget Targets CRUD protected by permissions
+    Route::get('/budget-target', [BudgetTargetController::class, 'index'])->middleware('permission:budget-target.view')->name('budget-target.index');
+    Route::get('/budget-target/create', [BudgetTargetController::class, 'create'])->middleware('permission:budget-target.create')->name('budget-target.create');
+    Route::post('/budget-target', [BudgetTargetController::class, 'store'])->middleware('permission:budget-target.create')->name('budget-target.store');
+    Route::get('/budget-target/{budgetTarget}/edit', [BudgetTargetController::class, 'edit'])->middleware('permission:budget-target.update')->name('budget-target.edit');
+    Route::put('/budget-target/{budgetTarget}', [BudgetTargetController::class, 'update'])->middleware('permission:budget-target.update')->name('budget-target.update');
+    Route::delete('/budget-target/{budgetTarget}', [BudgetTargetController::class, 'destroy'])->middleware('permission:budget-target.delete')->name('budget-target.destroy');
+
+    // Finance Records CRUD (Input Keuangan) protected by permissions
+    Route::get('/finance-records', [FinanceRecordController::class, 'index'])->middleware('permission:finance.input.view')->name('finance-records.index');
+    Route::get('/finance-records/create', [FinanceRecordController::class, 'create'])->middleware('permission:finance.input.create')->name('finance-records.create');
+    Route::post('/finance-records', [FinanceRecordController::class, 'store'])->middleware('permission:finance.input.create')->name('finance-records.store');
+    Route::get('/finance-records/{financeRecord}/edit', [FinanceRecordController::class, 'edit'])->middleware('permission:finance.input.update')->name('finance-records.edit');
+    Route::put('/finance-records/{financeRecord}', [FinanceRecordController::class, 'update'])->middleware('permission:finance.input.update')->name('finance-records.update');
+    Route::delete('/finance-records/{financeRecord}', [FinanceRecordController::class, 'destroy'])->middleware('permission:finance.input.delete')->name('finance-records.destroy');
+
+    // Finance History (Riwayat Keuangan - Read Only)
+    Route::get('/finance-history', [FinanceRecordController::class, 'history'])->middleware('permission:finance.history')->name('finance-records.history');
+
 });
 
 require __DIR__.'/auth.php';

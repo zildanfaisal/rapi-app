@@ -8,6 +8,7 @@ class FinanceRecord extends Model
 {
     protected $fillable = [
         'tanggal',
+        'periode',
         'tipe',
         'kategori',
         'jumlah',
@@ -15,8 +16,11 @@ class FinanceRecord extends Model
         'created_by'
     ];
 
+    /**
+     * Relasi ke User yang membuat record
+     */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
