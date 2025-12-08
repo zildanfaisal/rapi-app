@@ -32,12 +32,16 @@
                 <form method="GET" action="{{ route('finance-records.index') }}">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Filter Periode</label>
                     <select name="periode" class="w-full px-3 py-2.5 border rounded-lg" onchange="this.form.submit()">
-                        <option value="{{ date('Y-m') }}" {{ $periode == date('Y-m') ? 'selected' : '' }}>Bulan Ini ({{ date('F Y') }})</option>
-                        @foreach($availablePeriods as $p)
-                            <option value="{{ $p }}" {{ $periode == $p ? 'selected' : '' }}>
-                                {{ \Carbon\Carbon::parse($p . '-01')->format('F Y') }}
-                            </option>
-                        @endforeach
+                        @if($availablePeriods->isEmpty())
+                            <option value="">Belum ada target anggaran</option>
+                        @else
+                            @foreach($availablePeriods as $p)
+                                <option value="{{ $p }}" {{ $periode == $p ? 'selected' : '' }}>
+                                    {{ \Carbon\Carbon::parse($p . '-01')->format('F Y') }}
+                                    @if($p == date('Y-m')) (Bulan Ini) @endif
+                                </option>
+                            @endforeach
+                        @endif
                     </select>
                 </form>
             </div>

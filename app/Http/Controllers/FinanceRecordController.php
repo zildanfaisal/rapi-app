@@ -28,11 +28,11 @@ class FinanceRecordController extends Controller
         $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
         $saldo = $totalPemasukan - $totalPengeluaran;
 
-        // Get available periods
-        $availablePeriods = FinanceRecord::selectRaw('DISTINCT periode')
-            ->whereNotNull('periode')
-            ->orderBy('periode', 'desc')
-            ->pluck('periode');
+        // Get available periods from Budget Targets (not from finance records)
+        $availablePeriods = \App\Models\BudgetTarget::selectRaw("DATE_FORMAT(tanggal, '%Y-%m') as periode")
+            ->orderBy('tanggal', 'desc')
+            ->pluck('periode')
+            ->unique();
 
         return view('finance.finance-records.index', compact('financeRecords', 'periode', 'budgetTarget', 'totalPemasukan', 'totalPengeluaran', 'saldo', 'availablePeriods'));
     }
