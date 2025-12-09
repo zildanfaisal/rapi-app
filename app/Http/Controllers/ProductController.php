@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use DNS1D;
+
 
 class ProductController extends Controller
 {
@@ -121,5 +123,55 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')
             ->with('success', 'Product deleted successfully.');
+    }
+        
+    public function downloadBarcode($id)
+    {
+        $product = Product::findOrFail($id);
+
+        $barcodePng = DNS1D::getBarcodePNG($product->barcode, 'C128', 2, 80);
+        $barcodeBinary = base64_decode($barcodePng);
+        $barcodeImage = imagecreatefromstring($barcodeBinary);
+
+        $barcodeWidth = imagesx($barcodeImage);
+        $barcodeHeight = imagesy($barcodeImage);
+
+        $padding = 10;
+        $newWidth = $barcodeWidth + ($padding * 2);
+        $newHeight = $barcodeHeight + 40;
+
+        $final = imagecreatetruecolor($newWidth, $newHeight);
+
+        $white = imagecolorallocate($final, 255, 255, 255);
+        $black = imagecolorallocate($final, 0, 0, 0);
+
+        imagefilledrectangle($final, 0, 0, $newWidth, $newHeight, $white);
+
+        imagecopy(
+            $final,
+            $barcodeImage,
+            $padding, 
+            0,        
+            0, 0,
+            $barcodeWidth,
+            $barcodeHeight
+        );
+
+        $text = $product->barcode;
+        $textX = ($newWidth / 2) - (strlen($text) * 4);
+        $textY = $barcodeHeight + 10;
+
+        imagestring($final, 5, $textX, $textY, $text, $black);
+
+        ob_start();
+        imagepng($final);
+        $result = ob_get_clean();
+
+        imagedestroy($barcodeImage);
+        imagedestroy($final);
+
+        return response($result)
+            ->header('Content-Type', 'image/png')
+            ->header('Content-Disposition', 'attachment; filename="barcode-'.$product->nama_produk.'.png"');
     }
 }
