@@ -58,7 +58,7 @@
                                     
                                   
 
-                                    <td class="px-4 py-2 border"> Rp.{{ $p->harga }}</td>
+                                    <td class="px-4 py-2 border"> Rp {{ $p->harga }}</td>
 
 
                                    
@@ -79,12 +79,32 @@
                                         @endif    
                                     </td>
                                     <td class="px-4 py-2 border">
-                                        <a href="{{ route('products.edit', $p->id) }}" class="text-blue-600 hover:underline">Edit</a>
-                                        <form action="{{ route('products.destroy', $p->id) }}" method="POST" style="display:inline;" data-confirm-delete>
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>
-                                        </form>
+                                        <div class="flex items-center gap-4">
+                                            
+                                            <!-- Edit -->
+                                            <a href="{{ route('products.edit', $p->id) }}" 
+                                            class="text-blue-600 hover:underline">
+                                                Edit
+                                            </a>
+
+                                            <!-- Hapus -->
+                                            <form action="{{ route('products.destroy', $p->id) }}" 
+                                                method="POST" 
+                                                data-confirm-delete>
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:underline">
+                                                    Hapus
+                                                </button>
+                                            </form>
+
+                                            <!-- Unduh Barcode -->
+                                            <a href="{{ route('products.barcode.download', $p->id) }}" 
+                                            class="text-green-600 hover:underline">
+                                                Unduh Barcode
+                                            </a>
+
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty

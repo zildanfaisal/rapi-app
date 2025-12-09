@@ -58,8 +58,9 @@
                     {{-- Tanggal Expired --}}
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700">Tanggal Expired</label>
-                        <input type="date" name="tanggal_expired" required
-                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <input type="date" name="tanggal_expired" id="tanggal_expired" disabled
+                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+
                     </div>
 
                     {{-- Qty Masuk --}}
@@ -128,6 +129,28 @@
     document.getElementById('qty_masuk').addEventListener('input', function() {
         document.getElementById('qty_sekarang').value = this.value;
     });
+    const tanggalMasuk = document.querySelector('input[name="tanggal_masuk"]');
+    const tanggalExpired = document.getElementById('tanggal_expired');
+
+    tanggalExpired.disabled = true;
+
+    tanggalMasuk.addEventListener('change', function () {
+        const masuk = this.value;
+
+        if (masuk) {
+            tanggalExpired.disabled = false;     
+            tanggalExpired.min = masuk;          
+
+          
+            if (tanggalExpired.value && tanggalExpired.value < masuk) {
+                tanggalExpired.value = '';
+            }
+        } else {
+            tanggalExpired.disabled = true;      
+            tanggalExpired.value = '';
+        }
+    });
+
 
 </script>
 @endpush
