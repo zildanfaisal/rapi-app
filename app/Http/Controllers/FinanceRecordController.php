@@ -40,23 +40,35 @@ class FinanceRecordController extends Controller
     /**
      * Display history (Riwayat Keuangan - Read Only).
      */
+    /**
+ * Display history (Riwayat Keuangan - Read Only).
+ */
     public function history(Request $request)
     {
+        // Default to current month if it has a budget target
+        $currentMonth = date('Y-m');
+        $hasCurrentMonthTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$currentMonth])->exists();
+
         $periode = $request->get('periode');
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
+        // Only auto-select current month if this is the first visit (no query params at all)
+        if (!$request->has('periode') && !$request->has('start_date') && !$request->has('end_date') && $hasCurrentMonthTarget) {
+            $periode = $currentMonth;
+        }
+
         $query = FinanceRecord::with('user');
 
-        // Filter by periode if selected
-        if ($periode) {
+        // Priority: Date range over periode
+        if ($startDate && $endDate) {
+            // If date range provided, use date range (ignore periode)
+            $query->whereBetween('tanggal', [$startDate, $endDate]);
+        } elseif ($periode) {
+            // If only periode selected, filter by periode
             $query->where('periode', $periode);
         }
-
-        // Filter by date range if provided
-        if ($startDate && $endDate) {
-            $query->whereBetween('tanggal', [$startDate, $endDate]);
-        }
+        // If periode is empty string (user selected "Semua Periode"), show all data
 
         $financeRecords = $query->orderBy('tanggal', 'desc')->get();
 
@@ -64,16 +76,20 @@ class FinanceRecordController extends Controller
         $budgetTarget = null;
         if ($periode) {
             $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
+        } elseif ($startDate) {
+            // Get budget target based on start date month
+            $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [date('Y-m', strtotime($startDate))])->first();
         }
 
         // Get available periods
-        $availablePeriods = FinanceRecord::selectRaw('DISTINCT periode')
-            ->whereNotNull('periode')
-            ->orderBy('periode', 'desc')
-            ->pluck('periode');
+        $availablePeriods = \App\Models\BudgetTarget::selectRaw("DATE_FORMAT(tanggal, '%Y-%m') as periode")
+            ->orderBy('tanggal', 'desc')
+            ->pluck('periode')
+            ->unique();
 
         return view('finance.finance-records.history', compact('financeRecords', 'periode', 'startDate', 'endDate', 'budgetTarget', 'availablePeriods'));
     }
+
 
     /**
      * Show the form for creating a new resource.

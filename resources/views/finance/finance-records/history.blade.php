@@ -32,20 +32,33 @@
 
             <!-- Filter Card -->
             <div class="bg-white border border-gray-200 rounded-lg p-6">
-                <form method="GET" action="{{ route('finance-records.history') }}">
+                <form method="GET" action="{{ route('finance-records.history') }}" id="filterForm">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Filter</label>
                     <div class="space-y-2">
-                        <select name="periode" class="w-full px-3 py-2 border rounded-lg text-sm">
-                            <option value="">Semua Periode</option>
-                            @foreach($availablePeriods as $p)
+                        <select name="periode" id="periodeSelect" class="w-full px-3 py-2 border rounded-lg text-sm">
+                            @php
+                                $currentMonth = date('Y-m');
+                                $hasCurrentMonth = $availablePeriods->contains($currentMonth);
+                            @endphp
+
+                            @if($hasCurrentMonth)
+                                <option value="{{ $currentMonth }}" {{ $periode == $currentMonth ? 'selected' : '' }}>
+                                    {{ \Carbon\Carbon::parse($currentMonth . '-01')->format('F Y') }} (Bulan Ini)
+                                </option>
+                            @endif
+
+                            @foreach($availablePeriods->reject(fn($p) => $p == $currentMonth) as $p)
                                 <option value="{{ $p }}" {{ $periode == $p ? 'selected' : '' }}>
                                     {{ \Carbon\Carbon::parse($p . '-01')->format('F Y') }}
                                 </option>
                             @endforeach
+
+                            <option value="" {{ !$periode ? 'selected' : '' }}>Semua Periode</option>
                         </select>
+                        <div class="text-center text-xs text-gray-500 py-1">atau</div>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="date" name="start_date" value="{{ $startDate }}" placeholder="Dari" class="px-2 py-2 border rounded-lg text-sm">
-                            <input type="date" name="end_date" value="{{ $endDate }}" placeholder="Sampai" class="px-2 py-2 border rounded-lg text-sm">
+                            <input type="date" name="start_date" id="startDate" value="{{ $startDate }}" placeholder="Dari" class="px-2 py-2 border rounded-lg text-sm">
+                            <input type="date" name="end_date" id="endDate" value="{{ $endDate }}" placeholder="Sampai" class="px-2 py-2 border rounded-lg text-sm">
                         </div>
                         <div class="flex gap-2">
                             <button type="submit" class="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">Filter</button>
@@ -135,8 +148,8 @@
                                 <tr class="text-center">
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Product.</td>
+                                     <td class="px-4 py-2 border"></td>
+                                    <td class="px-4 py-2 border">Belum Ada Data Keuangan.</td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
                                     <td class="px-4 py-2 border"></td>
@@ -154,6 +167,205 @@
 
 @push('scripts')
 <script>
-    new DataTable('#dataTables');
+    // Auto clear periode when date range is selected
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const periodeSelect = document.getElementById('periodeSelect');
+
+    startDate.addEventListener('change', function() {
+        if (this.value) {
+            periodeSelect.value = ''; // Clear periode selection
+        }
+    });
+
+    endDate.addEventListener('change', function() {
+        if (this.value) {
+            periodeSelect.value = ''; // Clear periode selection
+        }
+    });
+
+    // Auto clear date range when periode is selected
+    periodeSelect.addEventListener('change', function() {
+        if (this.value) {
+            startDate.value = '';
+            endDate.value = '';
+        }
+    });
+
+    new DataTable('#dataTables', {
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fas fa-file-excel"></i> Export Excel',
+                className: 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded',
+                title: function() {
+                    let title = 'Riwayat Keuangan';
+                    @if($periode)
+                        title += ' - {{ \Carbon\Carbon::parse($periode . "-01")->format("F Y") }}';
+                    @endif
+                    @if($startDate && $endDate)
+                        title += ' ({{ \Carbon\Carbon::parse($startDate)->format("d/m/Y") }} - {{ \Carbon\Carbon::parse($endDate)->format("d/m/Y") }})';
+                    @endif
+                    return title;
+                },
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7] // All columns
+                },
+                customize: function(xlsx) {
+                    // Add summary at the bottom
+                    var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                    var lastRow = $('row', sheet).length;
+
+                    // Add empty row
+                    lastRow++;
+
+                    // Add summary rows
+                    @php
+                        $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
+                        $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
+                        $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
+                    @endphp
+
+                    $('row:last', sheet).after(
+                        '<row r="' + (lastRow + 1) + '">' +
+                        '<c t="inlineStr" r="E' + (lastRow + 1) + '"><is><t>Total Pemasukan:</t></is></c>' +
+                        '<c t="inlineStr" r="F' + (lastRow + 1) + '"><is><t>Rp {{ number_format($totalPemasukan, 0, ",", ".") }}</t></is></c>' +
+                        '</row>'
+                    );
+
+                    $('row:last', sheet).after(
+                        '<row r="' + (lastRow + 2) + '">' +
+                        '<c t="inlineStr" r="E' + (lastRow + 2) + '"><is><t>Total Pengeluaran:</t></is></c>' +
+                        '<c t="inlineStr" r="F' + (lastRow + 2) + '"><is><t>Rp {{ number_format($totalPengeluaran, 0, ",", ".") }}</t></is></c>' +
+                        '</row>'
+                    );
+
+                    @if($budgetTarget)
+                    $('row:last', sheet).after(
+                        '<row r="' + (lastRow + 3) + '">' +
+                        '<c t="inlineStr" r="E' + (lastRow + 3) + '"><is><t>Target Bulanan:</t></is></c>' +
+                        '<c t="inlineStr" r="F' + (lastRow + 3) + '"><is><t>Rp {{ number_format($budgetTarget->budget_bulanan, 0, ",", ".") }}</t></is></c>' +
+                        '</row>'
+                    );
+
+                    $('row:last', sheet).after(
+                        '<row r="' + (lastRow + 4) + '">' +
+                        '<c t="inlineStr" r="E' + (lastRow + 4) + '"><is><t>Saldo Sisa:</t></is></c>' +
+                        '<c t="inlineStr" r="F' + (lastRow + 4) + '"><is><t>Rp {{ number_format($saldoSisa, 0, ",", ".") }}</t></is></c>' +
+                        '</row>'
+                    );
+                    @endif
+                }
+            },
+            {
+                extend: 'pdfHtml5',
+                text: '<i class="fas fa-file-pdf"></i> Export PDF',
+                className: 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded ml-2',
+                title: function() {
+                    let title = 'Riwayat Keuangan';
+                    @if($periode)
+                        title += ' - {{ \Carbon\Carbon::parse($periode . "-01")->format("F Y") }}';
+                    @endif
+                    @if($startDate && $endDate)
+                        title += ' ({{ \Carbon\Carbon::parse($startDate)->format("d/m/Y") }} - {{ \Carbon\Carbon::parse($endDate)->format("d/m/Y") }})';
+                    @endif
+                    return title;
+                },
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                },
+                customize: function(doc) {
+                    // Add summary at the bottom
+                    @php
+                        $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
+                        $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
+                        $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
+                    @endphp
+
+                    doc.content.push({
+                        text: '\n\nRingkasan:',
+                        style: 'header',
+                        fontSize: 12,
+                        bold: true
+                    });
+
+                    doc.content.push({
+                        table: {
+                            widths: ['*', '*'],
+                            body: [
+                                ['Total Pemasukan', 'Rp {{ number_format($totalPemasukan, 0, ",", ".") }}'],
+                                ['Total Pengeluaran', 'Rp {{ number_format($totalPengeluaran, 0, ",", ".") }}'],
+                                @if($budgetTarget)
+                                ['Target Bulanan', 'Rp {{ number_format($budgetTarget->budget_bulanan, 0, ",", ".") }}'],
+                                ['Saldo Sisa', 'Rp {{ number_format($saldoSisa, 0, ",", ".") }}']
+                                @endif
+                            ]
+                        }
+                    });
+                }
+            },
+            {
+                extend: 'print',
+                text: '<i class="fas fa-print"></i> Print',
+                className: 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded ml-2',
+                title: function() {
+                    let title = 'Riwayat Keuangan';
+                    @if($periode)
+                        title += ' - {{ \Carbon\Carbon::parse($periode . "-01")->format("F Y") }}';
+                    @endif
+                    @if($startDate && $endDate)
+                        title += '<br>({{ \Carbon\Carbon::parse($startDate)->format("d/m/Y") }} - {{ \Carbon\Carbon::parse($endDate)->format("d/m/Y") }})';
+                    @endif
+                    return title;
+                },
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                },
+                customize: function(win) {
+                    // Add summary after table
+                    @php
+                        $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
+                        $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
+                        $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
+                    @endphp
+
+                    $(win.document.body).append(
+                        '<div style="margin-top: 30px; border-top: 2px solid #000; padding-top: 20px;">' +
+                        '<h3 style="margin-bottom: 15px;">Ringkasan:</h3>' +
+                        '<table style="width: 50%;">' +
+                        '<tr><td><b>Total Pemasukan:</b></td><td style="text-align: right; color: green;">Rp {{ number_format($totalPemasukan, 0, ",", ".") }}</td></tr>' +
+                        '<tr><td><b>Total Pengeluaran:</b></td><td style="text-align: right; color: red;">Rp {{ number_format($totalPengeluaran, 0, ",", ".") }}</td></tr>' +
+                        @if($budgetTarget)
+                        '<tr><td><b>Target Bulanan:</b></td><td style="text-align: right; color: purple;">Rp {{ number_format($budgetTarget->budget_bulanan, 0, ",", ".") }}</td></tr>' +
+                        '<tr><td><b>Saldo Sisa:</b></td><td style="text-align: right; color: {{ $saldoSisa >= 0 ? "blue" : "red" }};">Rp {{ number_format($saldoSisa, 0, ",", ".") }}</td></tr>' +
+                        @endif
+                        '</table>' +
+                        '</div>'
+                    );
+
+                    $(win.document.body).find('table').addClass('display').css('font-size', '10pt');
+                }
+            }
+        ],
+        language: {
+            "decimal": ",",
+            "thousands": ".",
+            "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            "infoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
+            "infoFiltered": "(difilter dari _MAX_ total data)",
+            "lengthMenu": "Tampilkan _MENU_ data",
+            "loadingRecords": "Memuat...",
+            "processing": "Memproses...",
+            "search": "Cari:",
+            "zeroRecords": "Data tidak ditemukan",
+            "paginate": {
+                "first": "Pertama",
+                "last": "Terakhir",
+                "next": "Selanjutnya",
+                "previous": "Sebelumnya"
+            }
+        }
+    });
 </script>
 @endpush
