@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Requests\SetorInvoiceRequest;
+use App\Models\ProductBatch;
 
 class InvoiceController extends Controller
 {
@@ -23,8 +24,9 @@ class InvoiceController extends Controller
     {
         $customers = \App\Models\Customer::all();
         $products = \App\Models\Product::all();
+        $batches = \App\Models\ProductBatch::orderByDesc('created_at')->get();
         
-        return view('penjualan.invoices.create', compact('customers', 'products'));
+        return view('penjualan.invoices.create', compact('customers', 'products', 'batches'));
     }
 
     public function edit(Invoice $invoice)
@@ -59,10 +61,20 @@ class InvoiceController extends Controller
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'product_id' => $item['product_id'],
+                    'batch_id' => $item['batch_id'] ?? null,
                     'quantity' => $item['quantity'],
                     'harga' => $item['harga'],
                     'sub_total' => $subTotal,
                 ]);
+
+                // Decrease selected batch quantity_sekarang
+                if (!empty($item['batch_id'])) {
+                    $batch = \App\Models\ProductBatch::find($item['batch_id']);
+                    if ($batch && $batch->product_id == $item['product_id']) {
+                        $newQty = max(0, (int) $batch->quantity_sekarang - (int) $item['quantity']);
+                        $batch->update(['quantity_sekarang' => $newQty]);
+                    }
+                }
             }
 
             $invoice->update(['grand_total' => $grandTotal]);
@@ -120,13 +132,25 @@ class InvoiceController extends Controller
             foreach ($data['items'] as $item) {
                 $subTotal = (int)$item['quantity'] * (float)$item['harga'];
                 $grandTotal += $subTotal;
+
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'product_id' => $item['product_id'],
+                    'batch_id' => $item['batch_id'],
                     'quantity' => $item['quantity'],
                     'harga' => $item['harga'],
                     'sub_total' => $subTotal,
                 ]);
+
+                $batch = ProductBatch::find($item['batch_id']);
+
+                if ($batch) {
+                    if ($batch->quantity_sekarang < $item['quantity']) {
+                        throw new \Exception("Stok batch #{$batch->id} tidak cukup.");
+                    }
+
+                    $batch->decrement('quantity_sekarang', $item['quantity']);
+                }
             }
 
             $invoice->update(['grand_total' => $grandTotal]);

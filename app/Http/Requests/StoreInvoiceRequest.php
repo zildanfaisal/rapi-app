@@ -26,6 +26,7 @@ class StoreInvoiceRequest extends FormRequest
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.batch_id' => ['required', 'exists:product_batches,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.harga' => ['required', 'numeric', 'min:0'],
         ];

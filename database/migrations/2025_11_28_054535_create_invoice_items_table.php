@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('invoice_id')->constrained('invoices')->onDelete('cascade');
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->foreignId('batch_id')->constrained('product_batches')->onDelete('cascade');
             $table->integer('quantity');
             $table->decimal('harga', 15, 2);
             $table->decimal('sub_total', 15, 2);

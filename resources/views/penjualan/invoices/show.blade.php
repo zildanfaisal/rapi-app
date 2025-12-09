@@ -70,7 +70,7 @@
                             <tbody>
                                 @foreach($invoice->items as $item)
                                     <tr class="text-center hover:bg-gray-50">
-                                        <td class="px-4 py-2 border">{{ $item->product->nama_product ?? $item->product->nama ?? 'Produk #'.$item->product_id }}</td>
+                                        <td class="px-4 py-2 border">{{ $item->product->nama_produk ?? $item->product->nama ?? 'Produk #'.$item->product_id }}</td>
                                         <td class="px-4 py-2 border">{{ $item->quantity }}</td>
                                         <td class="px-4 py-2 border">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                                         <td class="px-4 py-2 border">Rp {{ number_format($item->sub_total, 0, ',', '.') }}</td>
