@@ -14,6 +14,43 @@
 @section('content')
     <div class="py-2">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Total Lunas Belum Disetor (negative display) -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                    <div class="text-sm text-yellow-700 mb-1">Total Lunas Belum Disetor</div>
+                    <div class="text-4xl font-extrabold text-yellow-800 tracking-tight">
+                        @php $amt = (int) ($notDepositedTotal ?? 0); @endphp
+                        @if($amt > 0)
+                            - Rp {{ number_format($amt, 0, ',', '.') }}
+                        @else
+                            Rp 0
+                        @endif
+                    </div>
+                    @if(($dateFrom ?? null) || ($dateTo ?? null))
+                        <div class="mt-2 text-[11px] text-yellow-700">Rentang: {{ $dateFrom ?? '—' }} s/d {{ $dateTo ?? '—' }}</div>
+                    @endif
+                </div>
+
+                <!-- Filter Tanggal -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                    <form method="GET" action="{{ route('invoices.setor') }}" class="grid grid-cols-1 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                                <input type="date" name="date_from" value="{{ $dateFrom ?? '' }}" class="w-full px-3 py-2.5 border rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                                <input type="date" name="date_to" value="{{ $dateTo ?? '' }}" class="w-full px-3 py-2.5 border rounded-lg">
+                            </div>
+                        </div>
+                        <div class="flex gap-2 justify-end">
+                            <button type="submit" class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Filter</button>
+                            <a href="{{ route('invoices.setor') }}" class="px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold">{{ __('Daftar Invoice') }}</h3>

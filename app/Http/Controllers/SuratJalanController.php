@@ -7,15 +7,28 @@ use App\Models\Invoice;
 use App\Models\SuratJalan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
 class SuratJalanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suratJalans = SuratJalan::with(['customer', 'invoice'])
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        $base = SuratJalan::with(['customer', 'invoice'])
+            ->when($dateFrom, fn($q) => $q->whereDate('tanggal', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('tanggal', '<=', $dateTo));
+
+        $suratJalans = (clone $base)
             ->orderByDesc('created_at')
-            ->paginate(20);
-        return view('penjualan.surat_jalan.index', compact('suratJalans'));
+            ->paginate(20)
+            ->appends($request->only('date_from', 'date_to'));
+
+        $totalCount = (clone $base)->count();
+        $paidCount = (clone $base)->where('status_pembayaran', 'lunas')->count();
+
+        return view('penjualan.surat_jalan.index', compact('suratJalans', 'totalCount', 'paidCount', 'dateFrom', 'dateTo'));
     }
     public function create()
     {

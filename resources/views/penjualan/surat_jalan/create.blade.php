@@ -52,10 +52,11 @@
 
 					<div class="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
 						<div>
-							<label for="ongkos_kirim" class="block text-sm font-medium text-gray-700">{{ __('Ongkos Kirim') }}</label>
+							<label for="ongkos_kirim_display" class="block text-sm font-medium text-gray-700">{{ __('Ongkos Kirim') }}</label>
 							<div class="mt-1 flex items-center">
 								<span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-								<input type="number" step="0.01" name="ongkos_kirim" id="ongkos_kirim" value="{{ old('ongkos_kirim', 0) }}" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+								<input type="text" id="ongkos_kirim_display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" />
+								<input type="hidden" name="ongkos_kirim" id="ongkos_kirim" value="{{ old('ongkos_kirim', 0) }}">
 							</div>
 						</div>
 						<div class="sm:col-span-2">
@@ -96,6 +97,7 @@
 		const sel = document.getElementById('invoice_id');
 		const grandText = document.getElementById('invoice-grand');
 		const ongkirEl = document.getElementById('ongkos_kirim');
+		const ongkirDisp = document.getElementById('ongkos_kirim_display');
 		const grandDisp = document.getElementById('grand_total_display');
 		const grandHidden = document.getElementById('grand_total_hidden');
 		const custHidden = document.getElementById('customer_id');
@@ -103,6 +105,8 @@
 		const noInput = document.getElementById('nomor_surat_jalan');
 
 		function formatIDR(n){ return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(n || 0)); }
+		function formatRupiahRaw(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n || 0)); }
+		function unformatRupiah(str){ return (str || '').toString().replace(/[^0-9]/g,''); }
 
 		function recalc(){
 			const opt = sel.options[sel.selectedIndex];
@@ -122,7 +126,12 @@
 			recalc();
 		});
 
-		ongkirEl.addEventListener('input', recalc);
+		ongkirDisp.addEventListener('input', function(e){
+			const raw = unformatRupiah(e.target.value);
+			ongkirEl.value = raw || 0;
+			e.target.value = raw ? formatRupiahRaw(raw) : '';
+			recalc();
+		});
 
 		genBtn.addEventListener('click', function(){
 			const rand = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -141,6 +150,11 @@
 		statusEl.addEventListener('change', toggleAlasanRequiredCreate);
 
 		// init on load
+		// set display from hidden initial value
+		if (ongkirDisp && ongkirEl) {
+			const raw = ongkirEl.value || '0';
+			ongkirDisp.value = formatRupiahRaw(raw);
+		}
 		recalc();
 		toggleAlasanRequiredCreate();
 	})();

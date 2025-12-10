@@ -9,6 +9,42 @@
 @section('content')
 <div class="py-2">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                <div class="text-sm text-green-700 mb-1">Rasio Lunas / Transaksi</div>
+                <div class="text-4xl font-extrabold text-green-800 tracking-tight">
+                    {{ number_format($paidCount ?? 0, 0, ',', '.') }}
+                    <span class="text-green-600">/</span>
+                    {{ number_format($totalCount ?? 0, 0, ',', '.') }}
+                </div>
+                <div class="mt-2 text-xs text-green-700 space-y-0.5">
+                    <div>Lunas: <span class="font-semibold">{{ number_format($paidCount ?? 0, 0, ',', '.') }}</span> transaksi</div>
+                    <div>Total transaksi: <span class="font-semibold">{{ number_format($totalCount ?? 0, 0, ',', '.') }}</span></div>
+                    @if(($dateFrom ?? null) || ($dateTo ?? null))
+                        <div class="text-[11px] text-green-600">Rentang: {{ $dateFrom ?? '—' }} s/d {{ $dateTo ?? '—' }}</div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <form method="GET" action="{{ route('surat-jalan.index') }}" class="grid grid-cols-1 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                            <input type="date" name="date_from" value="{{ $dateFrom ?? '' }}" class="w-full px-3 py-2.5 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                            <input type="date" name="date_to" value="{{ $dateTo ?? '' }}" class="w-full px-3 py-2.5 border rounded-lg">
+                        </div>
+                    </div>
+                    <div class="flex gap-2 justify-end">
+                        <button type="submit" class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Filter</button>
+                        <a href="{{ route('surat-jalan.index') }}" class="px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
         <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
             <div class="max-w-auto">
                 <div class="flex items-center justify-between mb-4">

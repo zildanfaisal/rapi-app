@@ -14,10 +14,30 @@ use App\Models\ProductBatch;
 
 class InvoiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $invoices = Invoice::with(['customer', 'user'])->orderByDesc('created_at')->paginate(20);
-        return view('penjualan.invoices.index', compact('invoices'));
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        $query = Invoice::with(['customer', 'user'])
+            ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo))
+            ->orderByDesc('created_at');
+
+        $invoices = $query->paginate(20)->appends($request->only('date_from', 'date_to'));
+
+        $paidFilter = Invoice::query()
+            ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo));
+
+        $totalCount = (clone $paidFilter)->count();
+        $paidCount = (clone $paidFilter)->where('status_pembayaran', 'paid')->count();
+        $totalPaid = (clone $paidFilter)->where('status_pembayaran', 'paid')->sum('grand_total');
+        $totalSetor = (clone $paidFilter)->where('status_pembayaran', 'paid')
+            ->where('status_setor', 'sudah')
+            ->sum('grand_total');
+
+        return view('penjualan.invoices.index', compact('invoices', 'totalPaid', 'totalSetor', 'paidCount', 'totalCount', 'dateFrom', 'dateTo'));
     }
 
     public function create()
@@ -202,13 +222,28 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.index')->with('success', 'Invoice deleted successfully');
     }
 
-    public function indexSetor()
+    public function indexSetor(Request $request)
     {
-        $invoices = Invoice::with(['customer', 'user'])
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        $base = Invoice::with(['customer', 'user'])
             ->where('status_pembayaran', 'paid')
+            ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo));
+
+        $notDepositedTotal = (clone $base)
+            ->where(function ($q) {
+                $q->whereNull('status_setor')->orWhere('status_setor', '!=', 'sudah');
+            })
+            ->sum('grand_total');
+
+        $invoices = (clone $base)
             ->orderByDesc('created_at')
-            ->paginate(20);
-        return view('penjualan.invoices.setor_index', compact('invoices'));
+            ->paginate(20)
+            ->appends($request->only('date_from', 'date_to'));
+
+        return view('penjualan.invoices.setor_index', compact('invoices', 'notDepositedTotal', 'dateFrom', 'dateTo'));
     }
 
     public function editSetor(Invoice $invoice)

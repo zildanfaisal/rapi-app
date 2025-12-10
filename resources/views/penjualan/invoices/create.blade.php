@@ -52,6 +52,15 @@
                         </div>
                         <div class="mb-6">
                             <h4 class="text-sm font-semibold mb-2">{{ __('Produk') }}</h4>
+                            <div class="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label for="scan-barcode" class="block text-xs text-gray-600">Barcode Produk</label>
+                                    <input type="text" id="scan-barcode" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="Masukkan Barcode" autocomplete="off">
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="button" id="scan-clear" class="px-3 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Bersihkan</button>
+                                </div>
+                            </div>
                             <div id="items-wrapper" class="space-y-3">
                                 <div class="item-row grid grid-cols-1 sm:grid-cols-4 gap-3">
                                     <div>
@@ -59,7 +68,7 @@
                                         <select name="items[0][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                             <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
                                             @foreach($products as $product)
-                                                <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                                                <option value="{{ $product->id }}" data-barcode="{{ $product->barcode }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -80,7 +89,8 @@
                                         <label class="block text-xs text-gray-600">{{ __('Harga') }}</label>
                                         <div class="mt-1 flex items-center">
                                             <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-                                            <input type="number" step="0.01" name="items[0][harga]" class="item-price w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                            <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" />
+                                            <input type="hidden" name="items[0][harga]" class="item-price" required />
                                             <button type="button" class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Hapus item">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -125,15 +135,72 @@
         const wrapper = document.getElementById('items-wrapper');
         const addBtn = document.getElementById('add-item');
         const grandEl = document.getElementById('grand-total');
+        const scanInput = document.getElementById('scan-barcode');
+        const scanClear = document.getElementById('scan-clear');
+
+        const PRODUCT_CATALOG = {!! json_encode(
+            $products->map(function($p){
+                return [
+                    'id' => $p->id,
+                    'barcode' => $p->barcode,
+                    'price' => $p->harga ?? $p->price ?? 0,
+                ];
+            })->values()->toArray()
+        ) !!};
+
+
+        function formatRupiah(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function unformatRupiah(str) {
+            return (str || '').toString().replace(/[^0-9]/g, '');
+        }
 
         function recalc() {
             let total = 0;
             wrapper.querySelectorAll('.item-row').forEach(row => {
                 const qty = parseFloat(row.querySelector('input[name$="[quantity]"]').value || 0);
-                const harga = parseFloat(row.querySelector('input[name$="[harga]"]').value || 0);
+                const hargaRawEl = row.querySelector('.item-price');
+                const harga = parseFloat(hargaRawEl?.value || 0);
                 total += (qty * harga);
             });
             grandEl.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(total);
+        }
+
+        function selectProductInRow(row, productId) {
+            const sel = row.querySelector('.item-product');
+            if (!sel) return;
+            sel.value = String(productId);
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+            const qtyInput = row.querySelector('input[name$="[quantity]"]');
+            if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) qtyInput.value = 1;
+        }
+
+        function getEmptyRowOrAdd() {
+            let row = Array.from(wrapper.querySelectorAll('.item-row')).find(r => {
+                const sel = r.querySelector('.item-product');
+                return sel && !sel.value;
+            });
+            if (!row) {
+                addBtn.click();
+                const rows = wrapper.querySelectorAll('.item-row');
+                row = rows[rows.length - 1];
+            }
+            return row;
+        }
+
+        function handleScan(code) {
+            const bc = String(code || '').trim();
+            if (!bc) return;
+            const found = PRODUCT_CATALOG.find(p => (p.barcode || '') === bc);
+            if (!found) {
+                alert('Produk dengan barcode tersebut tidak ditemukan');
+                return;
+            }
+            const row = getEmptyRowOrAdd();
+            selectProductInRow(row, found.id);
+            recalc();
         }
 
         addBtn.addEventListener('click', function() {
@@ -145,7 +212,7 @@
                     <select name="items[${index}][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
                         @foreach($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                            <option value="{{ $product->id }}" data-barcode="{{ $product->barcode }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -166,7 +233,8 @@
                     <label class="block text-xs text-gray-600">Harga</label>
                     <div class="mt-1 flex items-center">
                         <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-                        <input type="number" step="0.01" name="items[${index}][harga]" class="item-price w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                        <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" />
+                        <input type="hidden" name="items[${index}][harga]" class="item-price" required />
                         <button type="button" class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Hapus item">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -192,9 +260,11 @@
             if (e.target.matches('select[name^="items"][name$="[product_id]"]')) {
                 const priceAttr = e.target.options[e.target.selectedIndex]?.getAttribute('data-price');
                 const row = e.target.closest('.item-row');
-                const priceInput = row.querySelector('.item-price');
-                if (priceInput && priceAttr) {
-                    priceInput.value = priceAttr;
+                const priceDisplay = row.querySelector('.item-price-display');
+                const priceHidden = row.querySelector('.item-price');
+                if (priceDisplay && priceHidden && priceAttr) {
+                    priceHidden.value = String(priceAttr);
+                    priceDisplay.value = formatRupiah(String(priceAttr));
                     recalc();
                 }
                 // Filter batch options matching selected product
@@ -214,7 +284,16 @@
 
         // Recalculate on qty or harga change
         wrapper.addEventListener('input', function(e){
-            if (e.target.matches('input[name$="[quantity]"]') || e.target.matches('input[name$="[harga]"]')) {
+            if (e.target.matches('input[name$="[quantity]"]')) {
+                recalc();
+                return;
+            }
+            if (e.target.classList.contains('item-price-display')) {
+                const row = e.target.closest('.item-row');
+                const hidden = row.querySelector('.item-price');
+                const raw = unformatRupiah(e.target.value);
+                hidden.value = raw;
+                e.target.value = raw ? formatRupiah(raw) : '';
                 recalc();
             }
         });
@@ -229,6 +308,27 @@
                 recalc();
             }
         });
+
+        // Scan handler: auto-handle without pressing Enter
+        if (scanInput) {
+            let scanTimer = null;
+            const triggerScan = () => {
+                const val = (scanInput.value || '').trim();
+                if (!val) return;
+                handleScan(val);
+                scanInput.value = '';
+            };
+            scanInput.addEventListener('input', function(){
+                if (scanTimer) clearTimeout(scanTimer);
+                // small debounce to let scanner finish
+                scanTimer = setTimeout(triggerScan, 150);
+            });
+            // also trigger on change for scanners that fire change
+            scanInput.addEventListener('change', triggerScan);
+        }
+        if (scanClear) {
+            scanClear.addEventListener('click', function(){ scanInput && (scanInput.value = ''); scanInput && scanInput.focus(); });
+        }
 
         // Also recalc on initial load (in case defaults present)
         recalc();

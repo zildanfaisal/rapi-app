@@ -79,7 +79,8 @@
                                             <label class="block text-xs text-gray-600">{{ __('Harga') }}</label>
                                             <div class="mt-1 flex items-center">
                                                 <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-                                                <input type="number" step="0.01" name="items[{{ $i }}][harga]" value="{{ $item['harga'] ?? 0 }}" class="item-price w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                                <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" value="{{ number_format($item['harga'] ?? 0, 0, ',', '.') }}" />
+                                                <input type="hidden" name="items[{{ $i }}][harga]" value="{{ $item['harga'] ?? 0 }}" class="item-price" required>
                                             </div>
                                         </div>
                                     </div>
@@ -140,11 +141,20 @@
             }
         }
 
+        function formatRupiah(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function unformatRupiah(str) {
+            return (str || '').toString().replace(/[^0-9]/g, '');
+        }
+
         function recalc() {
             let total = 0;
             wrapper.querySelectorAll('.item-row').forEach(row => {
                 const qty = parseFloat(row.querySelector('input[name$="[quantity]"]').value || 0);
-                const harga = parseFloat(row.querySelector('input[name$="[harga]"]').value || 0);
+                const hargaRawEl = row.querySelector('.item-price');
+                const harga = parseFloat(hargaRawEl?.value || 0);
                 total += (qty * harga);
             });
             grandEl.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(total);
@@ -171,7 +181,8 @@
                     <label class="block text-xs text-gray-600">Harga</label>
                     <div class="mt-1 flex items-center">
                         <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-                        <input type="number" step="0.01" name="items[${index}][harga]" class="item-price w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                        <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" />
+                        <input type="hidden" name="items[${index}][harga]" class="item-price" required>
                     </div>
                 </div>
             `;
@@ -186,9 +197,11 @@
             if (e.target.matches('select[name^="items"][name$="[product_id]"]')) {
                 const priceAttr = e.target.options[e.target.selectedIndex]?.getAttribute('data-price');
                 const row = e.target.closest('.item-row');
-                const priceInput = row.querySelector('.item-price');
-                if (priceInput && priceAttr) {
-                    priceInput.value = priceAttr;
+                const priceDisplay = row.querySelector('.item-price-display');
+                const priceHidden = row.querySelector('.item-price');
+                if (priceDisplay && priceHidden && priceAttr) {
+                    priceHidden.value = String(priceAttr);
+                    priceDisplay.value = formatRupiah(String(priceAttr));
                     recalc();
                 }
             }
@@ -196,7 +209,16 @@
 
         // Recalculate on qty or harga change
         wrapper.addEventListener('input', function(e){
-            if (e.target.matches('input[name$="[quantity]"]') || e.target.matches('input[name$="[harga]"]')) {
+            if (e.target.matches('input[name$="[quantity]"]')) {
+                recalc();
+                return;
+            }
+            if (e.target.classList.contains('item-price-display')) {
+                const row = e.target.closest('.item-row');
+                const hidden = row.querySelector('.item-price');
+                const raw = unformatRupiah(e.target.value);
+                hidden.value = raw;
+                e.target.value = raw ? formatRupiah(raw) : '';
                 recalc();
             }
         });
