@@ -63,14 +63,36 @@
 
                         {{-- Harga --}}
                         <div class="mb-4">
-                            <label for="harga" class="block text-sm font-medium text-gray-700">
-                                {{ __('Harga') }}
-                            </label>
-                            <input type="text" name="harga" id="harga"
-                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
-                                          focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                   value="{{ old('harga',$product->harga) }}" required>
+                            <label class="block text-sm font-medium text-gray-700">Harga</label>
+
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
+
+                                <!-- Input Display -->
+                                <input
+                                    type="text"
+                                    id="harga_display"
+                                    class="mt-1 block w-full px-3 py-2 pl-10 border rounded-md shadow-sm
+                                        focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                    value="{{ number_format(old('harga', $product->harga), 0, ',', '.') }}"
+                                    placeholder="0"
+                                >
+
+                                <!-- Input Hidden -->
+                                <input
+                                    type="hidden"
+                                    name="harga"
+                                    id="harga"
+                                    value="{{ old('harga', $product->harga) }}"
+                                    required
+                                >
+                            </div>
+
+                            @error('harga')
+                                <p class="text-red-600 text-sm">{{ $message }}</p>
+                            @enderror
                         </div>
+
 
                         {{-- Satuan --}}
                         <div class="mb-4">
@@ -157,15 +179,34 @@
 @push('scripts')
 <script>
 
-    const inputHarga = document.getElementById('harga');
+   function formatRupiah(angka) {
+        return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
 
-    inputHarga.addEventListener('input', function(e) {
-        let angka = this.value.replace(/[^\d]/g, "");
-        this.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    function unformatRupiah(angka) {
+        return angka.replace(/[^0-9]/g, "");
+    }
+
+    const hargaDisplay = document.getElementById('harga_display');
+    const hargaHidden = document.getElementById('harga');
+
+    // Set tampilan jika sudah ada nilai
+    if (hargaHidden.value) {
+        hargaDisplay.value = formatRupiah(hargaHidden.value);
+    }
+
+    hargaDisplay.addEventListener('input', function(e) {
+        let value = unformatRupiah(e.target.value);
+        hargaHidden.value = value;
+
+        e.target.value = value ? formatRupiah(value) : "";
     });
+
+    // Validasi submit
     document.querySelector("form").addEventListener("submit", function() {
-        inputHarga.value = inputHarga.value.replace(/\./g, "");
+        hargaHidden.value = unformatRupiah(hargaDisplay.value);
     });
+
 
     // Ganti foto lama dengan preview saat upload
     document.getElementById('foto_produk').addEventListener('change', function(e) {
