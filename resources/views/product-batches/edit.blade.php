@@ -26,11 +26,28 @@
                             required
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
                             placeholder="Masukkan barcode produk">
-                        <div id="product-name" class="text-gray-500 text-sm mt-1">
-                            {{ $productBatch->product->nama_produk ?? '' }}
-                        </div>
                     </div>
 
+                    {{-- Produk --}}
+                    <div class="mb-4">
+                        <label for="produk" class="block text-sm font-medium text-gray-700">Produk</label>
+
+                        <select name="produk" id="produk"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
+                                focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                            required>
+
+                            <option value="" disabled>Pilih Produk</option>
+
+                            @foreach ($products as $p)
+                                <option value="{{ $p->id }}"
+                                    data-barcode="{{ $p->barcode }}"
+                                    {{ $productBatch->product_id == $p->id ? 'selected' : '' }}>
+                                    {{ $p->nama_produk }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     {{-- Kode Batch --}}
                     <div class="mb-4">
@@ -62,29 +79,30 @@
                     {{-- Tanggal Expired --}}
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700">Tanggal Expired</label>
-                        
-                        <input type="date" name="tanggal_expired" id="tanggal_expired" disabled
-                         value="{{ old('tanggal_expired', $productBatch->tanggal_expired) }}"
-                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
 
+                        <input type="date" name="tanggal_expired" id="tanggal_expired"
+                               value="{{ old('tanggal_expired', $productBatch->tanggal_expired) }}"
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                               {{ $productBatch->tanggal_expired ? '' : 'disabled' }}>
                     </div>
 
-                 
                     {{-- Qty Masuk --}}
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700">Kuantitas Masuk</label>
-                        <input type="number" id="qty_masuk" name="quantity_masuk" required
-                        value="{{ old('quantity_masuk', $productBatch->quantity_masuk) }}"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        <input type="number" id="qty_masuk" name="quantity_masuk"
+                               required
+                               value="{{ old('quantity_masuk', $productBatch->quantity_masuk) }}"
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                     </div>
 
-                   {{-- Qty Sekarang (readonly) --}}
+                    {{-- Qty Sekarang --}}
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700">Kuantitas Sekarang</label>
                         <input type="number" id="qty_sekarang" name="quantity_sekarang" readonly
-                        value="{{ old('quantity_sekarang', $productBatch->quantity_sekarang) }}"
-                            class="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm">
+                               value="{{ old('quantity_sekarang', $productBatch->quantity_sekarang) }}"
+                               class="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm">
                     </div>
+
                     {{-- Supplier --}}
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700">Supplier</label>
@@ -99,9 +117,9 @@
                         <label class="block text-sm font-medium text-gray-700">Status</label>
                         <select name="status" required
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            <option value="active" {{ old('status', $productBatch->status) == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="expired" {{ old('status', $productBatch->status) == 'expired' ? 'selected' : '' }}>Expired</option>
-                            <option value="sold_out" {{ old('status', $productBatch->status) == 'sold_out' ? 'selected' : '' }}>Sold Out</option>
+                            <option value="active" {{ $productBatch->status == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="expired" {{ $productBatch->status == 'expired' ? 'selected' : '' }}>Expired</option>
+                            <option value="sold_out" {{ $productBatch->status == 'sold_out' ? 'selected' : '' }}>Sold Out</option>
                         </select>
                     </div>
 
@@ -124,6 +142,7 @@
 </div>
 @endsection
 
+
 @push('scripts')
 <script>
     function generateBatchCode() {
@@ -134,7 +153,6 @@
         document.getElementById('batch_number').value = code;
     }
 
-    // Qty Masuk → Qty Sekarang
     document.getElementById('qty_masuk').addEventListener('input', function() {
         document.getElementById('qty_sekarang').value = this.value;
     });
@@ -142,16 +160,13 @@
     const tanggalMasuk = document.querySelector('input[name="tanggal_masuk"]');
     const tanggalExpired = document.getElementById('tanggal_expired');
 
-    // === KONDISI EDIT ===
-    // Jika sudah ada tanggal expired di database → jangan disabled
     @if($productBatch->tanggal_expired)
         tanggalExpired.disabled = false;
-        tanggalExpired.min = tanggalMasuk.value; // set minimal sesuai tanggal masuk lama
+        tanggalExpired.min = tanggalMasuk.value;
     @else
         tanggalExpired.disabled = true;
     @endif
 
-    // === EVENT KETIKA TANGGAL MASUK DIUBAH ===
     tanggalMasuk.addEventListener('change', function () {
         const masuk = this.value;
 
@@ -167,6 +182,28 @@
             tanggalExpired.value = '';
         }
     });
-</script>
 
+    document.getElementById('barcode').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+
+            let inputBarcode = this.value.trim();
+            let produkSelect = document.getElementById('produk');
+
+            let found = false;
+
+            for (let opt of produkSelect.options) {
+                if (opt.dataset.barcode === inputBarcode) {
+                    opt.selected = true;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                alert("Produk dengan barcode tersebut tidak ditemukan!");
+            }
+        }
+    });
+</script>
 @endpush

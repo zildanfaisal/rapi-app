@@ -27,8 +27,27 @@
                             placeholder="Masukkan Barcode Produk"
                             required>
                     </div>
+                    
+                    {{-- Produk --}}
+                    <div class="mb-4">
+                        <label for="produk" class="block text-sm font-medium text-gray-700">
+                            Produk
+                        </label>
 
+                        <select name="produk" id="produk"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
+                                focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                            required>
 
+                            <option value="" disabled selected>Pilih Produk</option>
+
+                            @foreach ($products as $p)
+                                <option value="{{ $p->id }}" data-barcode="{{ $p->barcode }}">
+                                    {{ $p->nama_produk }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     {{-- Kode Batch --}}
                    <div class="mb-4">
@@ -150,6 +169,30 @@
             tanggalExpired.value = '';
         }
     });
+
+    document.getElementById('barcode').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); 
+
+            let inputBarcode = this.value.trim();
+            let produkSelect = document.getElementById('produk');
+
+            let found = false;
+
+            for (let opt of produkSelect.options) {
+                if (opt.dataset.barcode === inputBarcode) {
+                    opt.selected = true;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                alert("Produk dengan barcode tersebut tidak ditemukan!");
+            }
+        }
+    });
+
 
 
 </script>

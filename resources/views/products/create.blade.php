@@ -46,7 +46,7 @@
                                 </button>
                             </div>
                         </div>
-
+                        
                         {{-- Kategori --}}
                         <div class="mb-4">
                             <label for="kategori" class="block text-sm font-medium text-gray-700">
@@ -60,40 +60,33 @@
 
                         {{-- Harga --}}
                         <div class="mb-4">
-    <label class="block text-sm font-medium text-gray-700">Harga</label>
+                            <label class="block text-sm font-medium text-gray-700">Harga</label>
 
-    <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-    Rp
-</span>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
+                                <!-- Input tampilan -->
+                                <input
+                                    type="text"
+                                    id="harga_display"
+                                    class="mt-1 block w-full px-3 py-2 pl-10 border rounded-md shadow-sm
+                                        focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                    placeholder="0"
+                                >
 
-        <!-- Input tampilan -->
-        <input
-            type="text"
-            id="harga_display"
-            class="mt-1 block w-full px-3 py-2 pl-10 border rounded-md shadow-sm
-                   focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-            placeholder="0"
-        >
+                                <!-- Input hidden untuk nilai asli -->
+                                <input
+                                    type="hidden"
+                                    name="harga"
+                                    id="harga"
+                                    value="{{ old('harga') }}"
+                                    required
+                                >
+                            </div>
 
-        <!-- Input hidden untuk nilai asli -->
-        <input
-            type="hidden"
-            name="harga"
-            id="harga"
-            value="{{ old('harga') }}"
-            required
-        >
-    </div>
-
-    @error('harga')
-        <p class="text-red-600 text-sm">{{ $message }}</p>
-    @enderror
-</div>
-
-
-
-                        
+                            @error('harga')
+                                <p class="text-red-600 text-sm">{{ $message }}</p>
+                            @enderror
+                        </div>
 
                         {{-- Satuan --}}
                         <div class="mb-4">
