@@ -66,6 +66,36 @@
                             </button>
                         </div>
                     </div>
+                    {{-- Harga Beli --}}
+<div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700">Harga Beli</label>
+
+    <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
+
+        {{-- DISPLAY (TANPA VALUE DARI BLADE) --}}
+        <input
+            type="text"
+            id="harga_display"
+            class="mt-1 block w-full px-3 py-2 pl-10 border rounded-md shadow-sm
+                   focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+            placeholder="0"
+        >
+
+        {{-- VALUE ASLI (INTEGER) --}}
+        <input
+            type="hidden"
+            name="harga_beli"
+            id="harga_beli"
+            value="{{ old('harga_beli', $productBatch->harga_beli) }}"
+            required
+        >
+    </div>
+
+    @error('harga_beli')
+        <p class="text-red-600 text-sm">{{ $message }}</p>
+    @enderror
+</div>
 
                     {{-- Tanggal Masuk --}}
                     <div class="mb-4">
@@ -203,6 +233,49 @@
             if (!found) {
                 alert("Produk dengan barcode tersebut tidak ditemukan!");
             }
+        }
+    });
+     function formatRupiah(angka) {
+        return angka.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    const hargaDisplay = document.getElementById('harga_display');
+    const hargaHidden  = document.getElementById('harga_beli');
+
+    // SET NILAI AWAL (EDIT MODE)
+    if (hargaHidden.value) {
+        let cleanValue = hargaHidden.value
+            .toString()
+            .split('.')[0]; // BUANG DESIMAL .00
+
+        hargaHidden.value = cleanValue;
+        hargaDisplay.value = formatRupiah(cleanValue);
+    }
+
+
+    // BLOK INPUT SELAIN ANGKA
+    hargaDisplay.addEventListener('keydown', function (e) {
+        if (
+            !/[0-9]/.test(e.key) &&
+            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+        ) {
+            e.preventDefault();
+        }
+    });
+
+    // FORMAT SAAT INPUT
+    hargaDisplay.addEventListener('input', function () {
+        let value = this.value.replace(/[^0-9]/g, '');
+
+        hargaHidden.value = value;
+        this.value = value ? formatRupiah(value) : '';
+    });
+
+    // VALIDASI SUBMIT
+    document.querySelector('form').addEventListener('submit', function (e) {
+        if (!hargaHidden.value || hargaHidden.value === '0') {
+            e.preventDefault();
+            alert('Harga beli harus diisi!');
         }
     });
 </script>

@@ -23,13 +23,16 @@ class ProductBatchController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-public function create()
-{
-    // Ambil hanya kolom yang dibutuhkan
-    $products = Product::select('id', 'nama_produk', 'barcode')->get();
+    public function create()
+    {
+        // Ambil hanya kolom yang dibutuhkan
+        $products = Product::select('id', 'nama_produk', 'barcode')->get();
 
-    return view('product-batches.create', compact('products'));
-}
+        return view('product-batches.create', compact('products'));
+    }
+
+
+
 
 
     /**
@@ -40,6 +43,7 @@ public function create()
         $request->validate([
             'barcode'           => 'required|string|exists:products,barcode',
             'batch_number'      => 'required|digits:5',
+            'harga_beli'        => 'required|',
             'tanggal_masuk'     => 'required|date',
             'tanggal_expired'   => 'required|date',
             'quantity_masuk'    => 'required|integer|min:1',
@@ -53,6 +57,7 @@ public function create()
         ProductBatch::create([
             'product_id' => $product->id,
             'batch_number' => $request->batch_number,
+            'harga_beli' => $request->harga_beli,
             'tanggal_masuk' => $request->tanggal_masuk,
             'tanggal_expired' => $request->tanggal_expired,
             'quantity_masuk' => $request->quantity_masuk,
@@ -83,6 +88,7 @@ public function create()
     $request->validate([
         'barcode'           => 'required|string|exists:products,barcode',
         'batch_number'      => 'required|digits:5',
+        'harga_beli'        => 'required|',
         'tanggal_masuk'     => 'required|date',
         'tanggal_expired'   => 'required|date',
         'quantity_masuk'    => 'required|integer|min:1',
@@ -96,6 +102,7 @@ public function create()
     $productBatch->update([
         'product_id'        => $product->id,
         'batch_number'      => $request->batch_number,
+        'harga_beli'        => $request->harga_beli,
         'tanggal_masuk'     => $request->tanggal_masuk,
         'tanggal_expired'   => $request->tanggal_expired,
         'quantity_masuk'    => $request->quantity_masuk,

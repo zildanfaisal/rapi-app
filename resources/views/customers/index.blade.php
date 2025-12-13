@@ -41,13 +41,30 @@
                                     <td class="px-4 py-2 border">{{ $c->alamat }}</td>
                                     <td class="px-4 py-2 border">{{ $c->point }}</td>
                                     <td class="px-4 py-2 border">
-                                        <a href="{{ route('customers.edit', $c->id) }}" class="text-blue-600 hover:underline">Edit</a>
-                                        <form action="{{ route('customers.destroy', $c->id) }}" method="POST" style="display:inline;" data-confirm-delete>
+                                        <a href="{{ route('customers.show', $c->id) }}"
+                                        class="text-green-600 hover:underline">
+                                            Detail
+                                        </a>
+
+                                        <a href="{{ route('customers.edit', $c->id) }}"
+                                        class="text-blue-600 hover:underline ms-4">
+                                            Edit
+                                        </a>
+
+                                        <form action="{{ route('customers.destroy', $c->id) }}"
+                                            method="POST"
+                                            class="inline"
+                                            data-confirm-delete>
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>
+
+                                            <button type="submit"
+                                                    class="text-red-600 hover:underline ms-4">
+                                                Hapus
+                                            </button>
                                         </form>
                                     </td>
+
                                 </tr>
                             @empty
                                 <tr class="text-center">

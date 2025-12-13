@@ -38,8 +38,9 @@
                             <th class="px-4 py-2 border">No</th>
                             <th class="px-4 py-2 border">Produk</th>
                             <th class="px-4 py-2 border">Kode Batch</th>
-                            <th class="px-4 py-2 border">Tanggal Masuk</th>
-                            <th class="px-4 py-2 border">Tanggal Expired</th>
+                            <th class="px-4 py-2 broder">Harga Beli</th>
+                            <th class="px-4 py-2 border">Bulan Masuk</th>
+                            <th class="px-4 py-2 border">Bulan Expired</th>
                             <th class="px-4 py-2 border">Kuantitas Awal</th>
                             <th class="px-4 py-2 border">Kuantitas Sekarang</th>
                             <th class="px-4 py-2 border">Supplier</th>
@@ -59,6 +60,8 @@
                             <td class="px-4 py-2 border font-semibold">
                                 {{ $b->batch_number }}
                             </td>
+                            <td class="px-4 py-2 border"> Rp {{  number_format($b->harga_beli, 0, ',', '.') }}</td>
+                           
 
                            <td class="px-4 py-2 border">
                                 {{ \Carbon\Carbon::parse($b->tanggal_masuk)->translatedFormat('F') }}
@@ -101,6 +104,7 @@
 
 
                             <td class="px-4 py-2 border">
+                                
                                 <a href="{{ route('product-batches.edit', $b->id) }}" 
                                    class="text-blue-600 hover:underline">Edit</a>
 
@@ -112,6 +116,7 @@
                                         Hapus
                                     </button>
                                 </form>
+
                             </td>
                         </tr>
                         @empty

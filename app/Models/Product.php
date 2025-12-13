@@ -22,4 +22,11 @@ class Product extends Model
     {
         return $this->hasMany(ProductBatch::class);
     }
+    public function latestBatch()
+    {
+        return $this->hasOne(ProductBatch::class)
+            ->latestOfMany('created_at'); 
+    }
+
+    
 }
