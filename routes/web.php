@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SuratJalanController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\RiwayatPenjualanController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -132,6 +133,10 @@ Route::middleware('auth')->group(function () {
 
     // Finance History (Riwayat Keuangan - Read Only)
     Route::get('/finance-history', [FinanceRecordController::class, 'history'])->middleware('permission:finance.history')->name('finance-records.history');
+
+    // Riwayat Penjualan (Invoices + Surat Jalan)
+    Route::get('/riwayat-penjualan', [RiwayatPenjualanController::class, 'index'])->name('riwayat-penjualan.index');
+    Route::get('/riwayat-penjualan/export/pdf', [RiwayatPenjualanController::class, 'pdf'])->name('riwayat-penjualan.pdf');
 
 });
 

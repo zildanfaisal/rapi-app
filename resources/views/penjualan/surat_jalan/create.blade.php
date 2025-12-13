@@ -29,7 +29,7 @@
 						<select name="invoice_id" id="invoice_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
 							<option value="" disabled selected>{{ __('Pilih Invoice') }}</option>
 							@foreach($invoices as $inv)
-								<option value="{{ $inv->id }}" data-grand="{{ $inv->grand_total }}" data-customer="{{ $inv->customer_id }}">{{ $inv->invoice_number }} — {{ $inv->customer->nama_customer ?? '-' }}</option>
+								<option value="{{ $inv->id }}" data-grand="{{ $inv->grand_total }}" data-customer="{{ $inv->customer_id }}" data-date="{{ $inv->tanggal_invoice }}">{{ $inv->invoice_number }} — {{ $inv->customer->nama_customer ?? '-' }}</option>
 							@endforeach
 						</select>
 						<p id="invoice-grand" class="mt-1 text-xs text-gray-600"></p>
@@ -103,6 +103,7 @@
 		const custHidden = document.getElementById('customer_id');
 		const genBtn = document.getElementById('gen-no');
 		const noInput = document.getElementById('nomor_surat_jalan');
+		const tanggalInput = document.getElementById('tanggal');
 
 		function formatIDR(n){ return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(n || 0)); }
 		function formatRupiahRaw(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n || 0)); }
@@ -123,6 +124,15 @@
 			const custId = opt?.getAttribute('data-customer') || '';
 			grandText.textContent = invGrand ? ('Grand Total Invoice: ' + formatIDR(invGrand)) : '';
 			custHidden.value = custId;
+			// Set min date for SJ based on invoice date if available
+			const invDate = opt?.getAttribute('data-date') || '';
+			if (tanggalInput && invDate) {
+				tanggalInput.min = invDate;
+				// If current value is earlier, bump to min
+				if (tanggalInput.value && tanggalInput.value < invDate) {
+					tanggalInput.value = invDate;
+				}
+			}
 			recalc();
 		});
 
@@ -154,6 +164,17 @@
 		if (ongkirDisp && ongkirEl) {
 			const raw = ongkirEl.value || '0';
 			ongkirDisp.value = formatRupiahRaw(raw);
+		}
+		// Initialize min date if an invoice is preselected (post-validation back)
+		if (tanggalInput && sel && sel.selectedIndex > 0) {
+			const opt = sel.options[sel.selectedIndex];
+			const invDate = opt?.getAttribute('data-date') || '';
+			if (invDate) {
+				tanggalInput.min = invDate;
+				if (tanggalInput.value && tanggalInput.value < invDate) {
+					tanggalInput.value = invDate;
+				}
+			}
 		}
 		recalc();
 		toggleAlasanRequiredCreate();

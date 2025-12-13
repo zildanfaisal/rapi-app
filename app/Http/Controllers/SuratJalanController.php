@@ -32,7 +32,10 @@ class SuratJalanController extends Controller
     }
     public function create()
     {
+        // Only show invoices that do not yet have a Surat Jalan
+        $usedInvoiceIds = SuratJalan::query()->select('invoice_id');
         $invoices = Invoice::with(['customer'])
+            ->whereNotIn('id', $usedInvoiceIds)
             ->orderByDesc('created_at')
             ->get();
         return view('penjualan.surat_jalan.create', compact('invoices'));
@@ -109,9 +112,7 @@ class SuratJalanController extends Controller
 
     public function destroy(SuratJalan $suratJalan)
     {
-        return DB::transaction(function () use ($suratJalan) {
-            $suratJalan->delete();
-            return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan deleted successfully');
-        });
+        $suratJalan->delete();
+        return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan deleted successfully');
     }
 }

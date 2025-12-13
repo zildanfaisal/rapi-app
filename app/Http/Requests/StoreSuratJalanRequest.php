@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Invoice;
 
 class StoreSuratJalanRequest extends FormRequest
 {
@@ -22,5 +23,22 @@ class StoreSuratJalanRequest extends FormRequest
             'status_pembayaran' => ['nullable', 'in:pending,lunas,cancel'],
             'alasan_cancel' => ['nullable', 'string'],
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($v) {
+            $invoiceId = $this->input('invoice_id');
+            $tanggalSj = $this->input('tanggal');
+            if (!$invoiceId || !$tanggalSj) return;
+
+            $invoice = Invoice::find($invoiceId);
+            if (!$invoice) return;
+
+            $invoiceDate = $invoice->tanggal_invoice;
+            if ($invoiceDate && strtotime($tanggalSj) < strtotime($invoiceDate)) {
+                $v->errors()->add('tanggal', 'Tanggal surat jalan tidak boleh kurang dari tanggal invoice (' . $invoiceDate . ').');
+            }
+        });
     }
 }
