@@ -124,16 +124,87 @@
         <!-- Charts Row -->
         <div class="">
 
-            <!-- Top Customers Chart -->
-             <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between mb-6">
+            <!-- Top 5 Produk Terlaris -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="p-6 border-b border-gray-100">
                     <h3 class="text-lg font-semibold text-gray-800">Top 5 Produk Terlaris</h3>
-                    <div class="text-xs text-gray-500">Berdasarkan Quantity Terjual</div>
+                    <p class="text-xs text-gray-500 mt-1">Berdasarkan Quantity Terjual</p>
                 </div>
-                <div style="height: 300px;">
-                    <canvas id="topProductsChart"></canvas>
+                <div class="divide-y divide-gray-100">
+                    @forelse($topProductsData['labels'] as $index => $productName)
+                        @php
+                            $quantity = $topProductsData['quantities'][$index] ?? 0;
+                            $gradients = [
+                                'from-blue-500 to-indigo-500',
+                                'from-purple-500 to-pink-500',
+                                'from-pink-500 to-rose-500',
+                                'from-orange-500 to-amber-500',
+                                'from-green-500 to-emerald-500'
+                            ];
+                            $gradient = $gradients[$index] ?? 'from-gray-500 to-gray-600';
+
+                            $bgColors = [
+                                'bg-blue-100',
+                                'bg-purple-100',
+                                'bg-pink-100',
+                                'bg-orange-100',
+                                'bg-green-100'
+                            ];
+                            $textColors = [
+                                'text-blue-600',
+                                'text-purple-600',
+                                'text-pink-600',
+                                'text-orange-600',
+                                'text-green-600'
+                            ];
+                            $bgColor = $bgColors[$index] ?? 'bg-gray-100';
+                            $textColor = $textColors[$index] ?? 'text-gray-600';
+                        @endphp
+                        <div class="p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br {{ $gradient }} rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                                        {{ $index + 1 }}
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ $productName }}</p>
+                                        <p class="text-sm text-gray-500">Produk Terlaris #{{ $index + 1 }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center gap-2">
+                                         <div>
+                                            <p class="font-bold text-gray-800 text-lg">{{ number_format($quantity) }}</p>
+                                            <p class="text-xs text-gray-500">Unit Terjual</p>
+                                        </div>
+                                        <div class="w-10 h-10 {{ $bgColor }} rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 {{ $textColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                            </svg>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="p-8 text-center text-gray-500">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                            <p>Belum ada data penjualan produk</p>
+                        </div>
+                    @endforelse
                 </div>
+                @if(count($topProductsData['labels'] ?? []) > 0)
+                <div class="p-4 border-t border-gray-100">
+                    <a href="{{ route('products.index') }}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                        Lihat Semua Produk →
+                    </a>
+                </div>
+                @endif
             </div>
+
         </div>
 
         <!-- Recent Activities & Top Customers -->
@@ -142,7 +213,7 @@
             <!-- Recent Invoices -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="p-6 border-b border-gray-100">
-                    <h3 class="text-lg font-semibold text-gray-800">Invoice Terbaru</h3>
+                    <h3 clss="text-lg font-semibold text-gray-800">Invoice Terbaru</h3>
                 </div>
                 <div class="divide-y divide-gray-100">
                     @forelse($recentInvoices as $invoice)
@@ -417,7 +488,7 @@
     });
 
     // Invoice Status Chart - Doughnut Chart
-   const invoiceCtx = document.getElementById('invoiceChart').getContext('2d');
+ const invoiceCtx = document.getElementById('invoiceChart').getContext('2d');
 
     @php
         $invoicePaid = $invoiceStatusData['paid'] ?? 0;
@@ -464,6 +535,24 @@
                         padding: 20,
                         font: {
                             size: 12
+                        },
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const total = {{ $totalInvoiceChart }};
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+
+                                    return {
+                                        text: `${label}: ${value} (${percentage}%)`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
                         }
                     }
                 },
@@ -476,7 +565,6 @@
                             }
                             label += context.parsed + ' invoice';
 
-                            // Hitung persentase
                             const total = {{ $totalInvoiceChart }};
                             if (total > 0) {
                                 const percentage = ((context.parsed / total) * 100).toFixed(1);

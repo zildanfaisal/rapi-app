@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $user = auth()->user();
+       $user = $request->user();
 
         // Get current month and previous month
         $currentMonth = Carbon::now()->startOfMonth();
@@ -220,12 +220,6 @@ class DashboardController extends Controller
             $quantities[] = (int) $item->total_sold;
         }
 
-        // Debug: Log data ke laravel.log
-        \Log::info('Top Products Data:', [
-            'labels' => $labels,
-            'quantities' => $quantities,
-            'raw_data' => $topProducts->toArray()
-        ]);
 
         return [
             'labels' => $labels,
