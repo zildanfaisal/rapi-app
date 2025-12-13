@@ -29,7 +29,7 @@
                         </thead>
 
                         <tbody>
-                            @forelse ($budgetTargets as $bt)
+                            @foreach ($budgetTargets as $bt)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($bt->tanggal)->format('d/m/Y') }}</td>
@@ -42,14 +42,8 @@
                                             <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>
                                         </form>
                                     </td>
-                           @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Product.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                            @endforelse
+
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

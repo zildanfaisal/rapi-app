@@ -171,7 +171,7 @@
                         </thead>
 
                         <tbody>
-                            @forelse ($financeRecords as $fr)
+                            @foreach ($financeRecords as $fr)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($fr->periode . '-01')->format('M Y') }}</td>
@@ -192,13 +192,7 @@
                                     <td class="px-4 py-2 border text-left">{{ $fr->deskripsi ?? '-' }}</td>
                                     <td class="px-4 py-2 border">{{ $fr->user->name ?? 'Unknown' }}</td>
                                 </tr>
-                            @empty
-                                <tr class="text-center">
-                                    <td colspan="8" class="px-4 py-8 border text-gray-500">
-                                        Belum Ada Data Keuangan.
-                                    </td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

@@ -102,7 +102,7 @@
                         </thead>
 
                         <tbody>
-                            @forelse ($financeRecords as $fr)
+                            @foreach ($financeRecords as $fr)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($fr->tanggal)->format('d/m/Y') }}</td>
@@ -130,18 +130,7 @@
                                         </form>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                     <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Data Keuangan.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
