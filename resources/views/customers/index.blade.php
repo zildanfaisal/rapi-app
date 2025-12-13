@@ -32,7 +32,7 @@
                         </thead>
 
                         <tbody>
-                            @forelse ($customers as $c)
+                            @foreach ($customers as $c)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">{{ $c->nama_customer }}</td>
@@ -49,17 +49,7 @@
                                         </form>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Customer.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
 

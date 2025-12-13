@@ -76,7 +76,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($invoices as $inv)
+                            @foreach ($invoices as $inv)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">{{ $inv->invoice_number }}</td>
@@ -102,18 +102,7 @@
                                         </a>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Data.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                     </div>

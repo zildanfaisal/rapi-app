@@ -39,7 +39,7 @@
                     </thead>
 
                     <tbody>
-                        @forelse($users as $user)
+                        @foreach($users as $user)
                             <tr class="text-center hover:bg-gray-50">
                                 <td class="px-4 py-2 border">{{ ($users->currentPage()-1) * $users->perPage() + $loop->iteration }}</td>
                                 <td class="px-4 py-2 border text-left">{{ $user->name }}</td>
@@ -65,16 +65,7 @@
                                 </td>
                                 @endcanany
                             </tr>
-                        @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada User.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                            @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
