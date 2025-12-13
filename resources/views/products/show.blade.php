@@ -156,13 +156,8 @@
                                         {{ $row['keterangan'] }}
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="px-4 py-3 text-center text-gray-500">
-                                        Belum ada riwayat stok
-                                    </td>
-                                </tr>
-                            @endforelse
+                            
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
