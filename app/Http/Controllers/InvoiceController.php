@@ -45,7 +45,7 @@ class InvoiceController extends Controller
         $customers = \App\Models\Customer::all();
         $products = \App\Models\Product::all();
         $batches = \App\Models\ProductBatch::orderByDesc('created_at')->get();
-        
+
         return view('penjualan.invoices.create', compact('customers', 'products', 'batches'));
     }
 
@@ -129,7 +129,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully');
         });
     }
-    
+
     public function store(StoreInvoiceRequest $request)
     {
         $data = $request->validated();

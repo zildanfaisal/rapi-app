@@ -6,94 +6,116 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $user = $request->user();
+        $user = auth()->user();
 
-        // === STATS CARDS DATA ===
+        // Get current month and previous month
+        $currentMonth = Carbon::now()->startOfMonth();
+        $previousMonth = Carbon::now()->subMonth()->startOfMonth();
 
-        // Total Produk
+        // Total Products
         $totalProducts = Product::count();
-        $totalProductsLastMonth = Product::whereMonth('created_at', Carbon::now()->subMonth()->month)
-            ->whereYear('created_at', Carbon::now()->subMonth()->year)
-            ->count();
-        $productGrowth = $totalProductsLastMonth > 0
-            ? (($totalProducts - $totalProductsLastMonth) / $totalProductsLastMonth) * 100
+        $previousMonthProducts = Product::where('created_at', '<', $currentMonth)->count();
+        $productGrowth = $previousMonthProducts > 0
+            ? (($totalProducts - $previousMonthProducts) / $previousMonthProducts) * 100
             : 0;
 
-        // Total Customer
+        // Total Customers
         $totalCustomers = Customer::count();
-        $totalCustomersLastMonth = Customer::whereMonth('created_at', Carbon::now()->subMonth()->month)
-            ->whereYear('created_at', Carbon::now()->subMonth()->year)
-            ->count();
-        $customerGrowth = $totalCustomersLastMonth > 0
-            ? (($totalCustomers - $totalCustomersLastMonth) / $totalCustomersLastMonth) * 100
+        $previousMonthCustomers = Customer::where('created_at', '<', $currentMonth)->count();
+        $customerGrowth = $previousMonthCustomers > 0
+            ? (($totalCustomers - $previousMonthCustomers) / $previousMonthCustomers) * 100
             : 0;
 
-        // Total Invoice
-        $totalInvoices = Invoice::count();
-        $totalInvoicesLastMonth = Invoice::whereMonth('created_at', Carbon::now()->subMonth()->month)
-            ->whereYear('created_at', Carbon::now()->subMonth()->year)
-            ->count();
-        $invoiceGrowth = $totalInvoicesLastMonth > 0
-            ? (($totalInvoices - $totalInvoicesLastMonth) / $totalInvoicesLastMonth) * 100
-            : 0;
-
-        $totalRevenue = Invoice::where('status_pembayaran', 'lunas')
-            ->whereMonth('created_at', Carbon::now()->month)
+        // Total Invoices
+        $totalInvoices = Invoice::whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
-            ->sum('grand_total');
-
-        $totalRevenueLastMonth = Invoice::where('status_pembayaran', 'lunas')
-            ->whereMonth('created_at', Carbon::now()->subMonth()->month)
+            ->count();
+        $previousMonthInvoices = Invoice::whereMonth('created_at', Carbon::now()->subMonth()->month)
             ->whereYear('created_at', Carbon::now()->subMonth()->year)
-            ->sum('grand_total');
-
-        $revenueGrowth = $totalRevenueLastMonth > 0
-            ? (($totalRevenue - $totalRevenueLastMonth) / $totalRevenueLastMonth) * 100
+            ->count();
+        $invoiceGrowth = $previousMonthInvoices > 0
+            ? (($totalInvoices - $previousMonthInvoices) / $previousMonthInvoices) * 100
             : 0;
-        // === CHARTS DATA ===
 
-        // Revenue Chart - 6 Bulan Terakhir
-        $revenueChartData = $this->getRevenueChartData();
+        // Total Paid (All Time) - FIXED
+        $paidInvoices = Invoice::where('status_pembayaran', 'paid')
+            ->get();
 
-        // Invoice Status Chart
-        $invoiceStatusData = $this->getInvoiceStatusData();
+        $totalPaid = $paidInvoices->sum('grand_total');
+        $paidCount = $paidInvoices->count();
 
-        // === RECENT INVOICES & TOP CUSTOMERS ===
-
-        // Recent Invoices - 5 Terbaru
+        // Recent Invoices
         $recentInvoices = Invoice::with('customer')
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->limit(5)
             ->get();
 
-        // Top Customers - 5 Teratas berdasarkan point terbanyak
-        $topCustomers = Customer::orderBy('point', 'desc')
+        // Top Customers by Points
+        $topCustomers = Customer::orderBy('point', 'DESC')
             ->limit(5)
             ->get();
+
+        // Top Customers Chart Data
+        $topCustomersChart = [
+            'labels' => $topCustomers->pluck('nama_customer')->toArray(),
+            'points' => $topCustomers->pluck('point')->toArray(),
+        ];
+
+        // Invoice Status Data (All Time) - FIXED
+        $invoiceStatusData = [
+            'paid' => Invoice::where('status_pembayaran', 'paid')->count(),
+            'unpaid' => Invoice::where('status_pembayaran', 'unpaid')->count(),
+            'overdue' => Invoice::where('status_pembayaran', 'overdue')->count(),
+            'cancelled' => Invoice::where('status_pembayaran', 'cancelled')->count(),
+        ];
+
+        // Top 5 Produk Terlaris (All Time) - FIXED
+        $topProducts = InvoiceItem::select(
+                'invoice_items.product_id',
+                'products.nama_produk',
+                DB::raw('SUM(invoice_items.quantity) as total_quantity')
+            )
+            ->join('products', 'invoice_items.product_id', '=', 'products.id')
+            ->join('invoices', function($join) {
+                $join->on('invoice_items.invoice_id', '=', 'invoices.id')
+                     ->where('invoices.status_pembayaran', '!=', 'cancelled');
+            })
+            ->groupBy('invoice_items.product_id', 'products.nama_produk')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get();
+
+        // Format data untuk chart
+        $topProductsData = [
+            'labels' => $topProducts->pluck('nama_produk')->toArray(),
+            'quantities' => $topProducts->pluck('total_quantity')->toArray(),
+        ];
 
         return view('dashboard', compact(
             'user',
             'totalProducts',
-            'productGrowth',
             'totalCustomers',
-            'customerGrowth',
             'totalInvoices',
+            'totalPaid',
+            'paidCount',
+            'productGrowth',
+            'customerGrowth',
             'invoiceGrowth',
-            'totalRevenue',
-            'revenueGrowth',
-            'revenueChartData',
-            'invoiceStatusData',
             'recentInvoices',
-            'topCustomers'
+            'topCustomers',
+            'topCustomersChart',
+            'invoiceStatusData',
+            'topProductsData'
         ));
     }
-
     /**
      * Get Revenue Chart Data for last 6 months
      */
@@ -109,7 +131,8 @@ class DashboardController extends Controller
 
             $months[] = $date->format('M');
 
-            $revenue = Invoice::where('status_pembayaran', 'lunas')
+            // FIX: Ganti 'lunas' jadi 'paid'
+            $revenue = Invoice::where('status_pembayaran', 'paid')
                 ->whereRaw("DATE_FORMAT(tanggal_invoice, '%Y-%m') = ?", [$period])
                 ->sum('grand_total');
             $pendapatan[] = $revenue;
@@ -130,29 +153,36 @@ class DashboardController extends Controller
     /**
      * Get Invoice Status Data for current month - DATA ASLI
      */
-        private function getInvoiceStatusData()
-        {
-            $lunas = Invoice::where('status_pembayaran', 'lunas')
-                ->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
-                ->count();
+    private function getInvoiceStatusData()
+    {
+        $paid = Invoice::where('status_pembayaran', 'paid')
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
 
-            $pending = Invoice::where('status_pembayaran', 'belum lunas')
-                ->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
-                ->count();
+        $unpaid = Invoice::where('status_pembayaran', 'unpaid')
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
 
-            $cancel = Invoice::where('status_pembayaran', 'cancel')
-                ->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
-                ->count();
+        $overdue = Invoice::where('status_pembayaran', 'overdue')
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
 
-            return [
-                'lunas' => $lunas,
-                'pending' => $pending,
-                'cancel' => $cancel
-            ];
-        }
+        // FIX: Ganti 'canceled' jadi 'cancelled'
+        $cancelled = Invoice::where('status_pembayaran', 'cancelled')
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
+
+        return [
+            'paid' => $paid,
+            'unpaid' => $unpaid,
+            'overdue' => $overdue,
+            'cancelled' => $cancelled
+        ];
+    }
     private function getTopProducts()
     {
         $topProducts = \App\Models\InvoiceItem::selectRaw('product_id, SUM(quantity) as total_sold')
@@ -165,7 +195,43 @@ class DashboardController extends Controller
         return $topProducts;
     }
 
+    /**
+     * Get Top 5 Products Data for Chart
+     */
+    private function getTopProductsData()
+    {
+        // Query dengan join langsung (lebih reliable)
+        $topProducts = \App\Models\InvoiceItem::selectRaw('
+                invoice_items.product_id,
+                products.nama_produk,
+                SUM(invoice_items.quantity) as total_sold
+            ')
+            ->join('products', 'invoice_items.product_id', '=', 'products.id')
+            ->groupBy('invoice_items.product_id', 'products.nama_produk')
+            ->orderByDesc('total_sold')
+            ->limit(5)
+            ->get();
 
+        $labels = [];
+        $quantities = [];
+
+        foreach ($topProducts as $item) {
+            $labels[] = $item->nama_produk ?? 'Unknown';
+            $quantities[] = (int) $item->total_sold;
+        }
+
+        // Debug: Log data ke laravel.log
+        \Log::info('Top Products Data:', [
+            'labels' => $labels,
+            'quantities' => $quantities,
+            'raw_data' => $topProducts->toArray()
+        ]);
+
+        return [
+            'labels' => $labels,
+            'quantities' => $quantities
+        ];
+    }
     private function getTopCustomersChartData()
     {
         $customers = Customer::orderBy('point', 'desc')

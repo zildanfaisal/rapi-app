@@ -101,56 +101,37 @@
                 </div>
             </div>
 
-            <!-- Pendapatan Bulan Ini -->
-             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Pendapatan</p>
-                        <p class="text-3xl font-bold text-gray-800 mt-2">
-                            Rp {{ number_format($totalRevenue / 1000000, 1) }}M
-                        </p>
-                        <p class="text-xs {{ $revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600' }} mt-2 flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                @if($revenueGrowth >= 0)
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-                                @else
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                                @endif
-                            </svg>
-                            {{ $revenueGrowth >= 0 ? '+' : '' }}{{ number_format(abs($revenueGrowth), 1) }}% dari bulan lalu
-                        </p>
-                    </div>
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Pemasukan (Paid)</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-2">
+                        Rp {{ number_format($totalPaid ?? 0, 0, ',', '.') }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Dari {{ number_format($paidCount ?? 0, 0, ',', '.') }} invoice paid
+                    </p>
+                </div>
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
             </div>
         </div>
+        </div>
 
         <!-- Charts Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="">
 
             <!-- Top Customers Chart -->
              <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800">Top 5 Customer</h3>
-                    <div class="text-xs text-gray-500">Berdasarkan Point Terbanyak</div>
+                    <h3 class="text-lg font-semibold text-gray-800">Top 5 Produk Terlaris</h3>
+                    <div class="text-xs text-gray-500">Berdasarkan Quantity Terjual</div>
                 </div>
                 <div style="height: 300px;">
-                    <canvas id="topCustomersChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Invoice Status Chart -->
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800">Status Invoice</h3>
-                    <div class="text-xs text-gray-500">Bulan Ini</div>
-                </div>
-                <div style="height: 300px;">
-                    <canvas id="invoiceChart"></canvas>
+                    <canvas id="topProductsChart"></canvas>
                 </div>
             </div>
         </div>
@@ -176,16 +157,20 @@
                                         <p class="text-sm text-gray-500">{{ $invoice->customer->nama_customer ?? 'Customer' }}</p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <p class="font-semibold text-gray-800">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</p>
-                                    @if($invoice->status_pembayaran == 'lunas')
-                                        <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full mt-1">Lunas</span>
-                                    @elseif($invoice->status_pembayaran == 'belum lunas')
-                                        <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full mt-1">Pending</span>
-                                    @else
-                                        <span class="inline-block px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full mt-1">Cancel</span>
-                                    @endif
-                                </div>
+                               <div class="text-right">
+                                <p class="font-semibold text-gray-800">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</p>
+                                @if($invoice->status_pembayaran == 'paid')
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full mt-1">Lunas</span>
+                                @elseif($invoice->status_pembayaran == 'unpaid')
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full mt-1">Belum Lunas</span>
+                                @elseif($invoice->status_pembayaran == 'overdue')
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full mt-1">Terlambat</span>
+                                @elseif($invoice->status_pembayaran == 'cancelled')
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full mt-1">Dibatalkan</span>
+                                @else
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full mt-1">{{ ucfirst($invoice->status_pembayaran) }}</span>
+                                @endif
+                            </div>
                             </div>
                         </div>
                     @empty
@@ -432,34 +417,38 @@
     });
 
     // Invoice Status Chart - Doughnut Chart
-    const invoiceCtx = document.getElementById('invoiceChart').getContext('2d');
+   const invoiceCtx = document.getElementById('invoiceChart').getContext('2d');
 
     @php
-        $invoiceLunas = $invoiceStatusData['lunas'] ?? 0;
-        $invoicePending = $invoiceStatusData['pending'] ?? 0;
-        $invoiceCancel = $invoiceStatusData['cancel'] ?? 0;
-        $totalInvoiceChart = $invoiceLunas + $invoicePending + $invoiceCancel;
+        $invoicePaid = $invoiceStatusData['paid'] ?? 0;
+        $invoiceUnpaid = $invoiceStatusData['unpaid'] ?? 0;
+        $invoiceOverdue = $invoiceStatusData['overdue'] ?? 0;
+        $invoiceCancelled = $invoiceStatusData['cancelled'] ?? 0;
+        $totalInvoiceChart = $invoicePaid + $invoiceUnpaid + $invoiceOverdue + $invoiceCancelled;
     @endphp
 
     new Chart(invoiceCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Lunas', 'Pending', 'Cancel'],
+            labels: ['Paid', 'Unpaid', 'Overdue', 'Cancelled'],
             datasets: [{
                 data: [
-                    {{ $invoiceLunas }},
-                    {{ $invoicePending }},
-                    {{ $invoiceCancel }}
+                    {{ $invoicePaid }},
+                    {{ $invoiceUnpaid }},
+                    {{ $invoiceOverdue }},
+                    {{ $invoiceCancelled }}
                 ],
                 backgroundColor: [
-                    'rgba(34, 197, 94, 0.8)',
-                    'rgba(251, 191, 36, 0.8)',
-                    'rgba(239, 68, 68, 0.8)'
+                    'rgba(34, 197, 94, 0.8)',   // Green untuk Paid
+                    'rgba(251, 191, 36, 0.8)',  // Yellow untuk Unpaid
+                    'rgba(239, 68, 68, 0.8)',   // Red untuk Overdue
+                    'rgba(156, 163, 175, 0.8)'  // Gray untuk Cancelled
                 ],
                 borderColor: [
                     'rgb(34, 197, 94)',
                     'rgb(251, 191, 36)',
-                    'rgb(239, 68, 68)'
+                    'rgb(239, 68, 68)',
+                    'rgb(156, 163, 175)'
                 ],
                 borderWidth: 2
             }]
@@ -496,6 +485,64 @@
 
                             return label;
                         }
+                    }
+                }
+            }
+        }
+    });
+   const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+
+    @php
+        $topProductsLabels = $topProductsData['labels'] ?? [];
+        $topProductsQuantities = $topProductsData['quantities'] ?? [];
+    @endphp
+
+    new Chart(topProductsCtx, {
+        type: 'bar',
+        data: {
+            labels: @json($topProductsLabels),
+            datasets: [{
+                label: 'Quantity Terjual',
+                data: @json($topProductsQuantities),
+                backgroundColor: [
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(236, 72, 153, 0.8)',
+                    'rgba(251, 146, 60, 0.8)',
+                    'rgba(34, 197, 94, 0.8)'
+                ],
+                borderColor: [
+                    'rgb(99, 102, 241)',
+                    'rgb(139, 92, 246)',
+                    'rgb(236, 72, 153)',
+                    'rgb(251, 146, 60)',
+                    'rgb(34, 197, 94)'
+                ],
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y', // Horizontal bar
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Terjual: ' + context.parsed.x + ' unit';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
                     }
                 }
             }
