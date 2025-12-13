@@ -177,7 +177,7 @@
                             <a href="{{ route('surat-jalan.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('surat-jalan.index') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">Surat Jalan</a>
                         </li>
                         @endcan
-                        @can('transactions.history')
+                        @can('transactions.view')
                         <li>
                             <a href="{{ route('riwayat-penjualan.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('riwayat-penjualan.index') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">Riwayat Transaksi</a>
                         </li>
