@@ -55,13 +55,13 @@
 
                                     <td class="px-4 py-2 border">{{ $p->nama_produk }}</td>
                                     <td class="px-4 py-2 border">{{ $p->kategori }}</td>
-                                    
-                                  
+
+
 
                                     <td class="px-4 py-2 border"> Rp {{  number_format($p->harga, 0, ',', '.') }}</td>
 
 
-                                   
+
                                     <td class="px-4 py-2 border">{{ $p->satuan }}</td>
                                     <td class="px-4 py-2 border">
                                         @if($p->foto_produk)
@@ -76,20 +76,20 @@
                                             <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">{{ $p->status }}</span>
                                         @else
                                             <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">{{ $p->status }}</span>
-                                        @endif    
+                                        @endif
                                     </td>
                                     <td class="px-4 py-2 border">
                                         <div class="flex items-center gap-4">
-                                            
+
                                             <!-- Edit -->
-                                            <a href="{{ route('products.edit', $p->id) }}" 
+                                            <a href="{{ route('products.edit', $p->id) }}"
                                             class="text-blue-600 hover:underline">
                                                 Edit
                                             </a>
 
                                             <!-- Hapus -->
-                                            <form action="{{ route('products.destroy', $p->id) }}" 
-                                                method="POST" 
+                                            <form action="{{ route('products.destroy', $p->id) }}"
+                                                method="POST"
                                                 data-confirm-delete>
                                                 @csrf
                                                 @method('DELETE')
@@ -99,7 +99,7 @@
                                             </form>
 
                                             <!-- Unduh Barcode -->
-                                            <a href="{{ route('products.barcode.download', $p->id) }}" 
+                                            <a href="{{ route('products.barcode.download', $p->id) }}"
                                             class="text-green-600 hover:underline">
                                                 Unduh Barcode
                                             </a>

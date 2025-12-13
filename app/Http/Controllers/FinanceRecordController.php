@@ -6,6 +6,8 @@ use App\Models\FinanceRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class FinanceRecordController extends Controller
 {
     /**
@@ -43,6 +45,117 @@ class FinanceRecordController extends Controller
     /**
  * Display history (Riwayat Keuangan - Read Only).
  */
+
+    public function previewPdf(Request $request)
+    {
+        $periode = $request->get('periode');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = FinanceRecord::with('user');
+
+        // Priority: Date range over periode
+        if ($startDate && $endDate) {
+            $query->whereBetween('tanggal', [$startDate, $endDate]);
+        } elseif ($periode) {
+            $query->where('periode', $periode);
+        } else {
+            // Default to current month
+            $periode = date('Y-m');
+            $query->where('periode', $periode);
+        }
+
+        $financeRecords = $query->orderBy('tanggal', 'desc')->get();
+
+        // Get budget target
+        $budgetTarget = null;
+        if ($periode) {
+            $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
+        } elseif ($startDate) {
+            $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [date('Y-m', strtotime($startDate))])->first();
+        }
+
+        // Calculate totals
+        $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
+        $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
+        $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
+
+        // Return preview view instead of streaming PDF directly
+        return view('finance.finance-records.pdf-preview', compact(
+            'financeRecords',
+            'periode',
+            'startDate',
+            'endDate',
+            'budgetTarget',
+            'totalPemasukan',
+            'totalPengeluaran',
+            'saldoSisa'
+        ));
+    }
+
+    /**
+     * Download PDF Laporan Keuangan
+     */
+    public function downloadPdf(Request $request)
+    {
+        $periode = $request->get('periode');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $query = FinanceRecord::with('user');
+
+        // Priority: Date range over periode
+        if ($startDate && $endDate) {
+            $query->whereBetween('tanggal', [$startDate, $endDate]);
+        } elseif ($periode) {
+            $query->where('periode', $periode);
+        } else {
+            // Default to current month
+            $periode = date('Y-m');
+            $query->where('periode', $periode);
+        }
+
+        $financeRecords = $query->orderBy('tanggal', 'desc')->get();
+
+        // Get budget target
+        $budgetTarget = null;
+        if ($periode) {
+            $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
+        } elseif ($startDate) {
+            $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [date('Y-m', strtotime($startDate))])->first();
+        }
+
+        // Calculate totals
+        $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
+        $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
+        $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
+
+        $pdf = Pdf::loadView('finance.finance-records.pdf', compact(
+            'financeRecords',
+            'periode',
+            'startDate',
+            'endDate',
+            'budgetTarget',
+            'totalPemasukan',
+            'totalPengeluaran',
+            'saldoSisa'
+        ));
+
+        // Set paper size and orientation
+        $pdf->setPaper('a4', 'portrait');
+
+        // Generate filename
+        $filename = 'Laporan-Keuangan';
+        if ($periode) {
+            $filename .= '-' . \Carbon\Carbon::parse($periode . '-01')->format('F-Y');
+        } elseif ($startDate && $endDate) {
+            $filename .= '-' . \Carbon\Carbon::parse($startDate)->format('dMY') . '-' . \Carbon\Carbon::parse($endDate)->format('dMY');
+        }
+
+        // Download PDF
+        return $pdf->download($filename . '.pdf');
+    }
+
     public function history(Request $request)
     {
         // Default to current month if it has a budget target

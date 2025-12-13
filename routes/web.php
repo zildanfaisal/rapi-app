@@ -123,15 +123,46 @@ Route::middleware('auth')->group(function () {
     Route::delete('/budget-target/{budgetTarget}', [BudgetTargetController::class, 'destroy'])->middleware('permission:budget-target.delete')->name('budget-target.destroy');
 
     // Finance Records CRUD (Input Keuangan) protected by permissions
-    Route::get('/finance-records', [FinanceRecordController::class, 'index'])->middleware('permission:finance.input.view')->name('finance-records.index');
-    Route::get('/finance-records/create', [FinanceRecordController::class, 'create'])->middleware('permission:finance.input.create')->name('finance-records.create');
-    Route::post('/finance-records', [FinanceRecordController::class, 'store'])->middleware('permission:finance.input.create')->name('finance-records.store');
-    Route::get('/finance-records/{financeRecord}/edit', [FinanceRecordController::class, 'edit'])->middleware('permission:finance.input.update')->name('finance-records.edit');
-    Route::put('/finance-records/{financeRecord}', [FinanceRecordController::class, 'update'])->middleware('permission:finance.input.update')->name('finance-records.update');
-    Route::delete('/finance-records/{financeRecord}', [FinanceRecordController::class, 'destroy'])->middleware('permission:finance.input.delete')->name('finance-records.destroy');
+    // IMPORTANT: Specific routes (preview-pdf, download-pdf, create, history) MUST be BEFORE parameter routes
 
-    // Finance History (Riwayat Keuangan - Read Only)
-    Route::get('/finance-history', [FinanceRecordController::class, 'history'])->middleware('permission:finance.history')->name('finance-records.history');
+    // Preview & Download PDF - HARUS DI ATAS
+    Route::get('/finance-records/preview-pdf', [FinanceRecordController::class, 'previewPdf'])
+        ->name('finance-records.preview-pdf');
+
+    Route::get('/finance-records/download-pdf', [FinanceRecordController::class, 'downloadPdf'])
+        ->name('finance-records.download-pdf');
+
+    // Finance History (Riwayat Keuangan - Read Only) - HARUS DI ATAS
+    Route::get('/finance-history', [FinanceRecordController::class, 'history'])
+        ->middleware('permission:finance.history')
+        ->name('finance-records.history');
+
+    // Create - HARUS DI ATAS
+    Route::get('/finance-records/create', [FinanceRecordController::class, 'create'])
+        ->middleware('permission:finance.input.create')
+        ->name('finance-records.create');
+
+    // Index & Store
+    Route::get('/finance-records', [FinanceRecordController::class, 'index'])
+        ->middleware('permission:finance.input.view')
+        ->name('finance-records.index');
+
+    Route::post('/finance-records', [FinanceRecordController::class, 'store'])
+        ->middleware('permission:finance.input.create')
+        ->name('finance-records.store');
+
+    // Routes with {financeRecord} parameter - HARUS DI BAWAH
+    Route::get('/finance-records/{financeRecord}/edit', [FinanceRecordController::class, 'edit'])
+        ->middleware('permission:finance.input.update')
+        ->name('finance-records.edit');
+
+    Route::put('/finance-records/{financeRecord}', [FinanceRecordController::class, 'update'])
+        ->middleware('permission:finance.input.update')
+        ->name('finance-records.update');
+
+    Route::delete('/finance-records/{financeRecord}', [FinanceRecordController::class, 'destroy'])
+        ->middleware('permission:finance.input.delete')
+        ->name('finance-records.destroy');
 
 });
 

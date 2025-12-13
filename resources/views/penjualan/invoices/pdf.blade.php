@@ -5,65 +5,434 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice {{ $invoice->invoice_number }}</title>
     <style>
-        body { font-family: Arial, sans-serif; color: #111; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .title { font-size: 18px; font-weight: bold; }
-        .meta { font-size: 12px; color: #555; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ccc; padding: 8px; font-size: 12px; }
-        thead { background: #f5f5f5; }
-        .right { text-align: right; }
-        .mt-2 { margin-top: 8px; }
-        .mt-4 { margin-top: 16px; }
-        .footer { margin-top: 24px; font-size: 12px; color: #555; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Header Section */
+        .header {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2c3e50;
+        }
+
+        .header-left {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+
+        .logo-wrapper {
+            display: table;
+            width: 100%;
+        }
+
+        .logo-cell {
+            display: table-cell;
+            width: 150px;
+            vertical-align: middle;
+        }
+
+        .company-cell {
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 15px;
+        }
+
+        .header-right {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            text-align: right;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .company-info {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .document-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .invoice-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .invoice-meta strong {
+            color: #333;
+        }
+
+        /* Info Section */
+        .info-section {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            display: table-cell;
+            width: 48%;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .info-box:first-child {
+            margin-right: 4%;
+        }
+
+        .info-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 5px;
+        }
+
+        .info-content {
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .info-content strong {
+            display: inline-block;
+            width: 100px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background: #2c3e50;
+            color: white;
+        }
+
+        th {
+            padding: 12px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        th.center {
+            text-align: center;
+        }
+
+        th.right {
+            text-align: right;
+        }
+
+        td {
+            padding: 10px 8px;
+            font-size: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        td.center {
+            text-align: center;
+        }
+
+        td.right {
+            text-align: right;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Summary Section */
+        .summary {
+            float: right;
+            width: 300px;
+            margin-top: 20px;
+        }
+
+        .summary-row {
+            display: table;
+            width: 100%;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+
+        .summary-label {
+            display: table-cell;
+            text-align: left;
+            padding-right: 20px;
+        }
+
+        .summary-value {
+            display: table-cell;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .summary-total {
+            border-top: 2px solid #2c3e50;
+            padding-top: 12px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .summary-total .summary-value {
+            font-size: 16px;
+        }
+
+        /* Signature Section */
+        .signature-section {
+            clear: both;
+            margin-top: 60px;
+            padding-top: 30px;
+        }
+
+        .signature-box {
+            display: inline-block;
+            width: 45%;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .signature-box:first-child {
+            margin-right: 10%;
+        }
+
+        .signature-title {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 60px;
+        }
+
+        .signature-line {
+            border-top: 1px solid #333;
+            margin: 0 auto;
+            width: 200px;
+            padding-top: 5px;
+        }
+
+        .signature-name {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .signature-position {
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-lunas {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-belum {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-cancel {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         @media print {
-            .actions { display: none; }
+            body {
+                padding: 0;
+            }
+            .actions {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
+    <!-- Header -->
     <div class="header">
-        <div>
-            <div class="title">Invoice</div>
-            <div class="meta">No: {{ $invoice->invoice_number }}</div>
-            <div class="meta">Tanggal: {{ $invoice->tanggal_invoice }}</div>
-            <div class="meta">Jatuh Tempo: {{ $invoice->tanggal_jatuh_tempo }}</div>
+        <div class="header-left">
+            <div class="logo-wrapper">
+                <div class="logo-cell">
+                    <img src="{{ public_path('images/logo-rapi.png') }}" alt="Logo" class="logo">
+                </div>
+                <div class="company-cell">
+                    <div class="company-name">RAPI PVC</div>
+                </div>
+            </div>
+            <div class="company-info">
+                Jl. Alamat Perusahaan No. 123<br>
+                Kota, Provinsi 12345<br>
+                Telp: (021) 1234-5678<br>
+                Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a5cccbc3cae5d5c0d7d0d6c4cdc4c4cb8bc6cac8">[email&#160;protected]</a><br>
+                Website: www.perusahaan.com
+            </div>
         </div>
-        <div>
-            <div class="title">Pelanggan</div>
-            <div class="meta">{{ $invoice->customer->nama_customer ?? '-' }}</div>
-            <div class="meta">{{ $invoice->customer->no_hp ?? '-' }}</div>
+        <div class="header-right">
+            <div class="document-title">INVOICE</div>
+            <div class="invoice-meta">
+                <strong>No:</strong> {{ $invoice->invoice_number }}<br>
+                <strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($invoice->tanggal_invoice)->format('d/m/Y') }}<br>
+                <strong>Jatuh Tempo:</strong> {{ \Carbon\Carbon::parse($invoice->tanggal_jatuh_tempo)->format('d/m/Y') }}<br>
+                @if($invoice->status_pembayaran == 'lunas')
+                    <span class="status-badge status-lunas">{{ $invoice->status_pembayaran }}</span>
+                @elseif($invoice->status_pembayaran == 'cancel')
+                    <span class="status-badge status-cancel">{{ $invoice->status_pembayaran }}</span>
+                @else
+                    <span class="status-badge status-belum">{{ $invoice->status_pembayaran }}</span>
+                @endif
+            </div>
         </div>
     </div>
 
+    <!-- Info Section -->
+    <div class="info-section">
+        <div class="info-box">
+            <div class="info-title">Kepada</div>
+            <div class="info-content">
+                <strong>Nama:</strong> {{ $invoice->customer->nama_customer ?? '-' }}<br>
+                <strong>Telepon:</strong> {{ $invoice->customer->no_hp ?? '-' }}<br>
+                <strong>Alamat:</strong> {{ $invoice->customer->alamat ?? '-' }}
+            </div>
+        </div>
+        <div class="info-box">
+            <div class="info-title">Informasi Pembayaran</div>
+            <div class="info-content">
+                <strong>Metode:</strong> Transfer Bank<br>
+                <strong>Bank:</strong> BCA<br>
+                <strong>No. Rek:</strong> 1234567890<br>
+                <strong>A/N:</strong> NAMA PERUSAHAAN
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Table -->
     <table>
         <thead>
         <tr>
-            <th>Produk</th>
-            <th class="right">Qty</th>
-            <th class="right">Harga</th>
-            <th class="right">Sub Total</th>
+            <th style="width: 5%;">No</th>
+            <th style="width: 45%;">Nama Produk</th>
+            <th class="center" style="width: 10%;">Qty</th>
+            <th class="right" style="width: 20%;">Harga Satuan</th>
+            <th class="right" style="width: 20%;">Sub Total</th>
         </tr>
         </thead>
         <tbody>
-        @foreach($invoice->items as $item)
+        @foreach($invoice->items as $index => $item)
             <tr>
+                <td class="center">{{ $index + 1 }}</td>
                 <td>{{ $item->product->nama_product ?? $item->product->nama ?? 'Produk #'.$item->product_id }}</td>
-                <td class="right">{{ $item->quantity }}</td>
+                <td class="center">{{ $item->quantity }}</td>
                 <td class="right">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                 <td class="right">Rp {{ number_format($item->sub_total, 0, ',', '.') }}</td>
             </tr>
         @endforeach
         </tbody>
-        <tfoot>
-        <tr>
-            <td colspan="3" class="right"><strong>Grand Total</strong></td>
-            <td class="right"><strong>Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</strong></td>
-        </tr>
-        </tfoot>
     </table>
-</div>
-</body>
-</html>
+
+    <!-- Summary -->
+    <div class="summary">
+        <div class="summary-row">
+            <span class="summary-label">Sub Total:</span>
+            <span class="summary-value">Rp {{ number_format($invoice->items->sum('sub_total'), 0, ',', '.') }}</span>
+        </div>
+        {{-- Uncomment jika ada diskon atau pajak
+        <div class="summary-row">
+            <span class="summary-label">Diskon:</span>
+            <span class="summary-value">Rp 0</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label">PPN (11%):</span>
+            <span class="summary-value">Rp 0</span>
+        </div>
+        --}}
+        <div class="summary-row summary-total">
+            <span class="summary-label">GRAND TOTAL:</span>
+            <span class="summary-value">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</span>
+        </div>
+    </div>
+
+    <!-- Signature Section -->
+    <div class="signature-section">
+        <table style="width: 100%; border: none;">
+            <tr>
+                <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
+                    <div class="signature-title">Penerima</div>
+                    <div class="signature-line">
+                        <div class="signature-name">{{ $invoice->customer->nama_customer ?? '_______________' }}</div>
+                        <div class="signature-position">Pelanggan</div>
+                    </div>
+                </td>
+                <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
+                    <div class="signature-title">Hormat Kami</div>
+                    <div class="signature-line">
+                        <div class="signature-name">{{ $invoice->user->name ?? 'Admin' }}</div>
+                        <div class="signature-position">{{ $invoice->user->jabatan ?? 'Staff Penjualan' }}</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Terima kasih atas kepercayaan Anda. Dokumen ini dicetak secara otomatis
+    
