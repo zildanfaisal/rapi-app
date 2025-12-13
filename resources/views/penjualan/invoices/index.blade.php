@@ -101,7 +101,7 @@
                         </thead>
 
                         <tbody>
-                            @forelse ($invoices as $c)
+                            @foreach ($invoices as $c)
                                 <tr class="text-center hover:bg-gray-50 cursor-pointer" data-href="{{ route('invoices.show', $c) }}">
                                     <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                     <td class="px-4 py-2 border">{{ $c->invoice_number }}</td>
@@ -134,20 +134,7 @@
                                         </form>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Data.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
 

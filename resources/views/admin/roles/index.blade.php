@@ -36,7 +36,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($roles as $role)
+                        @foreach ($roles as $role)
                             <tr class="text-center hover:bg-gray-50">
                                 <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                 <td class="px-4 py-2 border text-left">{{ $role->name }}</td>
@@ -56,14 +56,7 @@
                                 </td>
                                 @endcanany
                             </tr>
-                       @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Customer.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
                 </div>

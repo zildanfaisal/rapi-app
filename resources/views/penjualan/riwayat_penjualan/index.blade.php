@@ -84,7 +84,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($riwayat as $i => $row)
+                            @foreach($riwayat as $i => $row)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $i + 1 }}</td>
                                     <td class="px-4 py-2 border">{{ $row['type'] === 'invoice' ? 'Invoice' : 'Surat Jalan' }}</td>
@@ -122,18 +122,7 @@
                                         <a href="{{ $row['link'] }}" class="text-blue-600 hover:underline">Detail</a>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Data.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

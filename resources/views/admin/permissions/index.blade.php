@@ -35,7 +35,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($permissions as $permission)
+                        @foreach ($permissions as $permission)
                             <tr class="text-center hover:bg-gray-50">
                                 <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                                 <td class="px-4 py-2 border text-left">{{ $permission->name }}</td>
@@ -54,14 +54,7 @@
                                 </td>
                                 @endcanany
                             </tr>
-                         @empty
-                                <tr class="text-center">
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border">Belum Ada Customer.</td>
-                                    <td class="px-4 py-2 border"></td>
-                                    <td class="px-4 py-2 border"></td>
-                                </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
                 </div>
