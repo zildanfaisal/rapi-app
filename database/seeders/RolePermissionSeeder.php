@@ -69,9 +69,9 @@ class RolePermissionSeeder extends Seeder
             'product-batches.view', 'product-batches.create', 'product-batches.update', 'product-batches.delete',
             'product-batches.report',
             // Penjualan
-            'penjualan.view', 'penjualan.create', 'penjualan.update', 'penjualan.delete',
-            'surat-jalan.view', 'surat-jalan.create', 'surat-jalan.update', 'surat-jalan.delete',
-            'transactions.history',
+            'invoices.view', 'invoices.create', 'invoices.update', 'invoices.setor', 'invoices.setor-update', 'invoices.delete', 'invoices.report',
+            'surat-jalan.view', 'surat-jalan.create', 'surat-jalan.update', 'surat-jalan.delete', 'surat-jalan.report',
+            'transactions.view', 'transactions.create',
             // Finance (Input Keuangan + History)
             'finance.input.view', 'finance.input.create', 'finance.input.update', 'finance.input.delete',
             'finance.history',
