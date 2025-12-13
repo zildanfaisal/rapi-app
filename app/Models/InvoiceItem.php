@@ -24,4 +24,12 @@ class InvoiceItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function batch()
+{
+    return $this->belongsTo(ProductBatch::class, 'batch_id');
+}
+
+
+
 }

@@ -25,7 +25,8 @@
                                 <th class="px-4 py-2 border">Barcode</th>
                                 <th class="px-4 py-2 border">Nama Produk</th>
                                 <th class="px-4 py-2 border">Kategori</th>
-                                <th class="px-4 py-2 border">Harga</th>
+                                <th class="px-4 py-2 border">Harga Jual</th>
+                                <th class="px-4 py-2 border">Harga Beli</th>
                                 <th class="px-4 py-2 border">Satuan</th>
                                 <th class="px-4 py-2 border">Foto Produk</th>
                                 <th class="px-4 py-2 border">Stok</th>
@@ -60,6 +61,13 @@
 
                                     <td class="px-4 py-2 border"> Rp {{  number_format($p->harga, 0, ',', '.') }}</td>
 
+                                    <td class="px-4 py-2 border">
+                                        @if($p->latestBatch)
+                                            Rp {{ number_format($p->latestBatch->harga_beli, 0, ',', '.') }}
+                                        @else
+                                            <span class="text-gray-400 italic">Belum ada batch</span>
+                                        @endif
+                                    </td>
 
 
                                     <td class="px-4 py-2 border">{{ $p->satuan }}</td>
@@ -81,6 +89,12 @@
                                     <td class="px-4 py-2 border">
                                         <div class="flex items-center gap-4">
 
+                                            <a href="{{ route('products.show', $p->id) }}"
+                                                class="text-indigo-600 hover:underline">
+                                                    Detail
+                                            </a>
+
+                                            
                                             <!-- Edit -->
                                             <a href="{{ route('products.edit', $p->id) }}"
                                             class="text-blue-600 hover:underline">

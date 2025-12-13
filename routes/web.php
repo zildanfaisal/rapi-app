@@ -60,60 +60,63 @@ Route::middleware('auth')->group(function () {
     Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->middleware('permission:permissions.delete')->name('permissions.destroy');
 
     // Customer Routes
-    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
-    Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
-    Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
-    Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
-    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
-    Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+    Route::get('/customers', [CustomerController::class, 'index'])->middleware('permission:customers.view')->name('customers.index');
+    Route::get('/customers/create', [CustomerController::class, 'create'])->middleware('permission:customers.create')->name('customers.create');
+    Route::post('/customers', [CustomerController::class, 'store'])->middleware('permission:customers.create')->name('customers.store');
+    Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->middleware('permission:customers.update')->name('customers.edit');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->middleware('permission:customers.update')->name('customers.update');
+    Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->middleware('permission:customers.delete')->name('customers.destroy');
+    Route::get('/customers/{id}', [CustomerController::class, 'show'])->middleware('permission:customers.view')->name('customers.show');
+
 
     // Product Routes
     Route::get('/products', [ProductController::class, 'index'])->middleware('permission:products.view')->name('products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->middleware('permission:products.create')->name('products.create');
-    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
-    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
-    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
-    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-    Route::get('/products/{id}/barcode/download', [ProductController::class, 'downloadBarcode'])
-    ->name('products.barcode.download');
+    Route::post('/products', [ProductController::class, 'store'])->middleware('permission:products.create')->name('products.store');
+    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->middleware('permission:products.update')->name('products.edit');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->middleware('permission:products.update')->name('products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->middleware('permission:products.delete')->name('products.destroy');
+    Route::get('/products/{id}/barcode/download', [ProductController::class, 'downloadBarcode'])->middleware('permission:products.view')->name('products.barcode.download');
+    Route::get('/products/{id}', [ProductController::class, 'show'])->middleware('permission:products.view')->name('products.show');
+
 
 
     // Product Batch Routes
     Route::get('/product-batches', [ProductBatchController::class, 'index'])->middleware('permission:product-batches.view')->name('product-batches.index');
     Route::get('/product-batches/create', [ProductBatchController::class, 'create'])->middleware('permission:product-batches.create')->name('product-batches.create');
-    Route::post('/product-batches', [ProductBatchController::class, 'store'])->name('product-batches.store');
-    Route::get('/product-batches/{productBatch}/edit', [ProductBatchController::class, 'edit'])->name('product-batches.edit');
-    Route::put('/product-batches/{productBatch}', [ProductBatchController::class, 'update'])->name('product-batches.update');
-    Route::delete('/product-batches/{productBatch}', [ProductBatchController::class, 'destroy'])->name('product-batches.destroy');
-    Route::get('/product-batches/report', [ProductBatchController::class, 'report'])
-    ->name('product-batches.report');
+    Route::post('/product-batches', [ProductBatchController::class, 'store'])->middleware('permission:product-batches.create')->name('product-batches.store');
+    Route::get('/product-batches/{productBatch}/edit', [ProductBatchController::class, 'edit'])->middleware('permission:product-batches.update')->name('product-batches.edit');
+    Route::put('/product-batches/{productBatch}', [ProductBatchController::class, 'update'])->middleware('permission:product-batches.update')->name('product-batches.update');
+    Route::delete('/product-batches/{productBatch}', [ProductBatchController::class, 'destroy'])->middleware('permission:product-batches.delete')->name('product-batches.destroy');
+    Route::get('/product-batches/report', [ProductBatchController::class, 'report'])->middleware('permission:product-batches.report')->name('product-batches.report');
+ 
 
     // Penjualan Routes
-    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
-    Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
-    Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
-    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
-    Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+    Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('permission:invoices.view')->name('invoices.index');
+    Route::get('/invoices/create', [InvoiceController::class, 'create'])->middleware('permission:invoices.create')->name('invoices.create');
+    Route::post('/invoices', [InvoiceController::class, 'store'])->middleware('permission:invoices.create')->name('invoices.store');
+    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->middleware('permission:invoices.update')->name('invoices.edit');
+    Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])->middleware('permission:invoices.update')->name('invoices.update');
     // Setor Penjualan (place BEFORE catch-all invoice routes)
-    Route::get('/invoices/setor', [InvoiceController::class, 'indexSetor'])->name('invoices.setor');
-    Route::get('/invoices/{invoice}/setor', [InvoiceController::class, 'editSetor'])->name('invoices.setor.edit');
-    Route::post('/invoices/{invoice}/setor', [InvoiceController::class, 'updateSetor'])->name('invoices.setor.update');
+    Route::get('/invoices/setor', [InvoiceController::class, 'indexSetor'])->middleware('permission:invoices.setor')->name('invoices.setor');
+    Route::get('/invoices/{invoice}/setor', [InvoiceController::class, 'editSetor'])->middleware('permission:invoices.setor')->name('invoices.setor.edit');
+    Route::post('/invoices/{invoice}/setor', [InvoiceController::class, 'updateSetor'])->middleware('permission:invoices.setor-update')->name('invoices.setor.update');
 
-    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
-    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
-    Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->middleware('permission:invoices.delete')->name('invoices.destroy');
+    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->middleware('permission:invoices.view')->name('invoices.show');
+    Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->middleware('permission:invoices.report')->name('invoices.pdf');
 
-    Route::get('/surat-jalan', [SuratJalanController::class, 'index'])->name('surat-jalan.index');
-    Route::get('/surat-jalan/create', [SuratJalanController::class, 'create'])->name('surat-jalan.create');
-    Route::post('/surat-jalan', [SuratJalanController::class, 'store'])->name('surat-jalan.store');
-    Route::get('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'show'])->name('surat-jalan.show');
-    Route::get('/surat-jalan/{suratJalan}/edit', [SuratJalanController::class, 'edit'])->name('surat-jalan.edit');
-    Route::put('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'update'])->name('surat-jalan.update');
-    Route::get('/surat-jalan/{suratJalan}/pdf', [SuratJalanController::class, 'pdf'])->name('surat-jalan.pdf');
-    Route::delete('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'destroy'])->name('surat-jalan.destroy');
+    Route::get('/surat-jalan', [SuratJalanController::class, 'index'])->middleware('permission:surat-jalan.view')->name('surat-jalan.index');
+    Route::get('/surat-jalan/create', [SuratJalanController::class, 'create'])->middleware('permission:surat-jalan.create')->name('surat-jalan.create');
+    Route::post('/surat-jalan', [SuratJalanController::class, 'store'])->middleware('permission:surat-jalan.create')->name('surat-jalan.store');
+    Route::get('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'show'])->middleware('permission:surat-jalan.view')->name('surat-jalan.show');
+    Route::get('/surat-jalan/{suratJalan}/edit', [SuratJalanController::class, 'edit'])->middleware('permission:surat-jalan.update')->name('surat-jalan.edit');
+    Route::put('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'update'])->middleware('permission:surat-jalan.update')->name('surat-jalan.update');
+    Route::get('/surat-jalan/{suratJalan}/pdf', [SuratJalanController::class, 'pdf'])->middleware('permission:surat-jalan.report')->name('surat-jalan.pdf');
+    Route::delete('/surat-jalan/{suratJalan}', [SuratJalanController::class, 'destroy'])->middleware('permission:surat-jalan.delete')->name('surat-jalan.destroy');
 
-    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
-    Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+    Route::get('/transactions', [TransactionController::class, 'index'])->middleware('permission:transactions.view')->name('transactions.index');
+    Route::post('/transactions', [TransactionController::class, 'store'])->middleware('permission:transactions.create')->name('transactions.store');
     // Budget Targets CRUD protected by permissions
     Route::get('/budget-target', [BudgetTargetController::class, 'index'])->middleware('permission:budget-target.view')->name('budget-target.index');
     Route::get('/budget-target/create', [BudgetTargetController::class, 'create'])->middleware('permission:budget-target.create')->name('budget-target.create');

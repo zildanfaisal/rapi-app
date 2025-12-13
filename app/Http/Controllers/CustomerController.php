@@ -39,11 +39,31 @@ class CustomerController extends Controller
 
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
+public function show($id)
+{
+    $customer = Customer::with([
+        'invoices.invoiceItems.product',
+        'invoices.invoiceItems.batch' // ⬅️ JIKA BATCH RELASI
+    ])->findOrFail($id);
 
-    public function show(Customer $customer)
-    {
-        //
+    foreach ($customer->invoices as $inv) {
+        $inv->items_json = $inv->invoiceItems->map(function ($item) {
+            return [
+                'batch_number' => $item->batch->batch_number ?? '-', // ✅ FIX
+                'produk'       => $item->product->nama_produk,
+                'qty'          => $item->quantity,
+                'harga'        => $item->harga,
+                'subtotal'     => $item->quantity * $item->harga,
+            ];
+        });
     }
+
+    return view('customers.show', compact('customer'));
+}
+
+
+
+
 
     public function edit(Customer $customer)
     {

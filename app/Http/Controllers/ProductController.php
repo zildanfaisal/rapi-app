@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ProductBatch;
+use App\Models\InvoiceItem;
 use DNS1D;
 
 
@@ -15,9 +17,10 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::with('batches')->get();
+        $products = Product::with(['batches', 'latestBatch'])->get();
         return view('products.index', compact('products'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -26,6 +29,7 @@ class ProductController extends Controller
     {
         return view('products.create');
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -65,10 +69,51 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
-    {
-        //
-    }
+ 
+
+public function show($id)
+{
+    $product = Product::with(['batches', 'latestBatch'])->findOrFail($id);
+
+    // === STOK MASUK (DARI PRODUCT BATCH) ===
+    $stokMasuk = ProductBatch::where('product_id', $id)
+        ->get()
+        ->map(function ($batch) {
+            return [
+                'type' => 'masuk',
+                'batch_number' => $batch->batch_number,
+                'quantity' => $batch->quantity_masuk,
+                'tanggal' => $batch->tanggal_masuk,
+                'keterangan' => 'Pemasukan Batch',
+            ];
+        });
+
+    // === STOK KELUAR (DARI PENJUALAN) ===
+    $stokKeluar = InvoiceItem::where('product_id', $id)
+        ->with(['invoice', 'batch'])
+        ->get()
+        ->map(function ($item) {
+            return [
+                'type' => 'keluar',
+                'batch_number' => optional($item->batch)->batch_number ?? '-',
+                'quantity' => $item->quantity,
+                'tanggal' => optional($item->invoice)->tanggal_invoice,
+                'keterangan' => 'Penjualan',
+            ];
+        });
+
+
+    // === GABUNG & SORT BY TANGGAL ===
+    $riwayatStok = $stokMasuk
+        ->merge($stokKeluar)
+        ->sortBy('tanggal')
+        ->values();
+
+    return view('products.show', compact(
+        'product',
+        'riwayatStok'
+    ));
+}
 
     /**
      * Show the form for editing the specified resource.

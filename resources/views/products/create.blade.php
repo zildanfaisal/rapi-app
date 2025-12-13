@@ -64,7 +64,7 @@
 
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
-                                <!-- Input tampilan -->
+                               
                                 <input
                                     type="text"
                                     id="harga_display"
@@ -73,7 +73,7 @@
                                     placeholder="0"
                                 >
 
-                                <!-- Input hidden untuk nilai asli -->
+                        
                                 <input
                                     type="hidden"
                                     name="harga"
