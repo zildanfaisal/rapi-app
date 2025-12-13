@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\ProductBatch;
 
 class StoreInvoiceRequest extends FormRequest
 {
@@ -30,5 +31,23 @@ class StoreInvoiceRequest extends FormRequest
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.harga' => ['required', 'numeric', 'min:0'],
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($v) {
+            $items = (array) $this->input('items', []);
+            foreach ($items as $idx => $item) {
+                $batchId = $item['batch_id'] ?? null;
+                $qty = (int) ($item['quantity'] ?? 0);
+                if (!$batchId || $qty <= 0) continue;
+                $batch = ProductBatch::find($batchId);
+                if (!$batch) continue;
+                $stok = (int) ($batch->quantity_sekarang ?? 0);
+                if ($qty > $stok) {
+                    $v->errors()->add("items.$idx.quantity", "Qty melebihi stok tersedia (maks ${stok}).");
+                }
+            }
+        });
     }
 }

@@ -93,7 +93,7 @@
                                     </td>
                                     <td class="px-4 py-2 border">
                                         <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="text-blue-600 hover:underline" onclick="event.stopPropagation()">Edit</a>
-                                        <form action="#" method="POST" style="display:inline;" data-confirm-delete onclick="event.stopPropagation()">
+                                        <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat jalan ini?')" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>

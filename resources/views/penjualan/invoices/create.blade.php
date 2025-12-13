@@ -77,13 +77,13 @@
                                         <select name="items[0][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                             <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
                                             @foreach($batches as $batch)
-                                                <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
+                                                <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Qty') }}</label>
-                                        <input type="number" name="items[0][quantity]" min="1" value="1" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                        <input type="number" name="items[0][quantity]" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Harga') }}</label>
@@ -278,6 +278,29 @@
                     });
                     // Reset selection
                     batchSelect.value = '';
+                    // Also reset qty max since batch changed
+                    const qtyInput = row.querySelector('input[name$="[quantity]"]');
+                    if (qtyInput) {
+                        qtyInput.removeAttribute('max');
+                    }
+                }
+            }
+            // When batch selected, set qty max from data-stock
+            if (e.target.matches('select[name^="items"][name$="[batch_id]"]')) {
+                const row = e.target.closest('.item-row');
+                const qtyInput = row.querySelector('input[name$="[quantity]"]');
+                const opt = e.target.options[e.target.selectedIndex];
+                const stock = parseInt(opt?.getAttribute('data-stock') || '0', 10);
+                if (qtyInput) {
+                    if (stock > 0) {
+                        qtyInput.setAttribute('max', String(stock));
+                        // Clamp current value to max
+                        const cur = parseInt(qtyInput.value || '0', 10);
+                        if (cur > stock) qtyInput.value = String(stock);
+                    } else {
+                        qtyInput.setAttribute('max', '0');
+                        qtyInput.value = '0';
+                    }
                 }
             }
         });
@@ -285,18 +308,25 @@
         // Recalculate on qty or harga change
         wrapper.addEventListener('input', function(e){
             if (e.target.matches('input[name$="[quantity]"]')) {
-                recalc();
-                return;
-            }
-            if (e.target.classList.contains('item-price-display')) {
-                const row = e.target.closest('.item-row');
-                const hidden = row.querySelector('.item-price');
-                const raw = unformatRupiah(e.target.value);
-                hidden.value = raw;
-                e.target.value = raw ? formatRupiah(raw) : '';
+                const maxAttr = e.target.getAttribute('max');
+                const maxVal = maxAttr ? parseInt(maxAttr, 10) : null;
+
+                // Kalau kosong, biarin dulu
+                if (e.target.value === '') {
+                    recalc();
+                    return;
+                }
+
+                let val = parseInt(e.target.value, 10);
+
+                if (!isNaN(val) && maxVal !== null && val > maxVal) {
+                    e.target.value = String(maxVal);
+                }
+
                 recalc();
             }
         });
+
 
         // Remove item row on click "x / Hapus"
         wrapper.addEventListener('click', function(e){

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SuratJalanController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\RiwayatPenjualanController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -166,6 +167,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/finance-records/{financeRecord}', [FinanceRecordController::class, 'destroy'])
         ->middleware('permission:finance.input.delete')
         ->name('finance-records.destroy');
+
+    // Riwayat Penjualan (Invoices + Surat Jalan)
+    Route::get('/riwayat-penjualan', [RiwayatPenjualanController::class, 'index'])->name('riwayat-penjualan.index');
+    Route::get('/riwayat-penjualan/export/pdf', [RiwayatPenjualanController::class, 'pdf'])->name('riwayat-penjualan.pdf');
 
 });
 
