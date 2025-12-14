@@ -13,6 +13,7 @@ use App\Http\Controllers\FinanceRecordController;
 use App\Http\Controllers\BudgetTargetController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\MonthlyTargetController;
 use App\Http\Controllers\SuratJalanController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\RiwayatPenjualanController;
@@ -170,6 +171,16 @@ Route::middleware('auth')->group(function () {
 
     // Riwayat Penjualan (Invoices + Surat Jalan)
     Route::get('/riwayat-penjualan', [RiwayatPenjualanController::class, 'index'])->name('riwayat-penjualan.index');
+
+    // Monthly Targets
+    Route::get('/monthly-targets', [MonthlyTargetController::class, 'index'])->name('monthly-targets.index')->middleware('permission:monthly-target.view');
+    Route::get('/monthly-targets/create', [MonthlyTargetController::class, 'create'])->name('monthly-targets.create')->middleware('permission:monthly-target.create');
+    Route::post('/monthly-targets', [MonthlyTargetController::class, 'store'])->name('monthly-targets.store')->middleware('permission:monthly-target.create');
+    Route::get('/monthly-targets/{monthlyTarget}', [MonthlyTargetController::class, 'show'])->name('monthly-targets.show')->middleware('permission:monthly-target.view');
+    Route::get('/monthly-targets/{monthlyTarget}/edit', [MonthlyTargetController::class, 'edit'])->name('monthly-targets.edit')->middleware('permission:monthly-target.update');
+    Route::put('/monthly-targets/{monthlyTarget}', [MonthlyTargetController::class, 'update'])->name('monthly-targets.update')->middleware('permission:monthly-target.update');
+    Route::delete('/monthly-targets/{monthlyTarget}', [MonthlyTargetController::class, 'destroy'])->name('monthly-targets.destroy')->middleware('permission:monthly-target.delete');
+
     Route::get('/riwayat-penjualan/export/pdf', [RiwayatPenjualanController::class, 'pdf'])->name('riwayat-penjualan.pdf');
 
 });

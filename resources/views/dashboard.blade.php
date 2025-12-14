@@ -30,6 +30,25 @@
 
         <!-- Stats Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Month Filter -->
+            <div class="md:col-span-2 lg:col-span-4">
+                <form method="GET" action="{{ route('dashboard') }}" class="flex items-end gap-3 justify-end" id="monthFilterForm">
+                    <div>
+                        <input type="month" name="month" value="{{ $filterMonth ?? now()->format('Y-m') }}" class="px-3 py-2.5 border rounded-lg" id="monthFilterInput">
+                    </div>
+                </form>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function(){
+                        const input = document.getElementById('monthFilterInput');
+                        const form = document.getElementById('monthFilterForm');
+                        if (input && form) {
+                            input.addEventListener('change', function(){
+                                form.submit();
+                            });
+                        }
+                    });
+                </script>
+            </div>
             <!-- Total Produk -->
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 border border-gray-100">
                 <div class="flex items-center justify-between">

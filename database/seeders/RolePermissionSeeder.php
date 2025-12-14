@@ -32,6 +32,7 @@ class RolePermissionSeeder extends Seeder
             'product-batches.report',
 
             // Penjualan
+            'monthly-target.view', 'monthly-target.create', 'monthly-target.update', 'monthly-target.delete',
             'invoices.view', 'invoices.create', 'invoices.update', 'invoices.setor', 'invoices.setor-update', 'invoices.delete', 'invoices.report',
             'surat-jalan.view', 'surat-jalan.create', 'surat-jalan.update', 'surat-jalan.delete', 'surat-jalan.report',
             'transactions.view', 'transactions.create',
@@ -69,6 +70,7 @@ class RolePermissionSeeder extends Seeder
             'product-batches.view', 'product-batches.create', 'product-batches.update', 'product-batches.delete',
             'product-batches.report',
             // Penjualan
+            'monthly-target.view', 'monthly-target.create', 'monthly-target.update', 'monthly-target.delete',
             'invoices.view', 'invoices.create', 'invoices.update', 'invoices.setor', 'invoices.setor-update', 'invoices.delete', 'invoices.report',
             'surat-jalan.view', 'surat-jalan.create', 'surat-jalan.update', 'surat-jalan.delete', 'surat-jalan.report',
             'transactions.view', 'transactions.create',

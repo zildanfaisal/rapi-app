@@ -16,6 +16,16 @@ class DashboardController extends Controller
     {
        $user = $request->user();
 
+        // Month filter (format: YYYY-MM). Defaults to current month.
+        $filterMonth = $request->input('month');
+        if (!$filterMonth) {
+            $filterMonth = \Carbon\Carbon::now()->format('Y-m');
+        }
+        [$filterYear, $filterMonthNum] = explode('-', $filterMonth);
+
+        // Push alerts for invoices paid but not deposited by next day
+        $this->pushDepositAlerts();
+
         // Get current month and previous month
         $currentMonth = Carbon::now()->startOfMonth();
         $previousMonth = Carbon::now()->subMonth()->startOfMonth();
@@ -34,26 +44,31 @@ class DashboardController extends Controller
             ? (($totalCustomers - $previousMonthCustomers) / $previousMonthCustomers) * 100
             : 0;
 
-        // Total Invoices
-        $totalInvoices = Invoice::whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
+        // Total Invoices (filtered month)
+        $totalInvoices = Invoice::whereMonth('created_at', (int)$filterMonthNum)
+            ->whereYear('created_at', (int)$filterYear)
             ->count();
-        $previousMonthInvoices = Invoice::whereMonth('created_at', Carbon::now()->subMonth()->month)
-            ->whereYear('created_at', Carbon::now()->subMonth()->year)
+        $previous = Carbon::createFromDate((int)$filterYear, (int)$filterMonthNum, 1)->subMonth();
+        $previousMonthInvoices = Invoice::whereMonth('created_at', $previous->month)
+            ->whereYear('created_at', $previous->year)
             ->count();
         $invoiceGrowth = $previousMonthInvoices > 0
             ? (($totalInvoices - $previousMonthInvoices) / $previousMonthInvoices) * 100
             : 0;
 
-        // Total Paid (All Time) - FIXED
+        // Total Paid (filtered month)
         $paidInvoices = Invoice::where('status_pembayaran', 'paid')
+            ->whereMonth('created_at', (int)$filterMonthNum)
+            ->whereYear('created_at', (int)$filterYear)
             ->get();
 
         $totalPaid = $paidInvoices->sum('grand_total');
         $paidCount = $paidInvoices->count();
 
-        // Recent Invoices
+        // Recent Invoices (filtered month)
         $recentInvoices = Invoice::with('customer')
+            ->whereMonth('created_at', (int)$filterMonthNum)
+            ->whereYear('created_at', (int)$filterYear)
             ->latest()
             ->limit(5)
             ->get();
@@ -69,15 +84,27 @@ class DashboardController extends Controller
             'points' => $topCustomers->pluck('point')->toArray(),
         ];
 
-        // Invoice Status Data (All Time) - FIXED
+        // Invoice Status Data (filtered month)
         $invoiceStatusData = [
-            'paid' => Invoice::where('status_pembayaran', 'paid')->count(),
-            'unpaid' => Invoice::where('status_pembayaran', 'unpaid')->count(),
-            'overdue' => Invoice::where('status_pembayaran', 'overdue')->count(),
-            'cancelled' => Invoice::where('status_pembayaran', 'cancelled')->count(),
+            'paid' => Invoice::where('status_pembayaran', 'paid')
+                ->whereMonth('created_at', (int)$filterMonthNum)
+                ->whereYear('created_at', (int)$filterYear)
+                ->count(),
+            'unpaid' => Invoice::where('status_pembayaran', 'unpaid')
+                ->whereMonth('created_at', (int)$filterMonthNum)
+                ->whereYear('created_at', (int)$filterYear)
+                ->count(),
+            'overdue' => Invoice::where('status_pembayaran', 'overdue')
+                ->whereMonth('created_at', (int)$filterMonthNum)
+                ->whereYear('created_at', (int)$filterYear)
+                ->count(),
+            'cancelled' => Invoice::where('status_pembayaran', 'cancelled')
+                ->whereMonth('created_at', (int)$filterMonthNum)
+                ->whereYear('created_at', (int)$filterYear)
+                ->count(),
         ];
 
-        // Top 5 Produk Terlaris (All Time) - FIXED
+        // Top 5 Produk Terlaris (filtered month)
         $topProducts = InvoiceItem::select(
                 'invoice_items.product_id',
                 'products.nama_produk',
@@ -88,6 +115,8 @@ class DashboardController extends Controller
                 $join->on('invoice_items.invoice_id', '=', 'invoices.id')
                      ->where('invoices.status_pembayaran', '!=', 'cancelled');
             })
+            ->whereMonth('invoices.created_at', (int)$filterMonthNum)
+            ->whereYear('invoices.created_at', (int)$filterYear)
             ->groupBy('invoice_items.product_id', 'products.nama_produk')
             ->orderByDesc('total_quantity')
             ->limit(5)
@@ -113,8 +142,30 @@ class DashboardController extends Controller
             'topCustomers',
             'topCustomersChart',
             'invoiceStatusData',
-            'topProductsData'
+            'topProductsData',
+            'filterMonth'
         ));
+    }
+
+    private function pushDepositAlerts(): void
+    {
+        $today = \Carbon\Carbon::today()->toDateString();
+        $overdueDeposits = \App\Models\Invoice::where('status_pembayaran', 'paid')
+            ->whereNull('tanggal_setor')
+            ->where(function($q){
+                $q->whereNull('status_setor')
+                  ->orWhere('status_setor', '!=', 'sudah');
+            })
+            ->whereDate('tanggal_invoice', '<', $today)
+            ->orderBy('tanggal_invoice', 'asc')
+            ->limit(10)
+            ->get(['id','invoice_number','tanggal_invoice','grand_total']);
+        if ($overdueDeposits->count() > 0) {
+            $list = $overdueDeposits->map(function($inv){
+                return ($inv->invoice_number ?? ('INV#'.$inv->id)).' • '.($inv->tanggal_invoice).' • Rp '.number_format($inv->grand_total ?? 0, 0, ',', '.');
+            })->join("\n");
+            session()->flash('warning', "Ada ".$overdueDeposits->count()." invoice paid belum disetor sejak kemarin.\n".$list);
+        }
     }
     /**
      * Get Revenue Chart Data for last 6 months

@@ -36,6 +36,7 @@ class SuratJalanController extends Controller
         $usedInvoiceIds = SuratJalan::query()->select('invoice_id');
         $invoices = Invoice::with(['customer'])
             ->whereNotIn('id', $usedInvoiceIds)
+            ->where('status_pembayaran', 'paid')
             ->orderByDesc('created_at')
             ->get();
         return view('penjualan.surat_jalan.create', compact('invoices'));

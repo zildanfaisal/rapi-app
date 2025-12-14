@@ -53,8 +53,9 @@ class InvoiceController extends Controller
     {
         $customers = \App\Models\Customer::all();
         $products = \App\Models\Product::all();
+        $batches = \App\Models\ProductBatch::orderByDesc('created_at')->get();
         $invoice->load(['items']);
-        return view('penjualan.invoices.edit', compact('invoice', 'customers', 'products'));
+        return view('penjualan.invoices.edit', compact('invoice', 'customers', 'products', 'batches'));
     }
 
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
@@ -141,6 +142,7 @@ class InvoiceController extends Controller
                 'user_id' => $data['user_id'],
                 'tanggal_invoice' => $data['tanggal_invoice'],
                 'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],
+                'tanggal_setor' => null,
                 'status_pembayaran' => $data['status_pembayaran'] ?? 'unpaid',
                 'status_setor' => $data['status_setor'] ?? 'belum',
                 'bukti_setor' => $data['bukti_setor'] ?? null,
@@ -267,6 +269,7 @@ class InvoiceController extends Controller
         $invoice->update([
             'status_setor' => $data['status_setor'],
             'bukti_setor' => $data['bukti_setor'] ?? $invoice->bukti_setor,
+            'tanggal_setor' => ($data['status_setor'] === 'sudah') ? now()->toDateString() : null,
         ]);
 
         return redirect()->route('invoices.setor')->with('success', 'Setor updated successfully');

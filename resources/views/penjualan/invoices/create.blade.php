@@ -221,13 +221,13 @@
                     <select name="items[${index}][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
                         @foreach($batches as $batch)
-                            <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}">{{ $batch->batch_number }} — Stok: {{ $batch->quantity_sekarang }}</option>
+                            <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-600">Qty</label>
-                    <input type="number" name="items[${index}][quantity]" min="1" value="1" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                    <input type="number" name="items[${index}][quantity]" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-600">Harga</label>

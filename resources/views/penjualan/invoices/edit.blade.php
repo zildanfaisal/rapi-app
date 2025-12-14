@@ -52,21 +52,48 @@
                         </div>
                         <div class="mb-6">
                             <h4 class="text-sm font-semibold mb-2">{{ __('Produk') }}</h4>
+                            <div class="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs text-gray-600">Barcode Produk</label>
+                                    <input type="text" id="scan-barcode"
+                                        class="mt-1 w-full border-gray-300 rounded-md shadow-sm sm:text-sm"
+                                        placeholder="Masukkan Barcode"
+                                        autocomplete="off">
+                                </div>
+                                <div class="flex items-end">
+                                    <button type="button" id="scan-clear"
+                                        class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                                        Bersihkan
+                                    </button>
+                                </div>
+                            </div>
                             <div id="items-wrapper" class="space-y-3">
                                 @php $oldItems = old('items', $invoice->items->map(function($it){ return [
                                     'product_id' => $it->product_id,
+                                    'batch_id' => $it->batch_id ?? null,
                                     'quantity' => $it->quantity,
                                     'harga' => $it->harga,
                                 ]; })->toArray()); @endphp
                                 @foreach($oldItems as $i => $item)
                                     <div class="item-row grid grid-cols-1 sm:grid-cols-4 gap-3">
-                                        <div class="sm:col-span-2">
+                                        <div>
                                             <label class="block text-xs text-gray-600">{{ __('Produk') }}</label>
                                             <select name="items[{{ $i }}][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                                 <option value="" disabled>{{ __('Pilih Produk') }}</option>
                                                 @foreach($products as $product)
                                                     <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}" @selected(($item['product_id'] ?? null) == $product->id)>
-                                                        {{ $product->nama_product ?? $product->nama ?? 'Produk #'.$product->id }}
+                                                        {{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
+                                            <select name="items[{{ $i }}][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                                <option value="" disabled>{{ __('Pilih Batch') }}</option>
+                                                @foreach($batches as $batch)
+                                                    <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}" @selected(($item['batch_id'] ?? null) == $batch->id)>
+                                                        {{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -81,6 +108,11 @@
                                                 <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
                                                 <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" value="{{ number_format($item['harga'] ?? 0, 0, ',', '.') }}" />
                                                 <input type="hidden" name="items[{{ $i }}][harga]" value="{{ $item['harga'] ?? 0 }}" class="item-price" required>
+                                                <button type="button" class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Hapus item">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -140,6 +172,49 @@
                 }
             }
         }
+        
+        const scanInput = document.getElementById('scan-barcode');
+        const scanClear = document.getElementById('scan-clear');
+
+        const PRODUCT_CATALOG = {!! json_encode(
+            $products->map(fn($p) => [
+                'id' => $p->id,
+                'barcode' => $p->barcode,
+                'price' => $p->harga ?? $p->price ?? 0,
+            ])->values()
+        ) !!};
+
+        function handleScan(code) {
+            const bc = String(code || '').trim();
+            if (!bc) return;
+
+            const found = PRODUCT_CATALOG.find(p => p.barcode === bc);
+            if (!found) {
+                alert('Produk tidak ditemukan');
+                return;
+            }
+
+            const row = wrapper.querySelector('.item-row') || addBtn.click();
+            const sel = row.querySelector('.item-product');
+            sel.value = found.id;
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        if (scanInput) {
+            let timer;
+            scanInput.addEventListener('input', () => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    handleScan(scanInput.value);
+                    scanInput.value = '';
+                }, 150);
+            });
+        }
+
+        if (scanClear) {
+            scanClear.addEventListener('click', () => scanInput.value = '');
+        }
+
 
         function formatRupiah(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -164,12 +239,21 @@
             const tpl = document.createElement('div');
             tpl.className = 'item-row grid grid-cols-1 sm:grid-cols-4 gap-3';
             tpl.innerHTML = `
-                <div class="sm:col-span-2">
+                <div>
                     <label class="block text-xs text-gray-600">Produk</label>
                     <select name="items[${index}][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         <option value="" disabled selected>Pilih Produk</option>
                         @foreach($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_product ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                            <option value="{{ $product->id }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
+                    <select name="items[${index}][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                        <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
+                        @foreach($batches as $batch)
+                            <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -183,6 +267,11 @@
                         <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
                         <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" />
                         <input type="hidden" name="items[${index}][harga]" class="item-price" required>
+                        <button type="button" class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Hapus item">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             `;
@@ -192,7 +281,7 @@
 
         // no invoice number generation on edit page
 
-        // Auto-fill harga when product selected
+        // Auto-fill harga when product selected and filter batch options for the product
         wrapper.addEventListener('change', function(e){
             if (e.target.matches('select[name^="items"][name$="[product_id]"]')) {
                 const priceAttr = e.target.options[e.target.selectedIndex]?.getAttribute('data-price');
@@ -203,6 +292,40 @@
                     priceHidden.value = String(priceAttr);
                     priceDisplay.value = formatRupiah(String(priceAttr));
                     recalc();
+                }
+                // Filter batch options matching selected product
+                const productId = e.target.value;
+                const batchSelect = row.querySelector('.item-batch');
+                if (batchSelect) {
+                    Array.from(batchSelect.options).forEach(opt => {
+                        if (!opt.value) return; // skip placeholder
+                        const p = opt.getAttribute('data-product');
+                        opt.hidden = (p !== productId);
+                    });
+                    // Reset selection
+                    batchSelect.value = '';
+                    // Reset qty max since batch changed
+                    const qtyInput = row.querySelector('input[name$="[quantity]"]');
+                    if (qtyInput) {
+                        qtyInput.removeAttribute('max');
+                    }
+                }
+            }
+            // When batch selected, set qty max from data-stock
+            if (e.target.matches('select[name^="items"][name$="[batch_id]"]')) {
+                const row = e.target.closest('.item-row');
+                const qtyInput = row.querySelector('input[name$="[quantity]"]');
+                const opt = e.target.options[e.target.selectedIndex];
+                const stock = parseInt(opt?.getAttribute('data-stock') || '0', 10);
+                if (qtyInput) {
+                    if (stock > 0) {
+                        qtyInput.setAttribute('max', String(stock));
+                        const cur = parseInt(qtyInput.value || '0', 10);
+                        if (cur > stock) qtyInput.value = String(stock);
+                    } else {
+                        qtyInput.setAttribute('max', '0');
+                        qtyInput.value = '0';
+                    }
                 }
             }
         });
@@ -219,6 +342,17 @@
                 const raw = unformatRupiah(e.target.value);
                 hidden.value = raw;
                 e.target.value = raw ? formatRupiah(raw) : '';
+                recalc();
+            }
+        });
+
+        // Remove item row on click "x / Hapus"
+        wrapper.addEventListener('click', function(e){
+            const btn = e.target.closest('.remove-item');
+            if (!btn) return;
+            const row = btn.closest('.item-row');
+            if (row) {
+                row.remove();
                 recalc();
             }
         });

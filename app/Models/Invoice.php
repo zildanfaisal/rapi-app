@@ -12,6 +12,7 @@ class Invoice extends Model
         'user_id',
         'tanggal_invoice',
         'tanggal_jatuh_tempo',
+        'tanggal_setor',
         'grand_total',
         'status_pembayaran',
         'status_setor',
