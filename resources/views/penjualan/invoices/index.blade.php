@@ -111,7 +111,7 @@
                         </thead>
                         <tbody>
                             @foreach ($invoices as $i)
-                            <tr class="hover:bg-gray-50 text-center">
+                            <tr class="hover:bg-gray-50 text-center" data-href="{{ route('invoices.show', $i) }}">
                                 <td class="border px-3 py-2">{{ $loop->iteration }}</td>
                                 <td class="border px-3 py-2 text-left font-semibold">{{ $i->invoice_number }}</td>
                                 <td class="border px-3 py-2 text-left">
@@ -177,8 +177,12 @@
                     </div>
 
                     <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
-                        <a href="{{ route('invoices.edit',$i) }}"
+                        <a href="{{ route('invoices.show', $i) }}"
                            class="flex-1 border border-blue-600 text-blue-600 rounded text-center py-2">
+                            Detail
+                        </a>
+                        <a href="{{ route('invoices.edit',$i) }}"
+                           class="flex-1 border border-indigo-600 text-indigo-600 rounded text-center py-2">
                             Edit
                         </a>
                         <form action="{{ route('invoices.destroy',$i) }}" method="POST" class="flex-1">
