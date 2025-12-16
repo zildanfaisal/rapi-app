@@ -111,7 +111,7 @@
                         </thead>
                         <tbody>
                             @foreach ($invoices as $i)
-                            <tr class="hover:bg-gray-50 text-center" data-href="{{ route('invoices.show', $i) }}">
+                            <tr class="hover:bg-gray-50 cursor-pointer text-center" data-href="{{ route('invoices.show', $i) }}">
                                 <td class="border px-3 py-2">{{ $loop->iteration }}</td>
                                 <td class="border px-3 py-2 text-left font-semibold">{{ $i->invoice_number }}</td>
                                 <td class="border px-3 py-2 text-left">
