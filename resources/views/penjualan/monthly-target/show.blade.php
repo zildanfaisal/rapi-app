@@ -14,7 +14,7 @@
                 <div class="text-sm text-gray-700 mb-1">Informasi Target</div>
                 <div class="mt-2 text-xs text-gray-600 space-y-1">
                     <div>Nama: <span class="font-semibold">{{ $monthlyTarget->name }}</span></div>
-                    <div>Periode: <span class="font-semibold">{{ $monthlyTarget->start_date }} s/d {{ $monthlyTarget->end_date }}</span></div>
+                    <div>Periode: <span class="font-semibold">{{ \Carbon\Carbon::parse($monthlyTarget->start_date)->toDateString() }} s/d {{ \Carbon\Carbon::parse($monthlyTarget->end_date)->toDateString() }}</span></div>
                     <div>Target: <span class="font-semibold">Rp {{ number_format($monthlyTarget->target_amount ?? 0, 0, ',', '.') }}</span></div>
                     <div>Sisa Menuju Target: <span class="font-semibold">Rp {{ number_format(max(0, ($monthlyTarget->target_amount ?? 0) - ($actuals ?? 0)), 0, ',', '.') }}</span></div>
                     <div>Status: 

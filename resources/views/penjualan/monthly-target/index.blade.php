@@ -32,7 +32,7 @@
                             @foreach($targets as $t)
                                 <tr class="text-center hover:bg-gray-50">
                                     <td class="px-4 py-2 border">{{ $t->name }}</td>
-                                    <td class="px-4 py-2 border">{{ $t->start_date }} s/d {{ $t->end_date }}</td>
+                                    <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($t->start_date)->toDateString() }} s/d {{ \Carbon\Carbon::parse($t->end_date)->toDateString() }}</td>
                                     <td class="px-4 py-2 border">Rp {{ number_format($t->target_amount ?? 0, 0, ',', '.') }}</td>
                                     <td class="px-4 py-2 border">Rp {{ number_format($t->computed_remaining ?? ($t->achieved_total ?? 0), 0, ',', '.') }}</td>
                                     <td class="px-4 py-2 border">
