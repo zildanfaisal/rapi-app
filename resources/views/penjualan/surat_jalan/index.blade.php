@@ -102,7 +102,7 @@
                                     </td>
                                     <td class="px-3 py-2 border text-center">
                                         <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="text-blue-600">Edit</a>
-                                        <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat jalan ini?')">
+                                        <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="inline" onclick="event.stopPropagation();" data-confirm-delete>
                                             @csrf
                                             @method('DELETE')
                                             <button class="text-red-600 ms-3">Hapus</button>
@@ -157,7 +157,7 @@
                                 <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
                                     <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="flex-1 border border-indigo-600 text-indigo-600 rounded text-center py-2">Edit</a>
                                     
-                                    <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="flex-1"
+                                    <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="flex-1" onclick="event.stopPropagation();" data-confirm-delete
                                          >
                                         @csrf
                                         @method('DELETE')
@@ -165,6 +165,7 @@
                                                 class="w-full border border-red-600 text-red-600 rounded text-center py-2">
                                             Hapus
                                         </button>
+                                    </form>
                                 </div>
 
                             </div>
