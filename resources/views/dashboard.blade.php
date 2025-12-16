@@ -7,18 +7,18 @@
 @endsection
 
 @section('content')
-<div class="py-2">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+<div class="py-2 overflow-x-hidden">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 overflow-x-hidden">
 
         <!-- Welcome Card -->
-        <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg rounded-2xl p-6 text-white">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-2xl font-bold">Selamat Datang, {{ $user->name }}! 👋</h3>
-                    <p class="text-indigo-100 mt-1">{{ $user->email }}</p>
-                    <p class="text-sm text-indigo-100 mt-2">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM YYYY') }}</p>
+        <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg rounded-2xl p-4 sm:p-6 text-white overflow-hidden">
+            <div class="flex items-center justify-between min-w-0">
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-lg sm:text-2xl font-bold truncate">Selamat Datang, {{ $user->name }}! 👋</h3>
+                    <p class="text-indigo-100 mt-1 text-sm sm:text-base truncate">{{ $user->email }}</p>
+                    <p class="text-xs sm:text-sm text-indigo-100 mt-2 truncate">{{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM YYYY') }}</p>
                 </div>
-                <div class="hidden md:block">
+                <div class="hidden md:block flex-shrink-0">
                     <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -29,12 +29,12 @@
         </div>
 
         <!-- Stats Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-hidden">
             <!-- Month Filter -->
-            <div class="md:col-span-2 lg:col-span-4">
+            <div class="md:col-span-2 lg:col-span-4 overflow-x-hidden">
                 <form method="GET" action="{{ route('dashboard') }}" class="flex items-end gap-3 justify-end" id="monthFilterForm">
-                    <div>
-                        <input type="month" name="month" value="{{ $filterMonth ?? now()->format('Y-m') }}" class="px-3 py-2.5 border rounded-lg" id="monthFilterInput">
+                    <div class="min-w-0">
+                        <input type="month" name="month" value="{{ $filterMonth ?? now()->format('Y-m') }}" class="px-3 py-2.5 border rounded-lg text-sm sm:text-base w-full max-w-full" id="monthFilterInput">
                     </div>
                 </form>
                 <script>
@@ -50,20 +50,20 @@
                 </script>
             </div>
             <!-- Total Produk -->
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                    <p class="text-sm font-medium text-gray-600">Total Produk</p>
-                    <p class="text-3xl font-bold text-gray-800 mt-2">{{ $totalProducts }}</p>
+            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-4 sm:p-6 border border-gray-100 overflow-hidden min-w-0">
+                <div class="flex items-center justify-between gap-3 min-w-0">
+                    <div class="min-w-0 flex-1">
+                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Produk</p>
+                    <p class="text-2xl sm:text-3xl font-bold text-gray-800 mt-2 truncate">{{ $totalProducts }}</p>
                     <p class="text-xs {{ $productGrowth >= 0 ? 'text-green-600' : 'text-red-600' }} mt-2 flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $productGrowth >= 0 ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3' }}"/>
                         </svg>
-                        {{ $productGrowth >= 0 ? '+' : '' }}{{ number_format(abs($productGrowth), 1) }}% dari bulan lalu
+                        <span class="truncate">{{ $productGrowth >= 0 ? '+' : '' }}{{ number_format(abs($productGrowth), 1) }}% dari bulan lalu</span>
                     </p>
                 </div>
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
                         </svg>
                     </div>
@@ -71,24 +71,24 @@
             </div>
 
             <!-- Total Customer -->
-           <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Total Customer</p>
-                        <p class="text-3xl font-bold text-gray-800 mt-2">{{ number_format($totalCustomers) }}</p>
+           <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-4 sm:p-6 border border-gray-100 overflow-hidden min-w-0">
+                <div class="flex items-center justify-between gap-3 min-w-0">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Customer</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-gray-800 mt-2 truncate">{{ number_format($totalCustomers) }}</p>
                         <p class="text-xs {{ $customerGrowth >= 0 ? 'text-green-600' : 'text-red-600' }} mt-2 flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 @if($customerGrowth >= 0)
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
                                 @else
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
                                 @endif
                             </svg>
-                            {{ $customerGrowth >= 0 ? '+' : '' }}{{ number_format(abs($customerGrowth), 1) }}% dari bulan lalu
+                            <span class="truncate">{{ $customerGrowth >= 0 ? '+' : '' }}{{ number_format(abs($customerGrowth), 1) }}% dari bulan lalu</span>
                         </p>
                     </div>
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 sm:w-8 sm:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
                     </div>
@@ -96,43 +96,43 @@
             </div>
 
             <!-- Total Invoice -->
-            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 border border-gray-100">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600">Total Invoice</p>
-                        <p class="text-3xl font-bold text-gray-800 mt-2">{{ number_format($totalInvoices) }}</p>
+            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-4 sm:p-6 border border-gray-100 overflow-hidden min-w-0">
+                <div class="flex items-center justify-between gap-3 min-w-0">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Invoice</p>
+                        <p class="text-2xl sm:text-3xl font-bold text-gray-800 mt-2 truncate">{{ number_format($totalInvoices) }}</p>
                         <p class="text-xs {{ $invoiceGrowth >= 0 ? 'text-green-600' : 'text-red-600' }} mt-2 flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 @if($invoiceGrowth >= 0)
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
                                 @else
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
                                 @endif
                             </svg>
-                            {{ $invoiceGrowth >= 0 ? '+' : '' }}{{ number_format(abs($invoiceGrowth), 1) }}% dari bulan lalu
+                            <span class="truncate">{{ $invoiceGrowth >= 0 ? '+' : '' }}{{ number_format(abs($invoiceGrowth), 1) }}% dari bulan lalu</span>
                         </p>
                     </div>
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 sm:w-16 sm:h-16 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
                 </div>
             </div>
 
-        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 border border-gray-100">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600">Total Pemasukan (Paid)</p>
-                    <p class="text-3xl font-bold text-gray-800 mt-2">
+        <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-4 sm:p-6 border border-gray-100 overflow-hidden min-w-0">
+            <div class="flex items-center justify-between gap-3 min-w-0">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Pemasukan (Paid)</p>
+                    <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mt-2 truncate">
                         Rp {{ number_format($totalPaid ?? 0, 0, ',', '.') }}
                     </p>
-                    <p class="text-xs text-gray-500 mt-2">
+                    <p class="text-xs text-gray-500 mt-2 truncate">
                         Dari {{ number_format($paidCount ?? 0, 0, ',', '.') }} invoice paid
                     </p>
                 </div>
-                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
@@ -141,13 +141,13 @@
         </div>
 
         <!-- Charts Row -->
-        <div class="">
+        <div class="overflow-x-hidden">
 
             <!-- Top 5 Produk Terlaris -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                <div class="p-6 border-b border-gray-100">
-                    <h3 class="text-lg font-semibold text-gray-800">Top 5 Produk Terlaris</h3>
-                    <p class="text-xs text-gray-500 mt-1">Berdasarkan Quantity Terjual</p>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4 sm:p-6 border-b border-gray-100">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">Top 5 Produk Terlaris</h3>
+                    <p class="text-xs text-gray-500 mt-1 truncate">Berdasarkan Quantity Terjual</p>
                 </div>
                 <div class="divide-y divide-gray-100">
                     @forelse($topProductsData['labels'] as $index => $productName)
@@ -179,25 +179,25 @@
                             $bgColor = $bgColors[$index] ?? 'bg-gray-100';
                             $textColor = $textColors[$index] ?? 'text-gray-600';
                         @endphp
-                        <div class="p-4 hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 bg-gradient-to-br {{ $gradient }} rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                        <div class="p-3 sm:p-4 hover:bg-gray-50 transition-colors overflow-hidden">
+                            <div class="flex items-center justify-between gap-3 min-w-0">
+                                <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br {{ $gradient }} rounded-lg flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
                                         {{ $index + 1 }}
                                     </div>
-                                    <div>
-                                        <p class="font-medium text-gray-800">{{ $productName }}</p>
-                                        <p class="text-sm text-gray-500">Produk Terlaris #{{ $index + 1 }}</p>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-medium text-sm sm:text-base text-gray-800 truncate">{{ $productName }}</p>
+                                        <p class="text-xs sm:text-sm text-gray-500 truncate">Produk Terlaris #{{ $index + 1 }}</p>
                                     </div>
                                 </div>
-                                <div class="text-right">
+                                <div class="text-right flex-shrink-0">
                                     <div class="flex items-center gap-2">
-                                         <div>
-                                            <p class="font-bold text-gray-800 text-lg">{{ number_format($quantity) }}</p>
-                                            <p class="text-xs text-gray-500">Unit Terjual</p>
+                                         <div class="text-right">
+                                            <p class="font-bold text-gray-800 text-sm sm:text-base lg:text-lg whitespace-nowrap">{{ number_format($quantity) }}</p>
+                                            <p class="text-xs text-gray-500 whitespace-nowrap">Unit Terjual</p>
                                         </div>
-                                        <div class="w-10 h-10 {{ $bgColor }} rounded-full flex items-center justify-center">
-                                            <svg class="w-5 h-5 {{ $textColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div class="w-8 h-8 sm:w-10 sm:h-10 {{ $bgColor }} rounded-full flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4 sm:w-5 sm:h-5 {{ $textColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                                             </svg>
                                         </div>
@@ -227,54 +227,54 @@
         </div>
 
         <!-- Recent Activities & Top Customers -->
-       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 overflow-x-hidden">
 
             <!-- Recent Invoices -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                <div class="p-6 border-b border-gray-100">
-                    <h3 clss="text-lg font-semibold text-gray-800">Invoice Terbaru</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4 sm:p-6 border-b border-gray-100">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">Invoice Terbaru</h3>
                 </div>
                 <div class="divide-y divide-gray-100">
                     @forelse($recentInvoices as $invoice)
-                        <div class="p-4 hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <span class="text-sm font-semibold text-blue-600">INV</span>
+                        <div class="p-3 sm:p-4 hover:bg-gray-50 transition-colors overflow-hidden">
+                            <div class="flex items-center justify-between gap-3 min-w-0">
+                                <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-xs sm:text-sm font-semibold text-blue-600">INV</span>
                                     </div>
-                                    <div>
-                                        <p class="font-medium text-gray-800">{{ $invoice->invoice_number }}</p>
-                                        <p class="text-sm text-gray-500">{{ $invoice->customer->nama_customer ?? 'Customer' }}</p>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-medium text-sm sm:text-base text-gray-800 truncate">{{ $invoice->invoice_number }}</p>
+                                        <p class="text-xs sm:text-sm text-gray-500 truncate">{{ $invoice->customer->nama_customer ?? 'Customer' }}</p>
                                     </div>
                                 </div>
-                               <div class="text-right">
-                                <p class="font-semibold text-gray-800">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</p>
+                               <div class="text-right flex-shrink-0">
+                                <p class="font-semibold text-sm sm:text-base text-gray-800 whitespace-nowrap">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</p>
                                 @if($invoice->status_pembayaran == 'paid')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full mt-1">Lunas</span>
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full mt-1 whitespace-nowrap">Lunas</span>
                                 @elseif($invoice->status_pembayaran == 'unpaid')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full mt-1">Belum Lunas</span>
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full mt-1 whitespace-nowrap">Belum Lunas</span>
                                 @elseif($invoice->status_pembayaran == 'overdue')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full mt-1">Terlambat</span>
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full mt-1 whitespace-nowrap">Terlambat</span>
                                 @elseif($invoice->status_pembayaran == 'cancelled')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full mt-1">Dibatalkan</span>
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full mt-1 whitespace-nowrap">Dibatalkan</span>
                                 @else
-                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full mt-1">{{ ucfirst($invoice->status_pembayaran) }}</span>
+                                    <span class="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full mt-1 whitespace-nowrap">{{ ucfirst($invoice->status_pembayaran) }}</span>
                                 @endif
                             </div>
                             </div>
                         </div>
                     @empty
-                        <div class="p-8 text-center text-gray-500">
-                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="p-6 sm:p-8 text-center text-gray-500">
+                            <svg class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
-                            <p>Belum ada invoice</p>
+                            <p class="text-sm sm:text-base">Belum ada invoice</p>
                         </div>
                     @endforelse
                 </div>
                 @if($recentInvoices->count() > 0)
-                <div class="p-4 border-t border-gray-100">
-                    <a href="{{ route('invoices.index') }}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                <div class="p-3 sm:p-4 border-t border-gray-100">
+                    <a href="{{ route('invoices.index') }}" class="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                         Lihat Semua Invoice →
                     </a>
                 </div>
@@ -282,9 +282,9 @@
             </div>
 
             <!-- Top Customers -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                <div class="p-6 border-b border-gray-100">
-                    <h3 class="text-lg font-semibold text-gray-800">Customer Terbaik</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-4 sm:p-6 border-b border-gray-100">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">Customer Terbaik</h3>
                 </div>
                 <div class="divide-y divide-gray-100">
                     @forelse($topCustomers as $index => $customer)
@@ -298,36 +298,36 @@
                             ];
                             $gradient = $gradients[$index] ?? 'from-gray-500 to-gray-600';
                         @endphp
-                        <div class="p-4 hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 bg-gradient-to-br {{ $gradient }} rounded-lg flex items-center justify-center text-white font-bold">
+                        <div class="p-3 sm:p-4 hover:bg-gray-50 transition-colors overflow-hidden">
+                            <div class="flex items-center justify-between gap-3 min-w-0">
+                                <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br {{ $gradient }} rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
                                         {{ $index + 1 }}
                                     </div>
-                                    <div>
-                                        <p class="font-medium text-gray-800">{{ $customer->nama_customer }}</p>
-                                        <p class="text-sm text-gray-500">{{ $customer->no_hp ?? '-' }}</p>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-medium text-sm sm:text-base text-gray-800 truncate">{{ $customer->nama_customer }}</p>
+                                        <p class="text-xs sm:text-sm text-gray-500 truncate">{{ $customer->no_hp ?? '-' }}</p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <p class="font-semibold text-yellow-600">
+                                <div class="text-right flex-shrink-0">
+                                    <p class="font-semibold text-sm sm:text-base text-yellow-600 whitespace-nowrap">
                                         {{ number_format($customer->point ?? 0) }} pts
                                     </p>
-                                    <p class="text-xs text-gray-500">Total Point</p>
+                                    <p class="text-xs text-gray-500 whitespace-nowrap">Total Point</p>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="p-8 text-center text-gray-500">
-                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="p-6 sm:p-8 text-center text-gray-500">
+                            <svg class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                             </svg>
-                            <p>Belum ada data customer</p>
+                            <p class="text-sm sm:text-base">Belum ada data customer</p>
                         </div>
                     @endforelse
                 </div>
                 @if($topCustomers->count() > 0)
-                <div class="p-4 border-t border-gray-100">
+                <div class="p-3 sm:p-4 border-t border-gray-100">
                     <a href="{{ route('customers.index') }}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
                         Lihat Semua Customer →
                     </a>
@@ -338,91 +338,91 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 overflow-hidden">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 truncate">Quick Actions</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
 
                 <!-- Tambah Invoice -->
                 @can('finance.input.create')
-                <a href="{{ route('invoices.create') }}" class="flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-gray-50 transition-colors group">
-                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('invoices.create') }}" class="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg hover:bg-gray-50 transition-colors group overflow-hidden">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
-                    <span class="text-sm font-medium text-gray-700">Tambah Invoice</span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-700 text-center truncate w-full">Tambah Invoice</span>
                 </a>
                 @else
-                <div class="flex flex-col items-center gap-2 p-4 rounded-lg opacity-50 cursor-not-allowed">
-                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg opacity-50 cursor-not-allowed overflow-hidden">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
-                    <span class="text-sm font-medium text-gray-400">Tambah Invoice</span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-400 text-center truncate w-full">Tambah Invoice</span>
                 </div>
                 @endcan
 
                 <!-- Tambah Customer -->
                 @can('customers.create')
-                <a href="{{ route('customers.create') }}" class="flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-gray-50 transition-colors group">
-                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('customers.create') }}" class="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg hover:bg-gray-50 transition-colors group overflow-hidden">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                         </svg>
                     </div>
-                    <span class="text-sm font-medium text-gray-700">Tambah Customer</span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-700 text-center truncate w-full">Tambah Customer</span>
                 </a>
                 @else
-                <div class="flex flex-col items-center gap-2 p-4 rounded-lg opacity-50 cursor-not-allowed">
-                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg opacity-50 cursor-not-allowed overflow-hidden">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                         </svg>
                     </div>
-                    <span class="text-sm font-medium text-gray-400">Tambah Customer</span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-400 text-center truncate w-full">Tambah Customer</span>
                 </div>
                 @endcan
 
                 <!-- Tambah Produk -->
                 @can('products.create')
-                <a href="{{ route('products.create') }}" class="flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-gray-50 transition-colors group">
-                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('products.create') }}" class="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg hover:bg-gray-50 transition-colors group overflow-hidden">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                         </svg>
                     </div>
-                    <span class="text-sm font-medium text-gray-700">Tambah Produk</span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-700 text-center truncate w-full">Tambah Produk</span>
                 </a>
                 @else
-                <div class="flex flex-col items-center gap-2 p-4 rounded-lg opacity-50 cursor-not-allowed">
-                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg opacity-50 cursor-not-allowed overflow-hidden">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                         </svg>
                     </div>
-                    <span class="text-sm font-medium text-gray-400">Tambah Produk</span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-400 text-center truncate w-full">Tambah Produk</span>
                 </div>
                 @endcan
 
                 <!-- Lihat Laporan Keuangan -->
                 @can('finance.history')
-                <a href="{{ route('finance-records.history') }}" class="flex flex-col items-center gap-2 p-4 rounded-lg hover:bg-gray-50 transition-colors group">
-                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('finance-records.history') }}" class="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg hover:bg-gray-50 transition-colors group overflow-hidden">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                         </svg>
                     </div>
-                    <span class="text-sm font-medium text-gray-700">Laporan Keuangan</span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-700 text-center truncate w-full">Laporan Keuangan</span>
                 </a>
                 @else
-                <div class="flex flex-col items-center gap-2 p-4 rounded-lg opacity-50 cursor-not-allowed">
-                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-lg opacity-50 cursor-not-allowed overflow-hidden">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                         </svg>
                     </div>
-                    <span class="text-sm font-medium text-gray-400">Laporan Keuangan</span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-400 text-center truncate w-full">Laporan Keuangan</span>
                 </div>
                 @endcan
 

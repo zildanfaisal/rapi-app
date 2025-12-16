@@ -3,15 +3,15 @@
 @section('title', __('Input Keuangan'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Input Keuangan') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Input Keuangan') }}</h2>
 @endsection
 
 @section('content')
-<div class="py-2">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+<div class="py-2 w-full">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
 
-        <!-- Row 1: Target Bulanan & Filter -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {{-- Row 1: Target Bulanan & Filter --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <!-- Target Bulanan Card -->
             @if($budgetTarget)
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
@@ -47,8 +47,8 @@
             </div>
         </div>
 
-        <!-- Row 2: Summary Cards (Pengeluaran, Saldo Sisa, Pemasukan) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {{-- Row 2: Summary Cards --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             @php
                 $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
             @endphp
@@ -77,82 +77,276 @@
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-            <div class="max-w-auto">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="mb-4">{{ __('Input Keuangan') }} - {{ \Carbon\Carbon::parse($periode . '-01')->format('F Y') }}</h3>
-                    <a href="{{ route('finance-records.create') }}" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        + Tambah Data Keuangan
-                    </a>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full border border-gray-300" id="dataTables">
-                        <thead class="bg-gray-100">
+        {{-- HEADER --}}
+       
+
+        {{-- MAIN WRAPPER --}}
+        <div class="bg-white shadow sm:rounded-lg w-full">
+            <div class="p-4 sm:p-6 lg:p-8">
+                 <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
+            <h3 class="text-lg font-semibold">{{ __('Input Keuangan') }} - {{ \Carbon\Carbon::parse($periode . '-01')->format('F Y') }}</h3>
+            <a href="{{ route('finance-records.create') }}"
+               class="inline-flex items-center justify-center
+                      px-4 py-2.5 bg-blue-600 text-white
+                      rounded-lg hover:bg-blue-700">
+                + Tambah Data Keuangan
+            </a>
+        </div>
+
+                {{-- ================= DESKTOP TABLE ================= --}}
+                <div class="hidden lg:block w-full overflow-x-auto">
+                    <table id="dataTables" class="min-w-full border border-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-4 py-2 border">No</th>
-                                <th class="px-4 py-2 border">Tanggal</th>
-                                <th class="px-4 py-2 border">Tipe</th>
-                                <th class="px-4 py-2 border">Kategori</th>
-                                <th class="px-4 py-2 border">Jumlah</th>
-                                <th class="px-4 py-2 border">Deskripsi</th>
-                                <th class="px-4 py-2 border">Dibuat Oleh</th>
-                                <th class="px-4 py-2 border">Aksi</th>
+                                <th class="px-3 py-2 border text-center text-xs uppercase">No</th>
+                                <th class="px-3 py-2 border text-center text-xs uppercase">Tanggal</th>
+                                <th class="px-3 py-2 border text-center text-xs uppercase">Tipe</th>
+                                <th class="px-3 py-2 border text-left text-xs uppercase">Kategori</th>
+                                <th class="px-3 py-2 border text-right text-xs uppercase">Jumlah</th>
+                                <th class="px-3 py-2 border text-left text-xs uppercase">Deskripsi</th>
+                                <th class="px-3 py-2 border text-left text-xs uppercase">Dibuat Oleh</th>
+                                <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
                             </tr>
                         </thead>
-
                         <tbody>
-                            @foreach ($financeRecords as $fr)
-                                <tr class="text-center hover:bg-gray-50">
-                                    <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
-                                    <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($fr->tanggal)->format('d/m/Y') }}</td>
-                                    <td class="px-4 py-2 border">
-                                        @if($fr->tipe === 'income')
-                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">Pemasukan</span>
-                                        @else
-                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">Pengeluaran</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-4 py-2 border">{{ $fr->kategori }}</td>
-                                    <td class="px-4 py-2 border text-right">
-                                        <span class="{{ $fr->tipe === 'income' ? 'text-green-600' : 'text-red-600' }} font-semibold">
-                                            Rp {{ number_format($fr->jumlah, 0, ',', '.') }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-2 border text-left">{{ $fr->deskripsi ?? '-' }}</td>
-                                    <td class="px-4 py-2 border">{{ $fr->user->name ?? 'Unknown' }}</td>
-                                    <td class="px-4 py-2 border">
-                                        <a href="{{ route('finance-records.edit', $fr->id) }}" class="text-blue-600 hover:underline">Edit</a>
-                                        <form action="{{ route('finance-records.destroy', $fr->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>
-                                        </form>
-                                    </td>
-                                </tr>
+                            @foreach($financeRecords as $fr)
+                            <tr class="hover:bg-gray-50">
+                                <td class="border px-3 py-2 text-center">{{ $loop->iteration }}</td>
+                                <td class="border px-3 py-2 text-center">
+                                    {{ \Carbon\Carbon::parse($fr->tanggal)->format('d/m/Y') }}
+                                </td>
+                                <td class="border px-3 py-2 text-center">
+                                    @if($fr->tipe === 'income')
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Pemasukan</span>
+                                    @else
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Pengeluaran</span>
+                                    @endif
+                                </td>
+                                <td class="border px-3 py-2">{{ $fr->kategori }}</td>
+                                <td class="border px-3 py-2 text-right">
+                                    <span class="{{ $fr->tipe === 'income' ? 'text-green-600' : 'text-red-600' }} font-semibold">
+                                        Rp {{ number_format($fr->jumlah, 0, ',', '.') }}
+                                    </span>
+                                </td>
+                                <td class="border px-3 py-2">{{ $fr->deskripsi ?? '-' }}</td>
+                                <td class="border px-3 py-2">{{ $fr->user->name ?? 'Unknown' }}</td>
+                                <td class="border px-3 py-2 text-center">
+                                    <a href="{{ route('finance-records.edit', $fr->id) }}" 
+                                       class="text-blue-600 hover:underline">Edit</a>
+                                    <form action="{{ route('finance-records.destroy', $fr->id) }}"
+                                          method="POST" class="inline" data-confirm-delete>
+                                        @csrf @method('DELETE')
+                                        <button class="text-red-600 hover:underline ms-3">Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+
+                {{-- ================= MOBILE CARD ================= --}}
+                <div class="block lg:hidden mt-4" id="mobileWrapper">
+
+                    {{-- TOP CONTROL --}}
+                    <div class="flex justify-between mb-3">
+                        <div class="text-sm text-gray-600">
+                            Show
+                            <select id="mobilePerPage" class="border rounded text-sm mx-1">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                            </select>
+                            entries
+                        </div>
+                    </div>
+
+                    {{-- CARDS --}}
+                    <div id="mobileCards" class="space-y-3">
+                        @foreach($financeRecords as $fr)
+                        <div class="mobile-card border rounded-lg bg-white shadow">
+
+                            {{-- HEADER --}}
+                            <div class="px-4 py-3 bg-gray-50 border-b">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="font-semibold text-gray-900">{{ $fr->kategori }}</div>
+                                        <div class="text-xs text-gray-500 mt-0.5">
+                                            {{ \Carbon\Carbon::parse($fr->tanggal)->format('d/m/Y') }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        @if($fr->tipe === 'income')
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Pemasukan</span>
+                                        @else
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Pengeluaran</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- CONTENT --}}
+                            <div class="px-4 py-3 text-sm space-y-1.5">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Jumlah:</span>
+                                    <span class="{{ $fr->tipe === 'income' ? 'text-green-600' : 'text-red-600' }} font-bold">
+                                        Rp {{ number_format($fr->jumlah, 0, ',', '.') }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Deskripsi:</span>
+                                    <span class="font-medium text-gray-900 text-right">{{ $fr->deskripsi ?? '-' }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Dibuat Oleh:</span>
+                                    <span class="font-medium text-gray-900">{{ $fr->user->name ?? 'Unknown' }}</span>
+                                </div>
+                            </div>
+
+                            {{-- FOOTER --}}
+                            <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
+                                <a href="{{ route('finance-records.edit', $fr->id) }}"
+                                   class="flex-1 border border-blue-600 text-blue-600 rounded text-center py-2 hover:bg-blue-50">
+                                    Edit
+                                </a>
+                                <form action="{{ route('finance-records.destroy', $fr->id) }}"
+                                      method="POST" class="flex-1" data-confirm-delete-mobile>
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                            class="w-full border border-red-600 text-red-600 rounded text-center py-2 hover:bg-red-50">
+                                        Hapus
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                        @endforeach
+                    </div>
+
+                    {{-- INFO + PAGINATION --}}
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+                        <div id="mobileInfo" class="text-sm text-gray-600"></div>
+                        <div id="mobilePagination"
+                             class="flex gap-1 flex-wrap justify-center w-full">
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
         </div>
+
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    new DataTable('#dataTables');
+document.addEventListener('DOMContentLoaded', () => {
 
-    // SweetAlert2 for success message
-    @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            showConfirmButton: false,
-            timer: 2000
-        });
-    @endif
+    let dataTable = null;
+    const cards = [...document.querySelectorAll('.mobile-card')];
+    const info = document.getElementById('mobileInfo');
+    const pagination = document.getElementById('mobilePagination');
+    const perPageSelect = document.getElementById('mobilePerPage');
+
+    let perPage = parseInt(perPageSelect.value);
+    let currentPage = 1;
+
+    function renderMobile(){
+        const total = cards.length;
+        const pages = Math.ceil(total / perPage);
+        const start = (currentPage-1)*perPage;
+        const end = start + perPage;
+
+        cards.forEach((c,i)=>c.style.display = i>=start && i<end ? 'block':'none');
+        info.textContent = `Showing ${start+1} to ${Math.min(end,total)} of ${total} entries`;
+        renderPagination(pages);
+    }
+
+    function renderPagination(totalPages){
+        pagination.innerHTML='';
+
+        const maxVisible=5;
+        let startPage=Math.max(1,currentPage-2);
+        let endPage=Math.min(totalPages,startPage+maxVisible-1);
+
+        const createBtn=(label,disabled,active,cb)=>{
+            const btn=document.createElement('button');
+            btn.textContent=label;
+            btn.disabled=disabled;
+            btn.className=`
+                px-3 py-1 text-sm rounded-md border
+                ${active
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}
+                ${disabled?'opacity-50 cursor-not-allowed':''}
+            `;
+            btn.onclick=cb;
+            return btn;
+        };
+
+        pagination.appendChild(createBtn('Prev',currentPage===1,false,()=>{
+            currentPage--; renderMobile();
+        }));
+
+        for(let i=startPage;i<=endPage;i++){
+            pagination.appendChild(createBtn(i,false,i===currentPage,()=>{
+                currentPage=i; renderMobile();
+            }));
+        }
+
+        pagination.appendChild(createBtn('Next',currentPage===totalPages,false,()=>{
+            currentPage++; renderMobile();
+        }));
+    }
+
+    perPageSelect.onchange=()=>{
+        perPage=parseInt(perPageSelect.value);
+        currentPage=1;
+        renderMobile();
+    };
+
+    function handleResponsive(){
+        if(window.innerWidth>=1024){
+            if(!dataTable){
+                dataTable=new DataTable('#dataTables',{responsive:true});
+            }
+        }else{
+            if(dataTable){
+                dataTable.destroy();
+                dataTable=null;
+            }
+            renderMobile();
+        }
+    }
+
+    handleResponsive();
+    window.addEventListener('resize',handleResponsive);
+
+    // Delete confirmation for desktop
+    document.querySelectorAll('[data-confirm-delete]').forEach(form => {
+        form.onsubmit = e => {
+            if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) e.preventDefault();
+        };
+    });
+
+    // Delete confirmation for mobile
+    document.querySelectorAll('[data-confirm-delete-mobile]').forEach(form => {
+        form.onsubmit = e => {
+            if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) e.preventDefault();
+        };
+    });
+});
+
+// SweetAlert2 for success message
+@if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: '{{ session('success') }}',
+        showConfirmButton: false,
+        timer: 2000
+    });
+@endif
 </script>
 @endpush

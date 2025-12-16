@@ -468,7 +468,12 @@
                         </svg>
                     </button>
                     <ul x-cloak x-show="open" x-transition class="mt-1.5 space-y-1 pl-12" style="display:none;">
-                        @can('invoices.view')
+                     @can('monthly-target.view')
+                        <li>
+                            <a href="{{ route('monthly-targets.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('monthly-targets.*') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">Target Bulanan</a>
+                        </li>   
+                        @endcan
+                    @can('invoices.view')
                         <li>
                             <a href="{{ route('invoices.index') }}"
                                 class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('invoices.index') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
@@ -492,10 +497,10 @@
                             </a>
                         </li>
                         @endcan
-                        @can('transactions.history')
+                        @can('transactions.view')
                         <li>
-                            <a href="#"
-                                class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-50">
+                            <a href="{{ route('riwayat-penjualan.index') }}"
+                                class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('riwayat-penjualan.index') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
                                 Riwayat Transaksi
                             </a>
                         </li>

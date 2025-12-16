@@ -3,13 +3,15 @@
 @section('title', __('Surat Jalan'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Surat Jalan') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Surat Jalan') }}</h2>
 @endsection
 
 @section('content')
-<div class="py-2">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+<div class="py-2 w-full">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
+
+        {{-- HEADER STATISTIC + FILTER --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div class="bg-green-50 border border-green-200 rounded-lg p-6">
                 <div class="text-sm text-green-700 mb-1">Rasio Lunas / Transaksi</div>
                 <div class="text-4xl font-extrabold text-green-800 tracking-tight">
@@ -45,58 +47,65 @@
                 </form>
             </div>
         </div>
-        <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-            <div class="max-w-auto">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="mb-4">{{ __('Surat Jalan') }}</h3>
-                    <a href="{{ route('surat-jalan.create') }}" class="inline-block mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        + Buat Surat Jalan
+
+        {{-- MAIN WRAPPER --}}
+        <div class="bg-white shadow sm:rounded-lg w-full">
+            <div class="p-4 sm:p-6 lg:p-8">
+                 {{-- HEADER TABLE --}}
+                <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
+                    <h3 class="text-lg font-semibold">Surat Jalan</h3>
+                    <a href="{{ route('surat-jalan.create') }}"
+                       class="inline-flex items-center justify-center
+                              px-4 py-2.5 bg-blue-600 text-white
+                              rounded-lg hover:bg-blue-700">
+                        + Tambah Surat Jalan
                     </a>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full border border-gray-300" id="dataTables">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-4 py-2 border">No</th>
-                                <th class="px-4 py-2 border">Nomor Surat Jalan</th>
-                                <th class="px-4 py-2 border">Pelanggan</th>
-                                <th class="px-4 py-2 border">Invoice</th>
-                                <th class="px-4 py-2 border">Tanggal</th>
-                                <th class="px-4 py-2 border">Ongkir</th>
-                                <th class="px-4 py-2 border">Grand Total</th>
-                                <th class="px-4 py-2 border">Status Pembayaran</th>
-                                <th class="px-4 py-2 border">Aksi</th>
+                {{-- ================= DESKTOP TABLE ================= --}}
+                <div class="hidden lg:block w-full overflow-x-auto">
+                    <table id="dataTablesDesktop" class="min-w-full border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr class="text-center">
+                                <th class="px-3 py-2 border text-xs uppercase">No</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Nomor Surat Jalan</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Pelanggan</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Invoice</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Tanggal</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Ongkir</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Grand Total</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Status Pembayaran</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($suratJalans as $sj)
-                                <tr class="text-center hover:bg-gray-50 cursor-pointer" data-href="{{ route('surat-jalan.show', $sj) }}">
-                                    <td class="px-4 py-2 border">{{ $loop->iteration + ($suratJalans->currentPage() - 1) * $suratJalans->perPage() }}</td>
-                                    <td class="px-4 py-2 border">{{ $sj->nomor_surat_jalan ?? '-' }}</td>
-                                    <td class="px-4 py-2 border">{{ $sj->customer->nama_customer ?? '-' }}</td>
-                                    <td class="px-4 py-2 border">{{ $sj->invoice->invoice_number ?? $sj->invoice_id }}</td>
-                                    <td class="px-4 py-2 border">{{ $sj->tanggal }}</td>
-                                    <td class="px-4 py-2 border">Rp {{ number_format($sj->ongkos_kirim ?? 0, 0, ',', '.') }}</td>
-                                    <td class="px-4 py-2 border">Rp {{ number_format($sj->grand_total ?? 0, 0, ',', '.') }}</td>
-                                    <td class="px-4 py-2 border">
+                                <tr class="hover:bg-gray-50 cursor-pointer" data-href="{{ route('surat-jalan.show', $sj) }}">
+                                    <td class="px-3 py-2 border text-center">{{ $loop->iteration + ($suratJalans->currentPage() - 1) * $suratJalans->perPage() }}</td>
+                                    <td class="px-3 py-2 border text-left">{{ $sj->nomor_surat_jalan ?? '-' }}</td>
+                                    <td class="px-3 py-2 border text-left">{{ $sj->customer->nama_customer ?? '-' }}</td>
+                                    <td class="px-3 py-2 border text-left">{{ $sj->invoice->invoice_number ?? $sj->invoice_id }}</td>
+                                    <td class="px-3 py-2 border text-center">{{ $sj->tanggal }}</td>
+                                    <td class="px-3 py-2 border text-right">Rp {{ number_format($sj->ongkos_kirim ?? 0, 0, ',', '.') }}</td>
+                                    <td class="px-3 py-2 border text-right">Rp {{ number_format($sj->grand_total ?? 0, 0, ',', '.') }}</td>
+                                    <td class="px-3 py-2 border text-center">
                                         @php $status = $sj->status_pembayaran; @endphp
                                         @if ($status === 'lunas')
-                                            <span class="inline-block px-2 py-1 rounded text-xs bg-green-100 text-green-800">Lunas</span>
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Lunas</span>
                                         @elseif ($status === 'pending')
-                                            <span class="inline-block px-2 py-1 rounded text-xs bg-red-100 text-red-800">Belum Lunas</span>
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Lunas</span>
                                         @elseif ($status === 'cancel')
-                                            <span class="inline-block px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">Dibatalkan</span>
+                                            <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Dibatalkan</span>
                                         @else
-                                            <span class="inline-block px-2 py-1 rounded text-xs bg-gray-200 text-gray-700">{{ ucfirst($status ?? '-') }}</span>
+                                            <span class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs">{{ ucfirst($status ?? '-') }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-2 border">
-                                        <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="text-blue-600 hover:underline" onclick="event.stopPropagation()">Edit</a>
-                                        <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat jalan ini?')" onclick="event.stopPropagation()">
+                                    <td class="px-3 py-2 border text-center">
+                                        <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="text-blue-600">Edit</a>
+                                        <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat jalan ini?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline ms-4">Hapus</button>
+                                            <button class="text-red-600 ms-3">Hapus</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -104,25 +113,180 @@
                         </tbody>
                     </table>
                 </div>
+                
 
-                <div class="mt-4">
-                    {{ $suratJalans->links() }}
+                {{-- ================= MOBILE CARD ================= --}}
+                <div class="block lg:hidden mt-4" id="mobileWrapper">
+
+                    {{-- TOP CONTROL --}}
+                    <div class="flex justify-between mb-3">
+                        <div class="text-sm text-gray-600">
+                            Show
+                            <select id="mobilePerPage" class="border rounded text-sm mx-1">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                            </select>
+                            entries
+                        </div>
+                    </div>
+
+                    {{-- CARDS --}}
+                    <div id="mobileCards" class="space-y-3">
+                        @foreach($suratJalans as $sj)
+                            <div class="mobile-card border rounded-lg bg-white shadow" data-href="{{ route('surat-jalan.show', $sj) }}">
+
+                                <div class="px-4 py-3 bg-gray-50 border-b">
+                                    <div class="font-semibold">{{ $sj->nomor_surat_jalan ?? '-' }}</div>
+                                    <div class="text-xs text-gray-500">{{ $sj->tanggal }}</div>
+                                </div>
+
+                                <div class="px-4 py-3 text-sm space-y-1">
+                                    <div>Pelanggan: <b>{{ $sj->customer->nama_customer ?? '-' }}</b></div>
+                                    <div>Invoice: <b>{{ $sj->invoice->invoice_number ?? $sj->invoice_id }}</b></div>
+                                    <div>Ongkir: <b>Rp {{ number_format($sj->ongkos_kirim ?? 0, 0, ',', '.') }}</b></div>
+                                    <div>Grand Total: <b>Rp {{ number_format($sj->grand_total ?? 0, 0, ',', '.') }}</b></div>
+                                    <div>Status:
+                                        <b class="
+                                            {{ $sj->status_pembayaran === 'lunas' ? 'text-green-700' :
+                                               ($sj->status_pembayaran === 'pending' ? 'text-red-700' : 'text-gray-700') }}">
+                                            {{ ucfirst($sj->status_pembayaran ?? '-') }}
+                                        </b>
+                                    </div>
+                                </div>
+
+                                <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
+                                    <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="flex-1 border border-indigo-600 text-indigo-600 rounded text-center py-2">Edit</a>
+                                    
+                                    <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="flex-1"
+                                         >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="w-full border border-red-600 text-red-600 rounded text-center py-2">
+                                            Hapus
+                                        </button>
+                                </div>
+
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- INFO + PAGINATION (CENTER) --}}
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+                        <div id="mobileInfo" class="text-sm text-gray-600"></div>
+                        <div id="mobilePagination" class="flex gap-1 flex-wrap justify-center w-full"></div>
+                    </div>
+
                 </div>
+
             </div>
         </div>
+
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
-    new DataTable('#dataTables');
-    document.querySelector('#dataTables tbody')?.addEventListener('click', function(e){
+document.addEventListener('DOMContentLoaded', () => {
+
+    let dataTable = null;
+    const cards = [...document.querySelectorAll('.mobile-card')];
+    const info = document.getElementById('mobileInfo');
+    const pagination = document.getElementById('mobilePagination');
+    const perPageSelect = document.getElementById('mobilePerPage');
+
+    let perPage = parseInt(perPageSelect.value);
+    let currentPage = 1;
+
+    function renderMobile(){
+        const total = cards.length;
+        const pages = Math.ceil(total / perPage);
+        const start = (currentPage-1)*perPage;
+        const end = start + perPage;
+
+        cards.forEach((c,i)=>c.style.display = i>=start && i<end ? 'block':'none');
+        info.textContent = `Showing ${start+1} to ${Math.min(end,total)} of ${total} entries`;
+        renderPagination(pages);
+    }
+
+    function renderPagination(totalPages){
+        pagination.innerHTML='';
+
+        const maxVisible=5;
+        let startPage=Math.max(1,currentPage-2);
+        let endPage=Math.min(totalPages,startPage+maxVisible-1);
+
+        const createBtn=(label,disabled,active,cb)=>{
+            const btn=document.createElement('button');
+            btn.textContent=label;
+            btn.disabled=disabled;
+            btn.className=`
+                px-3 py-1 text-sm rounded-md border
+                ${active
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}
+                ${disabled?'opacity-50 cursor-not-allowed':''}
+            `;
+            btn.onclick=cb;
+            return btn;
+        };
+
+        pagination.appendChild(createBtn('Prev',currentPage===1,false,()=>{
+            currentPage--; renderMobile();
+        }));
+
+        for(let i=startPage;i<=endPage;i++){
+            pagination.appendChild(createBtn(i,false,i===currentPage,()=>{
+                currentPage=i; renderMobile();
+            }));
+        }
+
+        pagination.appendChild(createBtn('Next',currentPage===totalPages,false,()=>{
+            currentPage++; renderMobile();
+        }));
+    }
+
+    perPageSelect.onchange=()=>{
+        perPage=parseInt(perPageSelect.value);
+        currentPage=1;
+        renderMobile();
+    };
+
+    function handleResponsive(){
+        if(window.innerWidth>=1024){
+            if(!dataTable){
+                dataTable=new DataTable('#dataTablesDesktop',{responsive:true});
+            }
+        }else{
+            if(dataTable){
+                dataTable.destroy();
+                dataTable=null;
+            }
+            renderMobile();
+        }
+    }
+
+    handleResponsive();
+    window.addEventListener('resize',handleResponsive);
+
+    // Make mobile cards clickable
+    cards.forEach(c => {
+        c.addEventListener('click', () => {
+            const href = c.getAttribute('data-href');
+            if(href) window.location.href = href;
+        });
+    });
+
+    // Desktop table clickable row
+    document.querySelector('#dataTablesDesktop tbody')?.addEventListener('click', function(e){
         const tr = e.target.closest('tr[data-href]');
         if (!tr) return;
         const href = tr.getAttribute('data-href');
         if (!href) return;
         window.location.href = href;
     });
+
+});
 </script>
 @endpush
