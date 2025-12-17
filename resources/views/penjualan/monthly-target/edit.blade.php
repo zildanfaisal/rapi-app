@@ -3,7 +3,7 @@
 @section('title', __('Edit Target Bulanan'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Edit Target Bulanan') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Edit Target Bulanan') }}</h2>
 @endsection
 
 @section('content')

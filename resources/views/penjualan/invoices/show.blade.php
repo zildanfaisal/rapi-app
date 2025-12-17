@@ -2,17 +2,17 @@
 
 @section('title', __('Detail Penjualan'))
 
+
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Detail Penjualan') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Detail Penjualan') }}</h2>
 @endsection
 
-@push('scripts')
-@endpush
+
 
 @section('content')
 <div class="py-2">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+        <div class="p-2 sm:p-8 bg-white shadow sm:rounded-lg">
             <div class="max-w-auto">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold">{{ __('Detail Penjualan') }}</h3>
@@ -21,7 +21,7 @@
                     </div>
                 </div>
 
-                <div class="p-4 space-y-4">
+                <div class="p-2 space-y-2">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                         <div>
                             <div class="text-gray-600">Nomor Invoice</div>

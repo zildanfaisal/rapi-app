@@ -3,7 +3,7 @@
 @section('title', __('Tambah Target Anggaran'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Tambah Target Anggaran') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Tambah Target Anggaran') }}</h2>
 @endsection
 
 @push('scripts')

@@ -149,6 +149,16 @@
                                     @endif
                                 </div>
                                 <div>Stok: {{ $p->batches->sum('quantity_sekarang') }}</div>
+                                <div>Status: @if($p->batches->sum('quantity_sekarang') >= $p->min_stok_alert)
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                                            {{ $p->status }}
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">
+                                            {{ $p->status }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
 
                             <div class="px-4 py-3 border-t flex gap-2">

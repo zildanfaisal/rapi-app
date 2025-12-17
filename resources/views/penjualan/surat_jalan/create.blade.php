@@ -3,7 +3,7 @@
 @section('title', __('Buat Surat Jalan'))
 
 @section('header')
-	<h2 class="text-xl font-semibold text-gray-800">{{ __('Buat Surat Jalan') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Buat Surat Jalan') }}</h2>
 @endsection
 
 @section('content')
@@ -82,7 +82,7 @@
 
 					<div class="flex items-center gap-4">
 						<button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{{ __('Simpan') }}</button>
-						<a href="{{ route('invoices.index') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">{{ __('Batal') }}</a>
+						<a href="{{ route('surat-jalan.index') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">{{ __('Batal') }}</a>
 					</div>
 				</form>
 			</div>

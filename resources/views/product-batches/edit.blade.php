@@ -3,7 +3,7 @@
 @section('title', __('Edit Batch Produk'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Edit Batch Produk') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Edit Product Batches') }}</h2>
 @endsection
 
 @section('content')

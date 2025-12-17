@@ -3,9 +3,8 @@
 @section('title', __('Dashboard'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Dashboard') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Dashboard') }}</h2>
 @endsection
-
 @section('content')
 <div class="py-2 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 overflow-x-hidden">

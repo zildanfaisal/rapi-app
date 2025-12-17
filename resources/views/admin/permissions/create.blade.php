@@ -3,7 +3,7 @@
 @section('title', __('Tambah Izin'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Tambah Izin') }}</h2>
+    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Tambah Izin') }}</h2>
 @endsection
 
 @section('content')
