@@ -81,6 +81,7 @@
 
                                 <td class="px-3 py-2 border">
                                     <div class="flex justify-center gap-3">
+                                        <a href="{{ route('products.barcode.download', $p->id) }}" class="text-green-600 hover:underline">Unduh Barcode</a>
                                         <a href="{{ route('products.show', $p->id) }}" class="text-indigo-600 hover:underline">Detail</a>
                                         <a href="{{ route('products.edit', $p->id) }}" class="text-blue-600 hover:underline">Edit</a>
                                         <form action="{{ route('products.destroy', $p->id) }}" method="POST" data-confirm-delete>
@@ -162,6 +163,10 @@
                             </div>
 
                             <div class="px-4 py-3 border-t flex gap-2">
+                                <a href="{{ route('products.barcode.download', $p->id) }}"
+                                   class="flex-1 text-center px-3 py-2 border border-green-600 rounded text-green-600">
+                                    Unduh Barcode
+                                </a>
                                 <a href="{{ route('products.show', $p->id) }}"
                                    class="flex-1 text-center px-3 py-2 border border-indigo-600 rounded text-indigo-600">
                                     Detail
