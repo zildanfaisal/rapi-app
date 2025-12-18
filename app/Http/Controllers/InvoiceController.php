@@ -172,6 +172,15 @@ class InvoiceController extends Controller
                     }
 
                     $batch->decrement('quantity_sekarang', $item['quantity']);
+
+                    $batch->refresh();
+
+                    if ($batch->quantity_sekarang <= 0) {
+                        $batch->update([
+                            'status' => 'sold_out',
+                            'quantity_sekarang' => 0, 
+                        ]);
+                    }
                 }
             }
 

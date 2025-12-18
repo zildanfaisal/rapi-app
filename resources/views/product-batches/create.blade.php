@@ -25,7 +25,7 @@
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                     focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                             placeholder="Masukkan Barcode Produk"
-                            required>
+                            >
                     </div>
                     
                     {{-- Produk --}}
@@ -259,6 +259,40 @@
                 alert("Produk dengan barcode tersebut tidak ditemukan!");
             }
         }
+    });
+
+     const barcodeInput = document.getElementById('barcode');
+    const produkSelect = document.getElementById('produk');
+
+    // ===== 1. BARCODE → PRODUK =====
+    barcodeInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+
+            const barcode = this.value.trim();
+            let found = false;
+
+            for (let option of produkSelect.options) {
+                if (option.dataset.barcode === barcode) {
+                    option.selected = true;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found && barcode !== '') {
+                alert('Produk dengan barcode tersebut tidak ditemukan');
+                produkSelect.selectedIndex = 0;
+            }
+        }
+    });
+
+    // ===== 2. PRODUK → BARCODE =====
+    produkSelect.addEventListener('change', function () {
+        const selected = this.options[this.selectedIndex];
+        const barcode = selected.dataset.barcode || '';
+
+        barcodeInput.value = barcode;
     });
 
 
