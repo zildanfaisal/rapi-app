@@ -43,10 +43,18 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-3 py-2 text-center border">{{ $loop->iteration }}</td>
 
-                                <td class="px-3 py-2 border text-center">
-                                    {!! DNS1D::getBarcodeHTML($p->barcode, 'C128', 1.5, 40) !!}
-                                    <div class="text-xs font-semibold mt-1">{{ $p->barcode }}</div>
+                               <td class="px-3 py-2 border">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="flex justify-center w-full">
+                                            {!! DNS1D::getBarcodeHTML($p->barcode, 'C128', 1.5, 40) !!}
+                                        </div>
+
+                                        <div class="text-xs font-semibold mt-1 text-center">
+                                            {{ $p->barcode }}
+                                        </div>
+                                    </div>
                                 </td>
+
 
                                 <td class="px-3 py-2 border font-medium">{{ $p->nama_produk }}</td>
                                 <td class="px-3 py-2 border">{{ $p->kategori }}</td>
