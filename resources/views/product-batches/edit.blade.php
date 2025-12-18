@@ -278,5 +278,16 @@
             alert('Harga beli harus diisi!');
         }
     });
+
+      const barcodeInput = document.getElementById('barcode');
+    const produkSelect = document.getElementById('produk');
+
+    // === PRODUK → BARCODE ===
+    produkSelect.addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const barcode = selectedOption.dataset.barcode || '';
+
+        barcodeInput.value = barcode;
+    });
 </script>
 @endpush

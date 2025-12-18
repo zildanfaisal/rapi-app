@@ -38,38 +38,55 @@ class ProductBatchController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'barcode'           => 'required|string|exists:products,barcode',
-            'batch_number'      => 'required|digits:5',
-            'harga_beli'        => 'required|',
-            'tanggal_masuk'     => 'required|date',
-            'tanggal_expired'   => 'required|date',
-            'quantity_masuk'    => 'required|integer|min:1',
-            'quantity_sekarang' => 'required|integer|min:0',
-            'supplier'          => 'nullable|string|max:255',
-            'status'            => 'required|in:active,expired,sold_out',
-        ]);
-
-        $product = Product::where('barcode', $request->barcode)->first();
-
-        ProductBatch::create([
-            'product_id' => $product->id,
-            'batch_number' => $request->batch_number,
-            'harga_beli' => $request->harga_beli,
-            'tanggal_masuk' => $request->tanggal_masuk,
-            'tanggal_expired' => $request->tanggal_expired,
-            'quantity_masuk' => $request->quantity_masuk,
-            'quantity_sekarang' => $request->quantity_sekarang,
-            'supplier' => $request->supplier,
-            'status' => $request->status,
-        ]);
+   public function store(Request $request)
+{
+    $request->validate([
+        'barcode' => 'nullable|string|exists:products,barcode',
+        'produk'  => 'nullable|exists:products,id',
+        'batch_number' => 'required|digits:5',
+        'harga_beli' => 'required|numeric',
+        'tanggal_masuk' => 'required|date',
+        'tanggal_expired' => 'required|date|after_or_equal:tanggal_masuk',
+        'quantity_masuk' => 'required|integer|min:1',
+        'quantity_sekarang' => 'required|integer|min:0',
+        'supplier' => 'nullable|string|max:255',
+        'status' => 'required|in:active,expired,sold_out',
+    ]);
 
 
-        return redirect()->route('product-batches.index')
-            ->with('success', 'Batch produk berhasil ditambahkan!');
+    if (!$request->filled('produk') && !$request->filled('barcode')) {
+        return back()
+            ->withErrors(['produk' => 'Pilih produk atau masukkan barcode'])
+            ->withInput();
     }
+
+    $product = $request->filled('produk')
+        ? Product::find($request->produk)
+        : Product::where('barcode', $request->barcode)->first();
+
+    if (!$product) {
+        return back()
+            ->withErrors(['produk' => 'Produk tidak ditemukan'])
+            ->withInput();
+    }
+
+    ProductBatch::create([
+        'product_id' => $product->id,
+        'batch_number' => $request->batch_number,
+        'harga_beli' => $request->harga_beli,
+        'tanggal_masuk' => $request->tanggal_masuk,
+        'tanggal_expired' => $request->tanggal_expired,
+        'quantity_masuk' => $request->quantity_masuk,
+        'quantity_sekarang' => $request->quantity_sekarang,
+        'supplier' => $request->supplier,
+        'status' => $request->status,
+    ]);
+
+    return redirect()
+        ->route('product-batches.index')
+        ->with('success', 'Batch produk berhasil ditambahkan!');
+}
+
 
     /**
      * Show the form for editing the specified resource.
@@ -83,6 +100,7 @@ class ProductBatchController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    
     public function update(Request $request, ProductBatch $productBatch)
 {
     $request->validate([
