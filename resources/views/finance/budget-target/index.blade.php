@@ -11,7 +11,7 @@
     <div class="w-full px-4 sm:px-6 lg:px-8">
 
         {{-- HEADER --}}
-       
+
 
         {{-- MAIN WRAPPER --}}
         <div class="bg-white shadow sm:rounded-lg w-full">
@@ -48,7 +48,7 @@
                                     Rp {{ number_format($bt->budget_bulanan, 0, ',', '.') }}
                                 </td>
                                 <td class="border px-3 py-2 text-center">
-                                    <a href="{{ route('budget-target.edit', $bt->id) }}" 
+                                    <a href="{{ route('budget-target.edit', $bt->id) }}"
                                        class="text-blue-600 hover:underline">Edit</a>
                                     <form action="{{ route('budget-target.destroy', $bt->id) }}"
                                           method="POST" class="inline" data-confirm-delete>
@@ -106,7 +106,7 @@
                                     Edit
                                 </a>
                                 <form action="{{ route('budget-target.destroy', $bt->id) }}"
-                                      method="POST" class="flex-1" data-confirm-delete-mobile>
+                                      method="POST" class="flex-1" data-confirm-delete>
                                     @csrf @method('DELETE')
                                     <button type="submit"
                                             class="w-full border border-red-600 text-red-600 rounded text-center py-2 hover:bg-red-50">
@@ -221,18 +221,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize',handleResponsive);
 
     // Delete confirmation for desktop
-    document.querySelectorAll('[data-confirm-delete]').forEach(form => {
-        form.onsubmit = e => {
-            if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) e.preventDefault();
-        };
-    });
+    // document.querySelectorAll('[data-confirm-delete]').forEach(form => {
+    //     form.onsubmit = e => {
+    //         if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) e.preventDefault();
+    //     };
+    // });
 
     // Delete confirmation for mobile
-    document.querySelectorAll('[data-confirm-delete-mobile]').forEach(form => {
-        form.onsubmit = e => {
-            if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) e.preventDefault();
-        };
-    });
+    // document.querySelectorAll('[data-confirm-delete-mobile]').forEach(form => {
+    //     form.onsubmit = e => {
+    //         if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) e.preventDefault();
+    //     };
+    // });
 });
 
 // SweetAlert2 for success message
