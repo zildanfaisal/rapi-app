@@ -83,12 +83,13 @@
                                 <td class="border px-3 py-2">{{ $b->quantity_sekarang }}</td>
                                 <td class="border px-3 py-2">{{ $b->supplier }}</td>
                                 <td class="border px-3 py-2">
-                                    @if ($expired->isSameMonth($now) || $diffMonths < 0)
-                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">{{ $b->status }}</span>
-                                    @elseif ($diffMonths <= 2)
-                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">{{ $b->status }}</span>
+                                    @php $status = $b->status; @endphp
+                                    @if ($status === 'sold_out')
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Sold Out</span>
+                                    @elseif ($status === 'expired')
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Expired</span>
                                     @else
-                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">{{ $b->status }}</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Active</span>
                                     @endif
                                 </td>
                                 <td class="border px-3 py-2">

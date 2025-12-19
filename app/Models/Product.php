@@ -28,5 +28,13 @@ class Product extends Model
             ->latestOfMany('created_at'); 
     }
 
+    public function refreshAvailability(): void
+    {
+        $totalStok = (int) $this->batches()->sum('quantity_sekarang');
+        $newStatus = $totalStok > 0 ? 'available' : 'unavailable';
+        if ($this->status !== $newStatus) {
+            $this->update(['status' => $newStatus]);
+        }
+    }
     
 }
