@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Requests\SetorInvoiceRequest;
 use App\Models\ProductBatch;
+use App\Models\Product;
 
 class InvoiceController extends Controller
 {
@@ -63,7 +64,56 @@ class InvoiceController extends Controller
         $data = $request->validated();
 
         return DB::transaction(function () use ($data, $invoice) {
+            $oldCustomerId = $invoice->customer_id;
+            $oldGrandTotal = (float) ($invoice->grand_total ?? 0);
             $wasPaid = $invoice->status_pembayaran === 'paid';
+
+            // 1) Hitung delta stok per-batch (baru - lama) dan terapkan perubahan stok secara net
+            $invoice->load(['items']);
+            $oldByBatch = [];
+            foreach ($invoice->items as $oldItem) {
+                if (!empty($oldItem->batch_id)) {
+                    $oldByBatch[$oldItem->batch_id] = ($oldByBatch[$oldItem->batch_id] ?? 0) + (int) $oldItem->quantity;
+                }
+            }
+
+            $newByBatch = [];
+            foreach ($data['items'] as $item) {
+                if (!empty($item['batch_id'])) {
+                    $newByBatch[$item['batch_id']] = ($newByBatch[$item['batch_id']] ?? 0) + (int) $item['quantity'];
+                }
+            }
+            // Jika status dibatalkan, anggap penggunaan baru = 0 agar semua stok dikembalikan
+            $isCancelled = ($data['status_pembayaran'] ?? null) === 'cancelled';
+            if ($isCancelled) {
+                $newByBatch = [];
+            }
+
+            $allBatchIds = array_unique(array_merge(array_keys($oldByBatch), array_keys($newByBatch)));
+            foreach ($allBatchIds as $batchId) {
+                $oldQty = $oldByBatch[$batchId] ?? 0;
+                $newQty = $newByBatch[$batchId] ?? 0;
+                $delta = $newQty - $oldQty; // >0 perlu kurangi stok, <0 kembalikan stok
+                $batch = ProductBatch::find($batchId);
+                if (!$batch) { continue; }
+
+                if ($delta > 0) {
+                    if ((int) $batch->quantity_sekarang < $delta) {
+                        throw new \Exception("Stok batch #{$batch->id} tidak cukup.");
+                    }
+                    $batch->decrement('quantity_sekarang', $delta);
+                } elseif ($delta < 0) {
+                    $batch->increment('quantity_sekarang', abs($delta));
+                }
+
+                // Refresh status & product availability
+                $batch->refresh();
+                $batch->refreshStatus();
+                if ($batch->product) { $batch->product->refreshAvailability(); }
+                else if ($p = Product::find($batch->product_id)) { $p->refreshAvailability(); }
+            }
+
+            // 2) Update header invoice (kecuali grand_total dihitung ulang di bawah)
             $invoice->update([
                 'customer_id' => $data['customer_id'],
                 'user_id' => $data['user_id'],
@@ -73,58 +123,86 @@ class InvoiceController extends Controller
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
             ]);
 
-            // Update items
+            // 3) Hapus items lama
             $invoice->items()->delete();
+
+            // 4) Tambah items baru (stok sudah disesuaikan per-batch di langkah 1)
             $grandTotal = 0;
-            foreach ($data['items'] as $item) {
-                $subTotal = (int)$item['quantity'] * (float)$item['harga'];
-                $grandTotal += $subTotal;
-                InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'product_id' => $item['product_id'],
-                    'batch_id' => $item['batch_id'] ?? null,
-                    'quantity' => $item['quantity'],
-                    'harga' => $item['harga'],
-                    'sub_total' => $subTotal,
-                ]);
+            if (!$isCancelled) {
+                foreach ($data['items'] as $item) {
+                    $qty = (int) $item['quantity'];
+                    $harga = (float) $item['harga'];
+                    $subTotal = $qty * $harga;
+                    $grandTotal += $subTotal;
 
-                // Decrease selected batch quantity_sekarang
-                if (!empty($item['batch_id'])) {
-                    $batch = \App\Models\ProductBatch::find($item['batch_id']);
-                    if ($batch && $batch->product_id == $item['product_id']) {
-                        $newQty = max(0, (int) $batch->quantity_sekarang - (int) $item['quantity']);
-                        $batch->update(['quantity_sekarang' => $newQty]);
-                    }
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'product_id' => $item['product_id'],
+                        'batch_id' => $item['batch_id'] ?? null,
+                        'quantity' => $qty,
+                        'harga' => $harga,
+                        'sub_total' => $subTotal,
+                    ]);
                 }
-            }
+            } // jika dibatalkan, items tidak dibuat dan grand_total = 0
 
+            // 5) Simpan grand_total baru
             $invoice->update(['grand_total' => $grandTotal]);
 
-            // Adjust points based on status transitions
+            // 6) Update poin customer secara tepat:
+            //    - Jika tetap paid: sesuaikan delta poin berdasarkan perubahan grand_total
+            //    - Jika transisi paid <-> unpaid: sesuaikan secara penuh
             $isNowPaid = $invoice->status_pembayaran === 'paid';
-            $pointsForTotal = intdiv((int) round($grandTotal), 100000);
+            $oldEarnedPoints = $wasPaid ? intdiv((int) round($oldGrandTotal), 100000) : 0;
+            $newEarnedPoints = $isNowPaid ? intdiv((int) round($grandTotal), 100000) : 0;
+
             try {
-                $customer = \App\Models\Customer::find($invoice->customer_id);
-                if ($customer) {
-                    if ($customer->point === null) {
-                        $customer->point = 0;
-                        $customer->save();
-                    }
-                    if ($isNowPaid && !$wasPaid) {
-                        // transitioned to paid: add points
-                        if ($pointsForTotal > 0) {
-                            $customer->increment('point', $pointsForTotal);
+                // Jika customer berubah, koreksi di masing-masing customer
+                if ($oldCustomerId !== $invoice->customer_id) {
+                    if ($oldEarnedPoints > 0 && $oldCustomerId) {
+                        $oldCustomer = \App\Models\Customer::find($oldCustomerId);
+                        if ($oldCustomer) {
+                            $curr = (int) ($oldCustomer->point ?? 0);
+                            $oldCustomer->update(['point' => max(0, $curr - $oldEarnedPoints)]);
                         }
-                    } elseif (!$isNowPaid && $wasPaid) {
-                        // transitioned away from paid: remove points previously awarded for this invoice total
-                        if ($pointsForTotal > 0) {
-                            $newPoints = max(0, (int) $customer->point - $pointsForTotal);
-                            $customer->update(['point' => $newPoints]);
+                    }
+                    if ($newEarnedPoints > 0 && $invoice->customer_id) {
+                        $newCustomer = \App\Models\Customer::find($invoice->customer_id);
+                        if ($newCustomer) {
+                            if ($newCustomer->point === null) { $newCustomer->point = 0; $newCustomer->save(); }
+                            $newCustomer->increment('point', $newEarnedPoints);
+                        }
+                    }
+                } else {
+                    $customer = \App\Models\Customer::find($invoice->customer_id);
+                    if ($customer) {
+                        if ($customer->point === null) { $customer->point = 0; $customer->save(); }
+
+                        if ($isNowPaid && $wasPaid) {
+                            // Status tetap paid: terapkan delta poin
+                            $delta = $newEarnedPoints - $oldEarnedPoints;
+                            if ($delta !== 0) {
+                                if ($delta > 0) {
+                                    $customer->increment('point', $delta);
+                                } else {
+                                    $curr = (int) ($customer->point ?? 0);
+                                    $customer->update(['point' => max(0, $curr + $delta)]);
+                                }
+                            }
+                        } elseif ($isNowPaid && !$wasPaid) {
+                            // Baru menjadi paid: tambahkan poin penuh
+                            if ($newEarnedPoints > 0) { $customer->increment('point', $newEarnedPoints); }
+                        } elseif (!$isNowPaid && $wasPaid) {
+                            // Tidak lagi paid: kurangi poin penuh yang sebelumnya diberikan
+                            if ($oldEarnedPoints > 0) {
+                                $curr = (int) ($customer->point ?? 0);
+                                $customer->update(['point' => max(0, $curr - $oldEarnedPoints)]);
+                            }
                         }
                     }
                 }
             } catch (\Throwable $e) {
-                // silently ignore point adjustment errors
+                // Abaikan error poin agar tidak mengganggu update invoice
             }
 
             return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully');
@@ -174,12 +252,13 @@ class InvoiceController extends Controller
                     $batch->decrement('quantity_sekarang', $item['quantity']);
 
                     $batch->refresh();
+                    $batch->refreshStatus();
 
-                    if ($batch->quantity_sekarang <= 0) {
-                        $batch->update([
-                            'status' => 'sold_out',
-                            'quantity_sekarang' => 0, 
-                        ]);
+                    // Refresh product availability after batch change
+                    if ($batch->product) {
+                        $batch->product->refreshAvailability();
+                    } else {
+                        if ($p = Product::find($batch->product_id)) { $p->refreshAvailability(); }
                     }
                 }
             }

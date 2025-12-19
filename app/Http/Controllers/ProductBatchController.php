@@ -70,7 +70,7 @@ class ProductBatchController extends Controller
             ->withInput();
     }
 
-    ProductBatch::create([
+    $batch = ProductBatch::create([
         'product_id' => $product->id,
         'batch_number' => $request->batch_number,
         'harga_beli' => $request->harga_beli,
@@ -81,6 +81,10 @@ class ProductBatchController extends Controller
         'supplier' => $request->supplier,
         'status' => $request->status,
     ]);
+
+    // Refresh product availability after adding new batch
+    $batch->refreshStatus();
+    $product->refreshAvailability();
 
     return redirect()
         ->route('product-batches.index')
@@ -102,36 +106,40 @@ class ProductBatchController extends Controller
      */
     
     public function update(Request $request, ProductBatch $productBatch)
-{
-    $request->validate([
-        'barcode'           => 'required|string|exists:products,barcode',
-        'batch_number'      => 'required|digits:5',
-        'harga_beli'        => 'required|',
-        'tanggal_masuk'     => 'required|date',
-        'tanggal_expired'   => 'required|date',
-        'quantity_masuk'    => 'required|integer|min:1',
-        'quantity_sekarang' => 'required|integer|min:0',
-        'supplier'          => 'nullable|string|max:255',
-        'status'            => 'required|in:active,expired,sold_out',
-    ]);
+    {
+        $request->validate([
+            'barcode'           => 'required|string|exists:products,barcode',
+            'batch_number'      => 'required|digits:5',
+            'harga_beli'        => 'required|',
+            'tanggal_masuk'     => 'required|date',
+            'tanggal_expired'   => 'required|date',
+            'quantity_masuk'    => 'required|integer|min:1',
+            'quantity_sekarang' => 'required|integer|min:0',
+            'supplier'          => 'nullable|string|max:255',
+            'status'            => 'required|in:active,expired,sold_out',
+        ]);
 
-    $product = Product::where('barcode', $request->barcode)->first();
+        $product = Product::where('barcode', $request->barcode)->first();
 
-    $productBatch->update([
-        'product_id'        => $product->id,
-        'batch_number'      => $request->batch_number,
-        'harga_beli'        => $request->harga_beli,
-        'tanggal_masuk'     => $request->tanggal_masuk,
-        'tanggal_expired'   => $request->tanggal_expired,
-        'quantity_masuk'    => $request->quantity_masuk,
-        'quantity_sekarang' => $request->quantity_sekarang,
-        'supplier'          => $request->supplier,
-        'status'            => $request->status,
-    ]);
+        $productBatch->update([
+            'product_id'        => $product->id,
+            'batch_number'      => $request->batch_number,
+            'harga_beli'        => $request->harga_beli,
+            'tanggal_masuk'     => $request->tanggal_masuk,
+            'tanggal_expired'   => $request->tanggal_expired,
+            'quantity_masuk'    => $request->quantity_masuk,
+            'quantity_sekarang' => $request->quantity_sekarang,
+            'supplier'          => $request->supplier,
+            'status'            => $request->status,
+        ]);
 
-    return redirect()->route('product-batches.index')
-                     ->with('success', 'Batch produk berhasil diperbarui!');
-}
+        // Refresh product availability after batch update
+        $productBatch->refreshStatus();
+        $product->refreshAvailability();
+
+        return redirect()->route('product-batches.index')
+                        ->with('success', 'Batch produk berhasil diperbarui!');
+    }
 
 
     /**
@@ -139,7 +147,15 @@ class ProductBatchController extends Controller
      */
     public function destroy(ProductBatch $productBatch)
     {
+        $productId = $productBatch->product_id;
         $productBatch->delete();
+
+        // Refresh product availability after batch deletion
+        if ($productId) {
+            if ($p = Product::find($productId)) {
+                $p->refreshAvailability();
+            }
+        }
 
         return redirect()->route('product-batches.index')
             ->with('success', 'Batch produk berhasil dihapus!');
@@ -171,7 +187,7 @@ class ProductBatchController extends Controller
 
         $batches = $query->get();
 
-        $pdf = \PDF::loadView('product-batches.report', [
+        $pdf = PDF::loadView('product-batches.report', [
             'batches' => $batches,
             'filter' => $filter,
             'start' => $start,

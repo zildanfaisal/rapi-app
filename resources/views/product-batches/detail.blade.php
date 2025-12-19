@@ -83,13 +83,13 @@
                 {{-- Status --}}
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700">Status</label>
-                    <span class="
-                        inline-block mt-1 px-3 py-1 rounded-full text-sm
-                        {{ $productBatch->status == 'active' ? 'bg-green-100 text-green-700' : '' }}
-                        {{ $productBatch->status == 'expired' ? 'bg-red-100 text-red-700' : '' }}
-                        {{ $productBatch->status == 'sold_out' ? 'bg-gray-200 text-gray-700' : '' }}
+                    @php $status = $productBatch->status; @endphp
+                    <span class="inline-block mt-1 px-3 py-1 rounded-full text-sm
+                        {{ $status === 'sold_out' ? 'bg-red-100 text-red-700' : '' }}
+                        {{ $status === 'expired' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                        {{ $status === 'active' ? 'bg-green-100 text-green-700' : '' }}
                     ">
-                        {{ ucfirst(str_replace('_', ' ', $productBatch->status)) }}
+                        {{ $status === 'sold_out' ? 'Sold Out' : ($status === 'expired' ? 'Expired' : 'Active') }}
                     </span>
                 </div>
 

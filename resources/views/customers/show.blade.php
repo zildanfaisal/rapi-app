@@ -60,7 +60,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($customer->invoices as $inv)
+                        @foreach ($customer->invoices as $inv)
                         <tr class="text-center">
                             <td class="border px-3 py-2">{{ $loop->iteration }}</td>
                             <td class="border px-3 py-2">{{ $inv->invoice_number }}</td>
@@ -80,13 +80,7 @@
                                 </button>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="border px-3 py-2 text-center text-gray-500">
-                                Belum ada transaksi
-                            </td>
-                        </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>

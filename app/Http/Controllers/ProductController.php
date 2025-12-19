@@ -16,21 +16,20 @@ class ProductController extends Controller
      * Display a listing of the resource.
      */
    public function index()
-{
-    $products = Product::with(['batches', 'latestBatch'])->get();
+    {
+        $products = Product::with(['batches', 'latestBatch'])->get();
 
-    foreach ($products as $product) {
-        $totalStok = $product->batches->sum('quantity_sekarang');
-
-        if ($totalStok <= 0 && $product->status !== 'unavailable') {
-            $product->update([
-                'status' => 'unavailable'
-            ]);
+        foreach ($products as $product) {
+            $totalStok = (int) $product->batches->sum('quantity_sekarang');
+            if ($totalStok <= 0 && $product->status !== 'unavailable') {
+                $product->update(['status' => 'unavailable']);
+            } elseif ($totalStok > 0 && $product->status !== 'available') {
+                $product->update(['status' => 'available']);
+            }
         }
-    }
 
-    return view('products.index', compact('products'));
-}
+        return view('products.index', compact('products'));
+    }
 
 
 
