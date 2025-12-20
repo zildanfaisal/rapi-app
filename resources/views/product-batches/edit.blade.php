@@ -183,8 +183,20 @@
         document.getElementById('batch_number').value = code;
     }
 
-    document.getElementById('qty_masuk').addEventListener('input', function() {
-        document.getElementById('qty_sekarang').value = this.value;
+    const qtyMasukInput = document.getElementById('qty_masuk');
+    const qtySekarangInput = document.getElementById('qty_sekarang');
+
+    const qtyMasukAwal = parseInt(qtyMasukInput.value) || 0;
+    const qtySekarangAwal = parseInt(qtySekarangInput.value) || 0;
+
+    qtyMasukInput.addEventListener('input', function () {
+        const qtyMasukBaru = parseInt(this.value) || 0;
+
+        const selisih = qtyMasukBaru - qtyMasukAwal;
+
+        const qtySekarangBaru = qtySekarangAwal + selisih;
+
+        qtySekarangInput.value = qtySekarangBaru >= 0 ? qtySekarangBaru : 0;
     });
 
     const tanggalMasuk = document.querySelector('input[name="tanggal_masuk"]');

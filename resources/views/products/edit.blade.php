@@ -69,14 +69,14 @@
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
 
                                 <!-- Input Display -->
-                                <input
+                               <input
                                     type="text"
                                     id="harga_display"
                                     class="mt-1 block w-full px-3 py-2 pl-10 border rounded-md shadow-sm
                                         focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                    value="{{ number_format(old('harga', $product->harga), 0, ',', '.') }}"
                                     placeholder="0"
                                 >
+
 
                                 <!-- Input Hidden -->
                                 <input
@@ -180,51 +180,46 @@
 <script>
 
    function formatRupiah(angka) {
-        return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-
-    function unformatRupiah(angka) {
-        return angka.replace(/[^0-9]/g, "");
+        return angka.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
     const hargaDisplay = document.getElementById('harga_display');
-    const hargaHidden = document.getElementById('harga');
+    const hargaHidden  = document.getElementById('harga');
 
-    // Set tampilan jika sudah ada nilai
+    // === SET NILAI AWAL (EDIT MODE) ===
     if (hargaHidden.value) {
-        hargaDisplay.value = formatRupiah(hargaHidden.value);
+        let cleanValue = hargaHidden.value
+            .toString()
+            .split('.')[0]; // BUANG DESIMAL .00
+
+        hargaHidden.value = cleanValue;
+        hargaDisplay.value = formatRupiah(cleanValue);
     }
 
-    hargaDisplay.addEventListener('input', function(e) {
-        let value = unformatRupiah(e.target.value);
-        hargaHidden.value = value;
-
-        e.target.value = value ? formatRupiah(value) : "";
-    });
-
-    // Validasi submit
-    document.querySelector("form").addEventListener("submit", function() {
-        hargaHidden.value = unformatRupiah(hargaDisplay.value);
-    });
-
-
-    // Ganti foto lama dengan preview saat upload
-    document.getElementById('foto_produk').addEventListener('change', function(e) {
-        let file = e.target.files[0];
-        let preview = document.getElementById('previewImage');
-
-        if (file) {
-            preview.src = URL.createObjectURL(file);
+    // === BLOK INPUT SELAIN ANGKA ===
+    hargaDisplay.addEventListener('keydown', function (e) {
+        if (
+            !/[0-9]/.test(e.key) &&
+            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+        ) {
+            e.preventDefault();
         }
     });
 
-    // Generate barcode
-    function generateBarcode() {
-        let randomNumber = Math.floor(Math.random() * 100000000)
-            .toString()
-            .padStart(8, '0');
+    // === FORMAT SAAT INPUT ===
+    hargaDisplay.addEventListener('input', function () {
+        let value = this.value.replace(/[^0-9]/g, '');
 
-        document.getElementById('barcode').value = randomNumber;
-    }
+        hargaHidden.value = value;
+        this.value = value ? formatRupiah(value) : '';
+    });
+
+    // === VALIDASI SUBMIT ===
+    document.querySelector('form').addEventListener('submit', function (e) {
+        if (!hargaHidden.value || hargaHidden.value === '0') {
+            e.preventDefault();
+            alert('Harga harus diisi!');
+        }
+    });
 </script>
 @endpush

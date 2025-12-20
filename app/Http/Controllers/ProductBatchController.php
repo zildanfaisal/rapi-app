@@ -6,19 +6,30 @@ use App\Models\Product;
 use App\Models\ProductBatch;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class ProductBatchController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        // Tampilkan batch + relasi product
-        $batches = ProductBatch::with('product')->get();
+public function index()
+{
+    // Update status expired otomatis
+    ProductBatch::whereDate('tanggal_expired', '<', Carbon::today())
+        ->where('status', '!=', 'expired')
+        ->update(['status' => 'expired']);
 
-        return view('product-batches.index', compact('batches'));
-    }
+    // Update sold out
+    ProductBatch::where('quantity_sekarang', '<=', 0)
+        ->where('status', '!=', 'sold_out')
+        ->update(['status' => 'sold_out']);
+
+    // Ambil data
+    $batches = ProductBatch::with('product')->get();
+
+    return view('product-batches.index', compact('batches'));
+}
 
     /**
      * Show the form for creating a new resource.
