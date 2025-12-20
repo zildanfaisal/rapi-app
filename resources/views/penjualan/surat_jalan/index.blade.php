@@ -80,7 +80,7 @@
                         </thead>
                         <tbody>
                             @foreach($suratJalans as $sj)
-                                <tr class="hover:bg-gray-50 cursor-pointer" data-href="{{ route('surat-jalan.show', $sj) }}">
+                                <tr class="hover:bg-gray-50">
                                     <td class="px-3 py-2 border text-center">{{ $loop->iteration + ($suratJalans->currentPage() - 1) * $suratJalans->perPage() }}</td>
                                     <td class="px-3 py-2 border text-left">{{ $sj->nomor_surat_jalan ?? '-' }}</td>
                                     <td class="px-3 py-2 border text-left">{{ $sj->customer->nama_customer ?? '-' }}</td>
@@ -101,12 +101,18 @@
                                         @endif
                                     </td>
                                     <td class="px-3 py-2 border text-center">
-                                        <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="text-blue-600">Edit</a>
-                                        <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="inline" onclick="event.stopPropagation();" data-confirm-delete>
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="text-red-600 ms-3">Hapus</button>
-                                        </form>
+                                        <div class="flex flex-col space-y-1">
+                                            <a href="{{ route('surat-jalan.show', $sj) }}"
+                                                class="text-indigo-600 hover:text-indigo-800 hover:underline">
+                                                Detail
+                                            </a>
+                                            <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="text-blue-600 hover:text-blue-800 hover:underline">Edit</a>
+                                            <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="inline" onclick="event.stopPropagation();" data-confirm-delete>
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="text-red-600 hover:text-red-800 hover:underline">Hapus</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -155,6 +161,10 @@
                                 </div>
 
                                 <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
+                                    <a href="{{ route('surat-jalan.show', $sj->id) }}"
+                                        class="flex-1 border border-blue-600 text-blue-600 rounded text-center py-2">
+                                        Detail
+                                    </a>
                                     <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="flex-1 border border-indigo-600 text-indigo-600 rounded text-center py-2">Edit</a>
                                     
                                     <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="flex-1" onclick="event.stopPropagation();" data-confirm-delete

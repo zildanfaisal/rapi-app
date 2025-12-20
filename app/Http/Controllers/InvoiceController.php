@@ -20,6 +20,12 @@ class InvoiceController extends Controller
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
 
+        // Auto-mark overdue: unpaid invoices past due date become 'overdue'
+        Invoice::where('status_pembayaran', 'unpaid')
+            ->whereNotNull('tanggal_jatuh_tempo')
+            ->whereDate('tanggal_jatuh_tempo', '<', now()->toDateString())
+            ->update(['status_pembayaran' => 'overdue']);
+
         $query = Invoice::with(['customer', 'user'])
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo))
@@ -45,7 +51,14 @@ class InvoiceController extends Controller
     {
         $customers = \App\Models\Customer::all();
         $products = \App\Models\Product::all();
-        $batches = \App\Models\ProductBatch::orderByDesc('created_at')->get();
+        $batches = \App\Models\ProductBatch::query()
+            ->where(function($q){
+                $q->whereNull('tanggal_expired')
+                  ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
+            })
+            ->where('quantity_sekarang', '>', 0)
+            ->orderByDesc('created_at')
+            ->get();
 
         return view('penjualan.invoices.create', compact('customers', 'products', 'batches'));
     }
@@ -54,8 +67,27 @@ class InvoiceController extends Controller
     {
         $customers = \App\Models\Customer::all();
         $products = \App\Models\Product::all();
-        $batches = \App\Models\ProductBatch::orderByDesc('created_at')->get();
         $invoice->load(['items']);
+
+        $selectedBatchIds = $invoice->items->pluck('batch_id')->filter()->unique()->values()->all();
+
+        $batchQuery = \App\Models\ProductBatch::query()
+            ->where(function($q){
+                $q->whereNull('tanggal_expired')
+                  ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
+            });
+
+        if (!empty($selectedBatchIds)) {
+            $batchQuery->where(function($q) use ($selectedBatchIds) {
+                $q->where('quantity_sekarang', '>', 0)
+                  ->orWhereIn('id', $selectedBatchIds);
+            });
+        } else {
+            $batchQuery->where('quantity_sekarang', '>', 0);
+        }
+
+        $batches = $batchQuery->orderByDesc('created_at')->get();
+
         return view('penjualan.invoices.edit', compact('invoice', 'customers', 'products', 'batches'));
     }
 
@@ -148,6 +180,19 @@ class InvoiceController extends Controller
 
             // 5) Simpan grand_total baru
             $invoice->update(['grand_total' => $grandTotal]);
+
+            // 5b) Sinkronkan Surat Jalan terkait: grand_total = invoice + ongkos_kirim, status mengikuti invoice
+            try {
+                $suratJalans = \App\Models\SuratJalan::where('invoice_id', $invoice->id)->get();
+                foreach ($suratJalans as $sj) {
+                    $sj->update([
+                        'grand_total' => ((float) $grandTotal) + ((float) ($sj->ongkos_kirim ?? 0)),
+                        'status_pembayaran' => $invoice->status_pembayaran,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                // Abaikan error sinkronisasi SJ agar tidak menggagalkan update invoice
+            }
 
             // 6) Update poin customer secara tepat:
             //    - Jika tetap paid: sesuaikan delta poin berdasarkan perubahan grand_total

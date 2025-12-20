@@ -33,4 +33,12 @@ class SuratJalan extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    // Tampilkan grand_total sebagai total invoice + ongkos_kirim saat dibaca (untuk UI)
+    public function getGrandTotalAttribute($value)
+    {
+        $base = $this->invoice ? (float) ($this->invoice->grand_total ?? 0) : (float) ($value ?? 0);
+        $shipping = (float) ($this->ongkos_kirim ?? 0);
+        return $base + $shipping;
+    }
 }

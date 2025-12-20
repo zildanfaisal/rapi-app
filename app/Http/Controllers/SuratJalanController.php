@@ -11,10 +11,38 @@ use Illuminate\Http\Request;
 
 class SuratJalanController extends Controller
 {
+    /**
+     * Ensure Surat Jalan grand_total is persisted based on invoice + shipping
+     */
+    private function syncSuratJalanTotals(array $ids = null): void
+    {
+        try {
+            $query = SuratJalan::with(['invoice']);
+            if ($ids && count($ids) > 0) {
+                $query->whereIn('id', $ids);
+            }
+            $query->chunkById(100, function($chunk){
+                foreach ($chunk as $sj) {
+                    $invoiceTotal = (float) ($sj->invoice->grand_total ?? 0);
+                    $shipping = (float) ($sj->ongkos_kirim ?? 0);
+                    $computed = $invoiceTotal + $shipping;
+                    // Only update when different to avoid unnecessary writes
+                    if ((float) ($sj->getRawOriginal('grand_total') ?? 0) !== $computed) {
+                        $sj->update(['grand_total' => $computed, 'status_pembayaran' => $sj->invoice->status_pembayaran ?? $sj->status_pembayaran]);
+                    }
+                }
+            });
+        } catch (\Throwable $e) {
+            // ignore to avoid breaking pages
+        }
+    }
     public function index(Request $request)
     {
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
+
+        // Persist totals before listing
+        $this->syncSuratJalanTotals();
 
         $base = SuratJalan::with(['customer', 'invoice'])
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal', '>=', $dateFrom))
@@ -68,6 +96,8 @@ class SuratJalanController extends Controller
 
     public function show(SuratJalan $suratJalan)
     {
+        // Persist this record's total before rendering
+        $this->syncSuratJalanTotals([$suratJalan->id]);
         $suratJalan->load(['invoice', 'customer', 'transactions']);
         return view('penjualan.surat_jalan.show', compact('suratJalan'));
     }
@@ -83,6 +113,8 @@ class SuratJalanController extends Controller
 
     public function edit(SuratJalan $suratJalan)
     {
+        // Persist this record's total before edit view
+        $this->syncSuratJalanTotals([$suratJalan->id]);
         $suratJalan->load(['invoice', 'customer']);
         $invoices = Invoice::with(['customer'])->orderByDesc('created_at')->get();
         return view('penjualan.surat_jalan.edit', compact('suratJalan', 'invoices'));
