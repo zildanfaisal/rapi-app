@@ -6,51 +6,6 @@
     <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Edit Target Anggaran') }}</h2>
 @endsection
 
-
-@push('scripts')
-<script>
-    const budgetDisplay = document.getElementById('budget_display');
-    const budgetHidden = document.getElementById('budget_bulanan');
-
-    // Format number with thousand separator
-    function formatRupiah(angka) {
-        return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
-
-    // Remove non-numeric characters
-    function unformatRupiah(angka) {
-        return angka.replace(/[^0-9]/g, '');
-    }
-
-    // Set initial value if old value exists
-    if (budgetHidden.value) {
-        budgetDisplay.value = formatRupiah(budgetHidden.value);
-    }
-
-    budgetDisplay.addEventListener('input', function(e) {
-        let value = unformatRupiah(e.target.value);
-
-        // Update hidden input with raw number
-        budgetHidden.value = value;
-
-        // Update display with formatted number
-        if (value) {
-            e.target.value = formatRupiah(value);
-        } else {
-            e.target.value = '';
-        }
-    });
-
-    // Prevent form submission if empty
-    document.querySelector('form').addEventListener('submit', function(e) {
-        if (!budgetHidden.value) {
-            e.preventDefault();
-            alert('Budget bulanan harus diisi');
-        }
-    });
-</script>
-@endpush
-
 @section('content')
 <div class="py-2">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -84,3 +39,100 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const budgetDisplay = document.getElementById('budget_display');
+    const budgetHidden = document.getElementById('budget_bulanan');
+
+    // Format number with thousand separator (dots)
+    function formatRupiah(angka) {
+        // Convert to string and remove any non-digit characters first
+        const numberString = angka.toString().replace(/[^\d]/g, '');
+
+        // Return empty if no valid number
+        if (!numberString) return '';
+
+        // Add thousand separators
+        return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // Remove all non-numeric characters (keep only digits)
+    function unformatRupiah(rupiahString) {
+        // Remove dots (thousand separator), commas, and any other non-digit characters
+        return rupiahString.replace(/\D/g, '');
+    }
+
+    // Initialize display on page load
+    function initializeDisplay() {
+        const rawValue = budgetHidden.value;
+
+        if (rawValue) {
+            // Parse as float first to handle decimal values from database
+            const floatValue = parseFloat(rawValue);
+
+            // Round to nearest integer (no decimal places)
+            const cleanValue = Math.round(floatValue).toString();
+
+            // Update both fields
+            budgetHidden.value = cleanValue;
+            budgetDisplay.value = formatRupiah(cleanValue);
+
+            console.log('[EDIT] Initial raw value:', rawValue);
+            console.log('[EDIT] Parsed float:', floatValue);
+            console.log('[EDIT] Clean value (rounded):', cleanValue);
+            console.log('[EDIT] Formatted display:', formatRupiah(cleanValue));
+        }
+    }
+
+    // Handle input changes
+    budgetDisplay.addEventListener('input', function(e) {
+        // Get the raw input value
+        const inputValue = e.target.value;
+
+        // Remove all formatting to get clean number
+        const cleanValue = unformatRupiah(inputValue);
+
+        // Update hidden field with clean number
+        budgetHidden.value = cleanValue;
+
+        // Format and display
+        if (cleanValue) {
+            // Save cursor position
+            const cursorPos = e.target.selectionStart;
+            const oldLength = inputValue.length;
+
+            // Apply formatting
+            const formattedValue = formatRupiah(cleanValue);
+            e.target.value = formattedValue;
+
+            // Restore cursor position (accounting for added dots)
+            const newLength = formattedValue.length;
+            const newCursorPos = cursorPos + (newLength - oldLength);
+            e.target.setSelectionRange(newCursorPos, newCursorPos);
+        } else {
+            e.target.value = '';
+        }
+
+        console.log('[EDIT] Input:', inputValue, '→ Clean:', cleanValue, '→ Display:', e.target.value, '→ Hidden:', budgetHidden.value);
+    });
+
+    // Validate before form submission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const value = budgetHidden.value;
+
+        if (!value || value === '0' || value === '') {
+            e.preventDefault();
+            alert('Budget bulanan harus diisi dengan nilai yang valid');
+            return false;
+        }
+
+        console.log('[EDIT] Submitting value:', value);
+    });
+
+    // Initialize when page loads
+    initializeDisplay();
+});
+</script>
+@endpush

@@ -15,7 +15,7 @@
             <!-- Target Bulanan Card -->
             @if($budgetTarget)
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                <div class="text-sm text-purple-600 mb-1">Target Bulanan</div>
+                <div class="text-sm text-purple-600 mb-1">Anggaran Bulanan</div>
                 <div class="text-3xl font-bold text-purple-700">Rp {{ number_format($budgetTarget->budget_bulanan, 0, ',', '.') }}</div>
                 <div class="text-xs text-purple-500 mt-2">
                     Periode: {{ $periode ? \Carbon\Carbon::parse($periode . '-01')->format('F Y') : 'Semua Periode' }}
@@ -23,9 +23,9 @@
             </div>
             @else
             <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <div class="text-sm text-gray-600 mb-1">Target Bulanan</div>
+                <div class="text-sm text-gray-600 mb-1">Anggaran Bulanan</div>
                 <div class="text-xl text-gray-500">
-                    {{ $periode ? 'Belum ada target untuk periode ini' : 'Pilih periode untuk melihat target' }}
+                    {{ $periode ? 'Belum ada anggaran untuk periode ini' : 'Pilih periode untuk melihat anggaran' }}
                 </div>
             </div>
             @endif
@@ -70,7 +70,7 @@
         </div>
 
         {{-- Row 2: Summary Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             @php
                 $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
                 $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
@@ -94,15 +94,10 @@
                 </div>
                 @endif
             </div>
-
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div class="text-sm text-green-600 mb-1">Total Pemasukan</div>
-                <div class="text-2xl font-bold text-green-700">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</div>
-            </div>
         </div>
 
         {{-- HEADER --}}
-        
+
 
         {{-- MAIN WRAPPER --}}
         <div class="bg-white shadow sm:rounded-lg w-full">
@@ -116,7 +111,7 @@
                     - {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }} s/d {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }}
                 @endif
             </h3>
-            
+
             <!-- Export Buttons -->
             <div class="flex flex-wrap gap-2">
                 <!-- PDF Button -->
@@ -373,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dataTable=new DataTable('#dataTables',{
                     responsive:true,
 
-                    
+
                 });
             }
         }else{
@@ -436,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         @if($budgetTarget)
                         $('row:last', sheet).after(
                             '<row r="' + (lastRow + 3) + '">' +
-                            '<c t="inlineStr" r="F' + (lastRow + 3) + '"><is><t>Target Bulanan:</t></is></c>' +
+                            '<c t="inlineStr" r="F' + (lastRow + 3) + '"><is><t>Anggaran Bulanan:</t></is></c>' +
                             '<c t="inlineStr" r="G' + (lastRow + 3) + '"><is><t>Rp {{ number_format($budgetTarget->budget_bulanan, 0, ",", ".") }}</t></is></c>' +
                             '</row>'
                         );
@@ -492,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             '<tr><td><b>Total Pemasukan:</b></td><td style="text-align: right; color: green;">Rp {{ number_format($totalPemasukan, 0, ",", ".") }}</td></tr>' +
                             '<tr><td><b>Total Pengeluaran:</b></td><td style="text-align: right; color: red;">Rp {{ number_format($totalPengeluaran, 0, ",", ".") }}</td></tr>' +
                             @if($budgetTarget)
-                            '<tr><td><b>Target Bulanan:</b></td><td style="text-align: right; color: purple;">Rp {{ number_format($budgetTarget->budget_bulanan, 0, ",", ".") }}</td></tr>' +
+                            '<tr><td><b>Anggaran Bulanan:</b></td><td style="text-align: right; color: purple;">Rp {{ number_format($budgetTarget->budget_bulanan, 0, ",", ".") }}</td></tr>' +
                             '<tr><td><b>Saldo Sisa:</b></td><td style="text-align: right; color: {{ $saldoSisa >= 0 ? "blue" : "red" }};">Rp {{ number_format($saldoSisa, 0, ",", ".") }}</td></tr>' +
                             @endif
                             '</table>' +

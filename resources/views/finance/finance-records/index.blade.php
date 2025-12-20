@@ -15,15 +15,15 @@
             <!-- Target Bulanan Card -->
             @if($budgetTarget)
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                <div class="text-sm text-purple-600 mb-1">Target Bulanan</div>
+                <div class="text-sm text-purple-600 mb-1">Anggaran Bulanan</div>
                 <div class="text-3xl font-bold text-purple-700">Rp {{ number_format($budgetTarget->budget_bulanan, 0, ',', '.') }}</div>
                 <div class="text-xs text-purple-500 mt-2">Periode: {{ \Carbon\Carbon::parse($periode . '-01')->format('F Y') }}</div>
             </div>
             @else
             <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <div class="text-sm text-gray-600 mb-1">Target Bulanan</div>
-                <div class="text-xl text-gray-500">Belum ada target untuk periode ini</div>
-                <a href="{{ route('budget-target.create') }}" class="text-xs text-blue-600 hover:underline mt-2 inline-block">+ Tambah Target</a>
+                <div class="text-sm text-gray-600 mb-1">Anggaran Bulanan</div>
+                <div class="text-xl text-gray-500">Belum ada anggaran untuk periode ini</div>
+                <a href="{{ route('budget-target.create') }}" class="text-xs text-blue-600 hover:underline mt-2 inline-block">+ Tambah Data Keuangan</a>
             </div>
             @endif
 
@@ -33,7 +33,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Filter Periode</label>
                     <select name="periode" class="w-full px-3 py-2.5 border rounded-lg" onchange="this.form.submit()">
                         @if($availablePeriods->isEmpty())
-                            <option value="">Belum ada target anggaran</option>
+                            <option value="">Belum ada anggaran</option>
                         @else
                             @foreach($availablePeriods as $p)
                                 <option value="{{ $p }}" {{ $periode == $p ? 'selected' : '' }}>
@@ -48,7 +48,7 @@
         </div>
 
         {{-- Row 2: Summary Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             @php
                 $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
             @endphp
@@ -69,11 +69,6 @@
                     {{ number_format(abs(($saldoSisa / $budgetTarget->budget_bulanan) * 100), 1) }}%
                 </div>
                 @endif
-            </div>
-
-            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div class="text-sm text-green-600 mb-1">Total Pemasukan</div>
-                <div class="text-2xl font-bold text-green-700">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</div>
             </div>
         </div>
 
