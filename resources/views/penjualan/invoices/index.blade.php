@@ -111,7 +111,7 @@
                         </thead>
                         <tbody>
                             @foreach ($invoices as $i)
-                            <tr class="hover:bg-gray-50 cursor-pointer text-center" data-href="{{ route('invoices.show', $i) }}">
+                            <tr class="hover:bg-gray-50 text-center">
                                 <td class="border px-3 py-2">{{ $loop->iteration }}</td>
                                 <td class="border px-3 py-2 text-left font-semibold">{{ $i->invoice_number }}</td>
                                 <td class="border px-3 py-2 text-left">
@@ -126,18 +126,37 @@
                                 <td class="border px-3 py-2">
                                     @if($i->status_pembayaran === 'paid')
                                         <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Lunas</span>
+                                    @elseif($i->status_pembayaran === 'unpaid')
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Lunas</span>
                                     @elseif($i->status_pembayaran === 'overdue')
                                         <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Terlambat</span>
+                                    @elseif($i->status_pembayaran === 'cancelled')
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Batal</span>
                                     @else
-                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Lunas</span>
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{ ucfirst($i->status_pembayaran) }}</span>
                                     @endif
                                 </td>
                                 <td class="border px-3 py-2">
-                                    <a href="{{ route('invoices.edit', $i) }}" class="text-blue-600">Edit</a>
-                                    <form action="{{ route('invoices.destroy', $i) }}" method="POST" class="inline" data-confirm-delete>
-                                        @csrf @method('DELETE')
-                                        <button class="text-red-600 ms-3">Hapus</button>
-                                    </form>
+                                    <div class="flex flex-col space-y-1">
+                                        <a href="{{ route('invoices.show', $i) }}"
+                                        class="text-indigo-600 hover:text-indigo-800 hover:underline">
+                                        Detail
+                                        </a>
+
+                                        <a href="{{ route('invoices.edit', $i) }}"
+                                        class="text-blue-600 hover:text-blue-800 hover:underline">
+                                        Edit
+                                        </a>
+
+                                        <form action="{{ route('invoices.destroy', $i) }}" method="POST" data-confirm-delete>
+                                            @csrf
+                                            @method('DELETE')
+                                            <button
+                                                class="text-red-600 hover:text-red-800 hover:underline text-left">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach

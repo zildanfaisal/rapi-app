@@ -332,9 +332,22 @@
             }
         });
 
-        // Recalculate on qty or harga change
+        // Recalculate on qty or harga change (and clamp qty to max stock)
         wrapper.addEventListener('input', function(e){
             if (e.target.matches('input[name$="[quantity]"]')) {
+                const maxAttr = e.target.getAttribute('max');
+                const maxVal = maxAttr ? parseInt(maxAttr, 10) : null;
+
+                if (e.target.value === '') {
+                    recalc();
+                    return;
+                }
+
+                let val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && maxVal !== null && val > maxVal) {
+                    e.target.value = String(maxVal);
+                }
+
                 recalc();
                 return;
             }
@@ -348,6 +361,25 @@
             }
         });
 
+        // Apply initial qty max based on preselected batch in edit
+        function applyInitialQtyMax() {
+            wrapper.querySelectorAll('.item-row').forEach(row => {
+                const batchSelect = row.querySelector('.item-batch');
+                const qtyInput = row.querySelector('input[name$="[quantity]"]');
+                if (!batchSelect || !qtyInput) return;
+                const opt = batchSelect.options[batchSelect.selectedIndex];
+                const stock = parseInt(opt?.getAttribute('data-stock') || '0', 10);
+                if (stock > 0) {
+                    qtyInput.setAttribute('max', String(stock));
+                    const cur = parseInt(qtyInput.value || '0', 10);
+                    if (cur > stock) qtyInput.value = String(stock);
+                } else {
+                    qtyInput.setAttribute('max', '0');
+                    qtyInput.value = '0';
+                }
+            });
+        }
+
         // Remove item row on click "x / Hapus"
         wrapper.addEventListener('click', function(e){
             const btn = e.target.closest('.remove-item');
@@ -359,7 +391,8 @@
             }
         });
 
-        // Also recalc on initial load (in case defaults present)
+        // Set initial max constraints and recalc on load
+        applyInitialQtyMax();
         recalc();
 
         // Require alasan_cancel when status is cancelled

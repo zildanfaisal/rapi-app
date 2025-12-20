@@ -63,12 +63,12 @@
                                     @endif
                                 </td>
                                 <td class="border px-3 py-2 text-center">
-                                    <a href="{{ route('monthly-targets.show',$t->id) }}" class="text-blue-600">Detail</a>
-                                    <a href="{{ route('monthly-targets.edit',$t->id) }}" class="text-indigo-600 ms-3">Edit</a>
+                                    <a href="{{ route('monthly-targets.show',$t->id) }}" class="text-blue-600 hover:text-blue-800 hover:underline">Detail</a>
+                                    <a href="{{ route('monthly-targets.edit',$t->id) }}" class="text-indigo-600 ms-3 hover:text-indigo-800 hover:underline">Edit</a>
                                     <form action="{{ route('monthly-targets.destroy',$t->id) }}"
                                           method="POST" class="inline" data-confirm-delete>
                                         @csrf @method('DELETE')
-                                        <button class="text-red-600 ms-3">Hapus</button>
+                                        <button class="text-red-600 ms-3 hover:text-red-800 hover:underline">Hapus</button>
                                     </form>
                                 </td>
                             </tr>

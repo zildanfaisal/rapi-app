@@ -50,5 +50,22 @@ class Invoice extends Model
     }
 
 
+    protected static function boot()
+    {
+        parent::boot();
+        static::saved(function (Invoice $invoice) {
+            try {
+                $suratJalans = \App\Models\SuratJalan::where('invoice_id', $invoice->id)->get();
+                foreach ($suratJalans as $sj) {
+                    $sj->update([
+                        'grand_total' => ((float) ($invoice->grand_total ?? 0)) + ((float) ($sj->ongkos_kirim ?? 0)),
+                        'status_pembayaran' => $invoice->status_pembayaran,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                // silently ignore sync errors
+            }
+        });
+    }
     
 }

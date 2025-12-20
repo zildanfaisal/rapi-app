@@ -95,11 +95,11 @@
     </td>
     <td class="border px-3 py-2">
         {!! $inv->bukti_setor
-            ? '<a target="_blank" class="text-blue-600" href="'.asset('storage/'.$inv->bukti_setor).'">Lihat</a>'
+            ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$inv->bukti_setor).'">Lihat</a>'
             : '-' !!}
     </td>
     <td class="border px-3 py-2">
-        <a href="{{ route('invoices.setor.edit',$inv) }}" class="text-blue-600">
+        <a href="{{ route('invoices.setor.edit',$inv) }}" class="text-blue-600 hover:text-blue-800 hover:underline">
             {{ $isSetor ? 'Edit Setor' : 'Setor' }}
         </a>
     </td>
