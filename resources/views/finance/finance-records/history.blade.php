@@ -415,13 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         lastRow++;
 
                         $('row:last', sheet).after(
-                            '<row r="' + (lastRow + 1) + '">' +
-                            '<c t="inlineStr" r="F' + (lastRow + 1) + '"><is><t>Total Pemasukan:</t></is></c>' +
-                            '<c t="inlineStr" r="G' + (lastRow + 1) + '"><is><t>Rp {{ number_format($totalPemasukan, 0, ",", ".") }}</t></is></c>' +
-                            '</row>'
-                        );
-
-                        $('row:last', sheet).after(
                             '<row r="' + (lastRow + 2) + '">' +
                             '<c t="inlineStr" r="F' + (lastRow + 2) + '"><is><t>Total Pengeluaran:</t></is></c>' +
                             '<c t="inlineStr" r="G' + (lastRow + 2) + '"><is><t>Rp {{ number_format($totalPengeluaran, 0, ",", ".") }}</t></is></c>' +
@@ -484,7 +477,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             '<div style="margin-top: 30px; border-top: 2px solid #000; padding-top: 20px;">' +
                             '<h3 style="margin-bottom: 15px;">Ringkasan:</h3>' +
                             '<table style="width: 50%;">' +
-                            '<tr><td><b>Total Pemasukan:</b></td><td style="text-align: right; color: green;">Rp {{ number_format($totalPemasukan, 0, ",", ".") }}</td></tr>' +
                             '<tr><td><b>Total Pengeluaran:</b></td><td style="text-align: right; color: red;">Rp {{ number_format($totalPengeluaran, 0, ",", ".") }}</td></tr>' +
                             @if($budgetTarget)
                             '<tr><td><b>Anggaran Bulanan:</b></td><td style="text-align: right; color: purple;">Rp {{ number_format($budgetTarget->budget_bulanan, 0, ",", ".") }}</td></tr>' +
