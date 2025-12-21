@@ -313,10 +313,6 @@
             <div class="summary-card-title">Total Pengeluaran</div>
             <div class="summary-card-value">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</div>
         </div>
-        <div class="summary-card income">
-            <div class="summary-card-title">Total Pemasukan</div>
-            <div class="summary-card-value">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</div>
-        </div>
     </div>
 
     <div class="summary-cards">

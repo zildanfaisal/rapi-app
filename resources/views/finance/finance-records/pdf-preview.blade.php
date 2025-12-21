@@ -59,7 +59,7 @@
                     <div class="flex justify-between items-start mb-8 pb-6 border-b-4 border-gray-800">
                         <div class="flex items-start">
                             <div class="mr-4">
-                                <img src="{{ public_path('images/logo-rapi.png') }}" alt="Logo" style="width: 120px; height: auto;">
+                                <img src="{{ asset('images/logo-rapi.png') }}" alt="Logo" style="width: 120px; height: auto;">
                             </div>
                             <div>
                                 <div class="text-2xl font-bold text-gray-800 mb-2">RAPI PVC</div>
@@ -91,7 +91,7 @@
                     </div>
 
                     <!-- Summary Cards -->
-                    <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
                         <div class="bg-purple-50 border-2 border-purple-400 rounded-lg p-4 text-center">
                             <div class="text-xs font-bold text-purple-700 mb-2 uppercase">Target Bulanan</div>
                             <div class="text-xl font-bold text-purple-800">
@@ -105,12 +105,6 @@
                             <div class="text-xs font-bold text-red-700 mb-2 uppercase">Total Pengeluaran</div>
                             <div class="text-xl font-bold text-red-800">
                                 Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
-                            </div>
-                        </div>
-                        <div class="bg-green-50 border-2 border-green-400 rounded-lg p-4 text-center">
-                            <div class="text-xs font-bold text-green-700 mb-2 uppercase">Total Pemasukan</div>
-                            <div class="text-xl font-bold text-green-800">
-                                Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
                             </div>
                         </div>
                     </div>

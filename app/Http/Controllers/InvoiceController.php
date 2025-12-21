@@ -181,14 +181,25 @@ class InvoiceController extends Controller
             // 5) Simpan grand_total baru
             $invoice->update(['grand_total' => $grandTotal]);
 
-            // 5b) Sinkronkan Surat Jalan terkait: grand_total = invoice + ongkos_kirim, status mengikuti invoice
+            // 5b) Sinkronkan Surat Jalan terkait:
+            //     - Jika dibatalkan: tandai SJ cancelled, nolkan total & ongkos kirim, salin alasan_cancel
+            //     - Jika tidak: grand_total = invoice + ongkos_kirim, status mengikuti invoice
             try {
                 $suratJalans = \App\Models\SuratJalan::where('invoice_id', $invoice->id)->get();
                 foreach ($suratJalans as $sj) {
-                    $sj->update([
-                        'grand_total' => ((float) $grandTotal) + ((float) ($sj->ongkos_kirim ?? 0)),
-                        'status_pembayaran' => $invoice->status_pembayaran,
-                    ]);
+                    if ($isCancelled) {
+                        $sj->update([
+                            'status_pembayaran' => 'cancel',
+                            'grand_total' => 0,
+                            'ongkos_kirim' => 0,
+                            'alasan_cancel' => $data['alasan_cancel'] ?? null,
+                        ]);
+                    } else {
+                        $sj->update([
+                            'grand_total' => ((float) $grandTotal) + ((float) ($sj->ongkos_kirim ?? 0)),
+                            'status_pembayaran' => $invoice->status_pembayaran,
+                        ]);
+                    }
                 }
             } catch (\Throwable $e) {
                 // Abaikan error sinkronisasi SJ agar tidak menggagalkan update invoice

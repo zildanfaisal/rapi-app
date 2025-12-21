@@ -19,7 +19,30 @@ class MonthlyTargetController extends Controller
                 ->whereDate('tanggal_invoice', '<=', $t->end_date)
                 ->where('status_pembayaran', 'paid')
                 ->sum('grand_total');
-            $t->computed_remaining = max(0, ($t->target_amount ?? 0) - ($paidSum ?? 0));
+
+            // Remaining amount to hit the target (paid invoices only)
+            $remaining = max(0, ($t->target_amount ?? 0) - ($paidSum ?? 0));
+            $t->computed_remaining = $remaining;
+
+            // Auto-update status to 'achieved' when target reached
+            if ($remaining <= 0 && $t->status !== 'achieved') {
+                try {
+                    $t->update([
+                        'status' => 'achieved',
+                        'achieved_total' => 0,
+                    ]);
+                } catch (\Throwable $e) {
+                    // ignore persistence errors to avoid breaking listing
+                }
+            } else {
+                // Keep achieved_total reflecting remaining for consistency
+                try {
+                    $t->update(['achieved_total' => $remaining]);
+                } catch (\Throwable $e) {
+                    // ignore
+                }
+            }
+
             return $t;
         });
 
@@ -64,12 +87,31 @@ class MonthlyTargetController extends Controller
 
     public function show(MonthlyTarget $monthlyTarget)
     {
-        // Recompute actuals for display accuracy
+        // Recompute actuals for display accuracy and auto-sync status
         $actuals = Invoice::query()
             ->whereDate('tanggal_invoice', '>=', $monthlyTarget->start_date)
             ->whereDate('tanggal_invoice', '<=', $monthlyTarget->end_date)
             ->where('status_pembayaran', 'paid')
             ->sum('grand_total');
+
+        $remaining = max(0, ($monthlyTarget->target_amount ?? 0) - ($actuals ?? 0));
+        if ($remaining <= 0 && $monthlyTarget->status !== 'achieved') {
+            try {
+                $monthlyTarget->update([
+                    'status' => 'achieved',
+                    'achieved_total' => 0,
+                ]);
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        } else {
+            try {
+                $monthlyTarget->update(['achieved_total' => $remaining]);
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        }
+
         $invoices = Invoice::query()
             ->whereDate('tanggal_invoice', '>=', $monthlyTarget->start_date)
             ->whereDate('tanggal_invoice', '<=', $monthlyTarget->end_date)
