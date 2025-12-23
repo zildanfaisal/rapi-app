@@ -15,13 +15,13 @@
             <!-- Target Bulanan Card -->
             @if($budgetTarget)
             <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                <div class="text-sm text-purple-600 mb-1">Anggaran Bulanan</div>
+                <div class="text-sm text-purple-600 mb-1">Kas Kantor</div>
                 <div class="text-3xl font-bold text-purple-700">Rp {{ number_format($budgetTarget->budget_bulanan, 0, ',', '.') }}</div>
                 <div class="text-xs text-purple-500 mt-2">Periode: {{ \Carbon\Carbon::parse($periode . '-01')->format('F Y') }}</div>
             </div>
             @else
             <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
-                <div class="text-sm text-gray-600 mb-1">Anggaran Bulanan</div>
+                <div class="text-sm text-gray-600 mb-1">Kas Kantor</div>
                 <div class="text-xl text-gray-500">Belum ada anggaran untuk periode ini</div>
                 <a href="{{ route('budget-target.create') }}" class="text-xs text-blue-600 hover:underline mt-2 inline-block">+ Tambah Data Keuangan</a>
             </div>

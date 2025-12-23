@@ -147,10 +147,10 @@
                                     required>
                                 <option disabled>Pilih Status</option>
                                 <option value="available" {{ old('status', $product->status) == 'available' ? 'selected' : '' }}>
-                                    Available
+                                    Tersedia
                                 </option>
                                 <option value="unavailable" {{ old('status', $product->status) == 'unavailable' ? 'selected' : '' }}>
-                                    Unavailable
+                                    Tidak Tersedia
                                 </option>
                             </select>
                         </div>

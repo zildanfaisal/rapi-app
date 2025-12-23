@@ -140,9 +140,9 @@
                         <select name="status" required
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                             <option value="" disabled selected>Pilih Status</option>
-                            <option value="active">Active</option>
-                            <option value="expired">Expired</option>
-                            <option value="sold_out">Sold Out</option>
+                            <option value="active">Aktif</option>
+                            <option value="expired">Kadaluwarsa</option>
+                            <option value="sold_out">Habis Terjual</option>
                         </select>
                     </div>
 

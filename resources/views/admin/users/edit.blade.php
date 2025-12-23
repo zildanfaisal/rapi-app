@@ -33,8 +33,8 @@
                     <div>
                         <label class="block mb-1">Status</label>
                         <select name="status" class="w-full px-3 py-2 border rounded">
-                            <option value="active" {{ old('status', $user->status) === 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ old('status', $user->status) === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            <option value="active" {{ old('status', $user->status) === 'active' ? 'selected' : '' }}>Aktif</option>
+                            <option value="inactive" {{ old('status', $user->status) === 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
                         </select>
                         @error('status')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
                     </div>

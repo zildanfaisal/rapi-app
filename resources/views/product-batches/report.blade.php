@@ -24,9 +24,9 @@
             <th>Produk</th>
             <th>Kode Batch</th>
             <th>Tanggal Masuk</th>
-            <th>Tanggal Expired</th>
-            <th>Qty Sekarang</th>
-            <th>Qty Masuk</th>
+            <th>Tanggal Kadaluwarsa</th>
+            <th>Sisa Stok</th>
+            <th>Awal Stok</th>
             <th>Supplier</th>
             <th>Status</th>
         </tr>
@@ -41,7 +41,14 @@
                 <td>{{ $b->quantity_sekarang }}</td>
                 <td>{{ $b->quantity_masuk }}</td>
                 <td>{{ $b->supplier }}</td>
-                <td>{{ ucfirst($b->status) }}</td>
+                <td>
+                    {{ match($b->status) {
+                        'active'   => 'Aktif',
+                        'sold_out' => 'Habis',
+                        'expired'  => 'Kadaluwarsa',
+                        default    => '-',
+                    } }}
+                </td>
             </tr>
         @endforeach
     </tbody>

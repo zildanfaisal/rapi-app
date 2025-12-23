@@ -69,7 +69,13 @@
                                 Rp {{ number_format($inv->grand_total,0,',','.') }}
                             </td>
                             <td class="border px-3 py-2">
-                                {{ $inv->status_pembayaran }}
+                                {{ match($inv->status_pembayaran) {
+                                    'paid'      => 'Lunas',
+                                    'unpaid'    => 'Belum Dibayar',
+                                    'overdue'   => 'Jatuh Tempo',
+                                    'cancelled' => 'Dibatalkan',
+                                    default     => '-',
+                                } }}
                             </td>
                             <td class="border px-3 py-2">
                                 <button
@@ -121,7 +127,13 @@
                             </h4>
 
                             <div class="text-sm text-gray-600">
-                                Status: {{ $inv->status_pembayaran }}
+                                Status: {{ match($inv->status_pembayaran) {
+                                    'paid'      => 'Lunas',
+                                    'unpaid'    => 'Belum Dibayar',
+                                    'overdue'   => 'Jatuh Tempo',
+                                    'cancelled' => 'Dibatalkan',
+                                    default     => '-',
+                                } }}
                             </div>
                         </div>
 

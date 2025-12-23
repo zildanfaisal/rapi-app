@@ -142,8 +142,8 @@
                                            focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                     required>
                                 <option value="" disabled selected>{{ __('Pilih Status') }}</option>
-                                <option value="available">{{ __('Available') }}</option>
-                                <option value="unavailable">{{ __('Unavailable') }}</option>
+                                <option value="available">{{ __('Tersedia') }}</option>
+                                <option value="unavailable">{{ __('Tidak Tersedia') }}</option>
                             </select>
                         </div>
 
