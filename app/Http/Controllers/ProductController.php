@@ -181,53 +181,68 @@ public function show($id)
             ->with('success', 'Product deleted successfully.');
     }
         
-    public function downloadBarcode($id)
-    {
-        $product = Product::findOrFail($id);
+    public function downloadBarcode(Request $request, $id)
+{
+    $product = Product::findOrFail($id);
 
-        $barcodePng = DNS1D::getBarcodePNG($product->barcode, 'C128', 2, 80);
-        $barcodeBinary = base64_decode($barcodePng);
-        $barcodeImage = imagecreatefromstring($barcodeBinary);
+    // Ambil parameter ukuran dari request dalam CM (default values)
+    $widthCm = $request->input('width', 5); // cm
+    $heightCm = $request->input('height', 3); // cm
+    
+    // Konversi CM ke Pixel (1 cm = 37.8 pixels at 96 DPI)
+    $dpi = 96;
+    $cmToPixel = $dpi / 2.54; // 1 inch = 2.54 cm
+    
+    $targetWidth = round($widthCm * $cmToPixel);
+    $targetHeight = round($heightCm * $cmToPixel);
+    
+    // Hitung width multiplier untuk barcode berdasarkan target width
+    $width = max(1, $widthCm / 2.5); // Sesuaikan multiplier
+    $height = $targetHeight - 40; // Kurangi space untuk text
 
-        $barcodeWidth = imagesx($barcodeImage);
-        $barcodeHeight = imagesy($barcodeImage);
+    $barcodePng = DNS1D::getBarcodePNG($product->barcode, 'C128', $width, $height);
+    $barcodeBinary = base64_decode($barcodePng);
+    $barcodeImage = imagecreatefromstring($barcodeBinary);
 
-        $padding = 10;
-        $newWidth = $barcodeWidth + ($padding * 2);
-        $newHeight = $barcodeHeight + 40;
+    $barcodeWidth = imagesx($barcodeImage);
+    $barcodeHeight = imagesy($barcodeImage);
 
-        $final = imagecreatetruecolor($newWidth, $newHeight);
+    $padding = 10;
+    $newWidth = $barcodeWidth + ($padding * 2);
+    $newHeight = $barcodeHeight + 40;
 
-        $white = imagecolorallocate($final, 255, 255, 255);
-        $black = imagecolorallocate($final, 0, 0, 0);
+    $final = imagecreatetruecolor($newWidth, $newHeight);
 
-        imagefilledrectangle($final, 0, 0, $newWidth, $newHeight, $white);
+    $white = imagecolorallocate($final, 255, 255, 255);
+    $black = imagecolorallocate($final, 0, 0, 0);
 
-        imagecopy(
-            $final,
-            $barcodeImage,
-            $padding, 
-            0,        
-            0, 0,
-            $barcodeWidth,
-            $barcodeHeight
-        );
+    imagefilledrectangle($final, 0, 0, $newWidth, $newHeight, $white);
 
-        $text = $product->barcode;
-        $textX = ($newWidth / 2) - (strlen($text) * 4);
-        $textY = $barcodeHeight + 10;
+    imagecopy(
+        $final,
+        $barcodeImage,
+        $padding, 
+        0,        
+        0, 0,
+        $barcodeWidth,
+        $barcodeHeight
+    );
 
-        imagestring($final, 5, $textX, $textY, $text, $black);
+    $text = $product->barcode;
+    $textX = ($newWidth / 2) - (strlen($text) * 4);
+    $textY = $barcodeHeight + 10;
 
-        ob_start();
-        imagepng($final);
-        $result = ob_get_clean();
+    imagestring($final, 5, $textX, $textY, $text, $black);
 
-        imagedestroy($barcodeImage);
-        imagedestroy($final);
+    ob_start();
+    imagepng($final);
+    $result = ob_get_clean();
 
-        return response($result)
-            ->header('Content-Type', 'image/png')
-            ->header('Content-Disposition', 'attachment; filename="barcode-'.$product->nama_produk.'.png"');
-    }
+    imagedestroy($barcodeImage);
+    imagedestroy($final);
+
+    return response($result)
+        ->header('Content-Type', 'image/png')
+        ->header('Content-Disposition', 'attachment; filename="barcode-'.$product->nama_produk.'.png"');
+}
 }

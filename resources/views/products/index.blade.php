@@ -55,7 +55,6 @@
                                     </div>
                                 </td>
 
-
                                 <td class="px-3 py-2 border font-medium">{{ $p->nama_produk }}</td>
                                 <td class="px-3 py-2 border">{{ $p->kategori }}</td>
 
@@ -91,10 +90,12 @@
                                     @endif
                                 </td>
 
-
                                 <td class="px-3 py-2 border">
-                                    <div class="flex justify-center gap-3">
-                                        <a href="{{ route('products.barcode.download', $p->id) }}" class="text-green-600 hover:underline">Unduh Barcode</a>
+                                    <div class="flex justify-center gap-2">
+                                        <button onclick="openBarcodeModal({{ $p->id }}, '{{ $p->nama_produk }}')" 
+                                                class="text-green-600 hover:underline">
+                                            Unduh Barcode
+                                        </button>
                                         <a href="{{ route('products.show', $p->id) }}" class="text-indigo-600 hover:underline">Detail</a>
                                         <a href="{{ route('products.edit', $p->id) }}" class="text-blue-600 hover:underline">Edit</a>
                                         <form action="{{ route('products.destroy', $p->id) }}" method="POST" data-confirm-delete>
@@ -152,7 +153,6 @@
                             </div>
                         </div>
 
-
                             <div class="px-4 py-3 space-y-1 text-sm">
                                 <div>Harga Jual: <b>Rp {{ number_format($p->harga,0,',','.') }}</b></div>
                                 <div>Harga Beli:
@@ -179,27 +179,41 @@
                             </div>
 
                             <div class="px-4 py-3 border-t flex gap-2">
-                                <a href="{{ route('products.barcode.download', $p->id) }}"
-                                   class="flex-1 text-center px-3 py-2 border border-green-600 rounded text-green-600">
-                                    Unduh Barcode
-                                </a>
+
+                                <button
+                                    onclick="openBarcodeModal({{ $p->id }}, @json($p->nama_produk))"
+                                    class="flex-1 min-h-[44px] inline-flex items-center justify-center
+                                        px-3 py-2 border border-green-600 rounded text-green-600">
+                                    Unduh
+                                </button>
+
                                 <a href="{{ route('products.show', $p->id) }}"
-                                   class="flex-1 text-center px-3 py-2 border border-indigo-600 rounded text-indigo-600">
+                                class="flex-1 min-h-[44px] inline-flex items-center justify-center
+                                        px-3 py-2 border border-indigo-600 rounded text-indigo-600">
                                     Detail
                                 </a>
+
                                 <a href="{{ route('products.edit', $p->id) }}"
-                                   class="flex-1 text-center px-3 py-2 border border-blue-600 rounded text-blue-600">
+                                class="flex-1 min-h-[44px] inline-flex items-center justify-center
+                                        px-3 py-2 border border-blue-600 rounded text-blue-600">
                                     Edit
                                 </a>
-                                <form action="{{ route('products.destroy', $p->id) }}" method="POST" class="flex-1"
-                                      data-confirm-delete>
+
+                                <form action="{{ route('products.destroy', $p->id) }}"
+                                    method="POST"
+                                    class="flex-1">
                                     @csrf
                                     @method('DELETE')
+
                                     <button type="submit"
-                                            class="w-full text-center px-3 py-2 border border-red-600 rounded text-red-600">
+                                        class="w-full min-h-[44px] inline-flex items-center justify-center
+                                            px-3 py-2 border border-red-600 rounded text-red-600">
                                         Hapus
                                     </button>
+                                </form>
+
                             </div>
+
                         </div>
                         @endforeach
                     </div>
@@ -212,6 +226,59 @@
                 </div>
 
             </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL UKURAN BARCODE --}}
+<div id="barcodeModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Pengaturan Ukuran Barcode</h3>
+            
+            <form id="barcodeForm" method="GET">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Lebar (Width) - cm
+                    </label>
+                    <input type="number" 
+                           id="barcodeWidth" 
+                           name="width" 
+                           value="5" 
+                           min="3" 
+                           max="15" 
+                           step="0.5"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Rentang: 3 - 15 cm (Default: 5 cm)</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Tinggi (Height) - cm
+                    </label>
+                    <input type="number" 
+                           id="barcodeHeight" 
+                           name="height" 
+                           value="3" 
+                           min="2" 
+                           max="10" 
+                           step="0.5"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Rentang: 2 - 10 cm (Default: 3 cm)</p>
+                </div>
+
+                <div class="flex gap-3 justify-end mt-6">
+                    <button type="button" 
+                            onclick="closeBarcodeModal()"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        Download
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -303,6 +370,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     handleResponsive();
     window.addEventListener('resize', handleResponsive);
+});
+
+// Modal Functions
+function openBarcodeModal(productId, productName) {
+    document.getElementById('barcodeModal').classList.remove('hidden');
+    const form = document.getElementById('barcodeForm');
+    form.action = `/products/${productId}/barcode/download`;
+}
+
+function closeBarcodeModal() {
+    document.getElementById('barcodeModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('barcodeModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeBarcodeModal();
+    }
 });
 </script>
 @endpush
