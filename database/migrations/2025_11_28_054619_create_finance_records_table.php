@@ -17,6 +17,7 @@ return new class extends Migration
             $table->enum('tipe', ['income', 'expanse']);
             $table->string('kategori');
             $table->decimal('jumlah', 15, 2);
+            $table->text('foto_nota')->nullable();
             $table->text('deskripsi')->nullable();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();

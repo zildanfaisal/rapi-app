@@ -120,6 +120,10 @@
                                     <span class="text-gray-600">Point:</span>
                                     <span class="text-gray-900">{{ $customer->point ?? '-' }}</span>
                                 </div>
+                                 <div class="flex justify-between">
+                                    <span class="text-gray-600">Kategori Pelanggan:</span>
+                                    <span class="text-gray-900">{{ $customer->kategori_pelanggan ?? '-' }}</span>
+                                </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-gray-600">Alamat:</span>
                                     <span class="text-gray-900 text-sm">{{ $customer->alamat ?? '-' }}</span>

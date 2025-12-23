@@ -12,7 +12,7 @@
         <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
             <div class="max-w-3xl">
                 <h3 class="mb-4">{{ __('Edit Data Keuangan') }}</h3>
-                <form method="POST" action="{{ route('finance-records.update', $financeRecord->id) }}" class="space-y-4">
+                <form method="POST" action="{{ route('finance-records.update', $financeRecord->id) }}" class="space-y-4"  enctype="multipart/form-data" >
                     @csrf
                     @method('PUT')
                     <div>
@@ -44,6 +44,26 @@
                         </div>
                         @error('jumlah')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
                     </div>
+                    {{-- Foto Produk --}}
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700">Foto Nota</label>
+
+                            {{-- Foto Lama --}}
+                            <div class="mb-3">
+                                <img id="previewImage"
+                                     src="{{ asset('storage/' . $financeRecord->foto_nota) }}"
+                                     class="w-32 h-32 object-cover rounded-md border"
+                                     alt="Foto Nota">
+                            </div>
+
+                            {{-- Input File --}}
+                            <input type="file" name="foto_nota" id="foto_nota" accept="image/*"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
+                                          focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+
+                            <small class="text-gray-600">Pilih foto baru untuk mengganti foto saat ini.</small>
+                        </div>
+
                     <div>
                         <label class="block mb-1">Deskripsi (Opsional)</label>
                         <textarea name="deskripsi" rows="3" class="w-full px-3 py-2 border rounded" placeholder="Catatan tambahan...">{{ old('deskripsi', $financeRecord->deskripsi) }}</textarea>

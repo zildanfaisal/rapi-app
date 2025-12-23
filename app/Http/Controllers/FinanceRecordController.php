@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\FinanceRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class FinanceRecordController extends Controller
@@ -223,6 +223,7 @@ class FinanceRecordController extends Controller
             'kategori' => 'required|string|max:255',
             'jumlah' => 'required|numeric|min:0',
             'deskripsi' => 'nullable|string',
+            'foto_nota'      => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ], [
             'tanggal.required' => 'Tanggal harus diisi',
             'tanggal.date' => 'Format tanggal tidak valid',
@@ -238,6 +239,10 @@ class FinanceRecordController extends Controller
 
         // Auto set periode from tanggal (YYYY-MM)
         $validated['periode'] = date('Y-m', strtotime($validated['tanggal']));
+
+        $fotoPath = $request->file('foto_nota')->store('nota', 'public');
+
+        $validated['foto_nota'] = $fotoPath;
 
         FinanceRecord::create($validated);
 
@@ -270,6 +275,7 @@ class FinanceRecordController extends Controller
             'tipe' => 'required|in:income,expense',
             'kategori' => 'required|string|max:255',
             'jumlah' => 'required|numeric|min:0',
+            'foto_nota'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'deskripsi' => 'nullable|string',
         ], [
             'tanggal.required' => 'Tanggal harus diisi',
@@ -287,7 +293,25 @@ class FinanceRecordController extends Controller
         // Auto set periode from tanggal (YYYY-MM)
         $validated['periode'] = date('Y-m', strtotime($validated['tanggal']));
 
-        $financeRecord->update($validated);
+      // Update SEMUA FIELD KECUALI foto_nota
+        $financeRecord->update(
+            collect($validated)->except('foto_nota')->toArray()
+        );
+
+        // Handle foto jika ada upload baru
+        if ($request->hasFile('foto_nota')) {
+
+            if ($financeRecord->foto_nota &&
+                Storage::disk('public')->exists($financeRecord->foto_nota)) {
+                Storage::disk('public')->delete($financeRecord->foto_nota);
+            }
+
+            $fotoPath = $request->file('foto_nota')->store('nota', 'public');
+
+            $financeRecord->update([
+                'foto_nota' => $fotoPath
+            ]);
+        }
 
         return redirect()->route('finance-records.index', ['periode' => $validated['periode']])->with('success', 'Data keuangan berhasil diperbarui');
     }
@@ -297,6 +321,9 @@ class FinanceRecordController extends Controller
      */
     public function destroy(FinanceRecord $financeRecord)
     {
+         if ($financeRecord->foto_nota && Storage::disk('public')->exists($financeRecord->foto_nota)) {
+            Storage::disk('public')->delete($financeRecord->foto_nota);
+        }
         $financeRecord->delete();
 
         return redirect()->route('finance-records.index')->with('success', 'Data keuangan berhasil dihapus');

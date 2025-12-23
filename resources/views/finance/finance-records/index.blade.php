@@ -98,6 +98,7 @@
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Tipe</th>
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Kategori</th>
                                 <th class="px-3 py-2 border text-right text-xs uppercase">Jumlah</th>
+                                <th class="px-3 py-2 border text-left text-xs uppercase">Foto Nota</th>
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Deskripsi</th>
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Dibuat Oleh</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
@@ -122,7 +123,19 @@
                                     <span class="{{ $fr->tipe === 'income' ? 'text-green-600' : 'text-red-600' }} font-semibold">
                                         Rp {{ number_format($fr->jumlah, 0, ',', '.') }}
                                     </span>
-                                </td>
+                               <td class="border px-3 py-2 text-center">
+    @if($fr->foto_nota)
+        <img 
+            src="{{ asset('storage/' . $fr->foto_nota) }}"
+            alt="Foto Nota"
+            class="w-16 h-16 object-cover rounded cursor-pointer mx-auto"
+        >
+    @else
+        -
+    @endif
+</td>
+
+                                
                                 <td class="border px-3 py-2">{{ $fr->deskripsi ?? '-' }}</td>
                                 <td class="border px-3 py-2">{{ $fr->user->name ?? 'Unknown' }}</td>
                                 <td class="border px-3 py-2 text-center">
@@ -181,6 +194,19 @@
 
                             {{-- CONTENT --}}
                             <div class="px-4 py-3 text-sm space-y-1.5">
+                                    @if($fr->foto_nota) 
+    <div class="mb-2">
+        <span class="text-gray-600 block mb-1">Foto Nota:</span>
+        <img
+            src="{{ asset('storage/' . $fr->foto_nota) }}"
+            alt="Foto Nota"
+            class="w-24 h-24 object-cover rounded border cursor-pointer"
+            onclick="showImage('{{ asset('storage/' . $fr->foto_nota) }}')"
+        >
+    </div>
+@endif
+
+
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Jumlah:</span>
                                     <span class="{{ $fr->tipe === 'income' ? 'text-green-600' : 'text-red-600' }} font-bold">

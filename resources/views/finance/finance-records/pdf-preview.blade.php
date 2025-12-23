@@ -174,19 +174,26 @@
 
                     <!-- Signature Section -->
                     <div class="mt-16 pt-8">
-                        <div class="grid grid-cols-2 gap-8">
+                        <div class="grid grid-cols-3 gap-8">
                             <div class="text-center">
-                                <div class="text-sm font-semibold mb-16">Mengetahui</div>
+                                <div class="text-sm font-semibold mb-16">Diketahui</div>
                                 <div class="border-t-2 border-gray-800 pt-2 inline-block" style="min-width: 200px;">
-                                    <div class="text-sm font-semibold">_______________</div>
-                                    <div class="text-xs text-gray-600">Manager</div>
+                                    <div class="text-sm font-semibold">Adi</div>
+                                    <div class="text-xs text-gray-600">Keuangan</div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-sm font-semibold mb-16">Diketahui</div>
+                                <div class="border-t-2 border-gray-800 pt-2 inline-block" style="min-width: 200px;">
+                                    <div class="text-sm font-semibold">Bagas</div>
+                                    <div class="text-xs text-gray-600">Kepala Cabang</div>
                                 </div>
                             </div>
                             <div class="text-center">
                                 <div class="text-sm font-semibold mb-16">Dibuat Oleh</div>
                                 <div class="border-t-2 border-gray-800 pt-2 inline-block" style="min-width: 200px;">
-                                    <div class="text-sm font-semibold">{{ Auth::user()->name ?? 'Admin' }}</div>
-                                    <div class="text-xs text-gray-600">Staff Keuangan</div>
+                                    <div class="text-sm font-semibold">{{ 'Luthfi' }}</div>
+                                    <div class="text-xs text-gray-600">Admin</div>
                                 </div>
                             </div>
                         </div>

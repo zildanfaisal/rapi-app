@@ -12,6 +12,7 @@ class FinanceRecord extends Model
         'tipe',
         'kategori',
         'jumlah',
+        'foto_nota',
         'deskripsi',
         'created_by'
     ];
