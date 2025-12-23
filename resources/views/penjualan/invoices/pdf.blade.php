@@ -332,12 +332,22 @@
                 <strong>No:</strong> {{ $invoice->invoice_number }}<br>
                 <strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($invoice->tanggal_invoice)->format('d/m/Y') }}<br>
                 <strong>Jatuh Tempo:</strong> {{ \Carbon\Carbon::parse($invoice->tanggal_jatuh_tempo)->format('d/m/Y') }}<br>
-                @if($invoice->status_pembayaran == 'lunas')
-                    <span class="status-badge status-lunas">{{ $invoice->status_pembayaran }}</span>
-                @elseif($invoice->status_pembayaran == 'cancel')
-                    <span class="status-badge status-cancel">{{ $invoice->status_pembayaran }}</span>
+                @php
+                    $statusLabel = match ($invoice->status_pembayaran) {
+                        'paid'      => 'Lunas',
+                        'cancelled' => 'Dibatalkan',
+                        'unpaid'    => 'Belum Dibayar',
+                        'overdue'   => 'Terlambat',
+                        default     => '-',
+                    };
+                @endphp
+
+                @if($invoice->status_pembayaran == 'paid')
+                    <span class="status-badge status-lunas">{{ $statusLabel }}</span>
+                @elseif($invoice->status_pembayaran == 'cancelled')
+                    <span class="status-badge status-cancel">{{ $statusLabel }}</span>
                 @else
-                    <span class="status-badge status-belum">{{ $invoice->status_pembayaran }}</span>
+                    <span class="status-badge status-belum">{{ $statusLabel }}</span>
                 @endif
             </div>
         </div>

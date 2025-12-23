@@ -51,9 +51,9 @@
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Kode Batch</th>
                                 <th class="px-3 py-2 border text-right text-xs uppercase">Harga Beli</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Masuk</th>
-                                <th class="px-3 py-2 border text-center text-xs uppercase">Expired</th>
-                                <th class="px-3 py-2 border text-center text-xs uppercase">Qty Awal</th>
-                                <th class="px-3 py-2 border text-center text-xs uppercase">Qty Sisa</th>
+                                <th class="px-3 py-2 border text-center text-xs uppercase">Kadaluwarsa</th>
+                                <th class="px-3 py-2 border text-center text-xs uppercase">Awal Stok</th>
+                                <th class="px-3 py-2 border text-center text-xs uppercase">Sisa Stok</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Supplier</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Status</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
@@ -85,11 +85,11 @@
                                 <td class="border px-3 py-2">
                                     @php $status = $b->status; @endphp
                                     @if ($status === 'sold_out')
-                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Sold Out</span>
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Habis Terjual</span>
                                     @elseif ($status === 'expired')
-                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Expired</span>
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Kadaluwarsa</span>
                                     @else
-                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Active</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Aktif</span>
                                     @endif
                                 </td>
                                 <td class="border px-3 py-2">
@@ -133,9 +133,9 @@
                             <div class="px-4 py-3 text-sm space-y-1">
                                 <div>Harga Beli: <b>Rp {{ number_format($b->harga_beli,0,',','.') }}</b></div>
                                 <div>Masuk: {{ \Carbon\Carbon::parse($b->tanggal_masuk)->translatedFormat('F') }}</div>
-                                <div>Expired: {{ \Carbon\Carbon::parse($b->tanggal_expired)->translatedFormat('F') }}</div>
-                                <div>Qty Awal: {{ $b->quantity_masuk }}</div>
-                                <div>Qty Sisa: {{ $b->quantity_sekarang }}</div>
+                                <div>Kadaluwarsa: {{ \Carbon\Carbon::parse($b->tanggal_expired)->translatedFormat('F') }}</div>
+                                <div>Awal Stok: {{ $b->quantity_masuk }}</div>
+                                <div>Sisa Stok: {{ $b->quantity_sekarang }}</div>
                                 <div>Supplier: {{ $b->supplier }}</div>
                             </div>
 
@@ -223,7 +223,7 @@
                 <select name="filter" class="w-full border-slate-300 rounded-lg p-2.5" required>
                     <option value="all">Semua</option>
                     <option value="tanggal_masuk">Tanggal Masuk</option>
-                    <option value="tanggal_expired">Tanggal Expired</option>
+                    <option value="tanggal_expired">Tanggal Kadaluwarsa</option>
                 </select>
             </div>
 

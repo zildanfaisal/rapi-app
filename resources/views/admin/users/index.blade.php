@@ -57,7 +57,8 @@
                                 <td class="px-4 py-3 border-r">
                                     <span class="px-2 py-1 text-xs rounded-full
                                         {{ $user->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
-                                        {{ ucfirst($user->status ?? 'inactive') }}
+                                        
+                                        {{ $user->status === 'active' ? 'Aktif' : 'Tidak Aktif' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 border-r">
@@ -117,9 +118,10 @@
                                 <h4 class="text-base font-semibold text-gray-900">
                                     {{ $user->name }}
                                 </h4>
-                                <span class="inline-block mt-1 px-2 py-1 text-xs rounded-full
+                                <span class="px-2 py-1 text-xs rounded-full
                                     {{ $user->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
-                                    {{ ucfirst($user->status ?? 'inactive') }}
+                                    
+                                    {{ $user->status === 'active' ? 'Aktif' : 'Tidak Aktif' }}
                                 </span>
                             </div>
 

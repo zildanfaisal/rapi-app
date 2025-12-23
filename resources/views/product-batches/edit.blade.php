@@ -147,9 +147,9 @@
                         <label class="block text-sm font-medium text-gray-700">Status</label>
                         <select name="status" required
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            <option value="active" {{ $productBatch->status == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="expired" {{ $productBatch->status == 'expired' ? 'selected' : '' }}>Expired</option>
-                            <option value="sold_out" {{ $productBatch->status == 'sold_out' ? 'selected' : '' }}>Sold Out</option>
+                            <option value="active" {{ $productBatch->status == 'active' ? 'selected' : '' }}>Aktif</option>
+                            <option value="expired" {{ $productBatch->status == 'expired' ? 'selected' : '' }}>Kadaluwarsa</option>
+                            <option value="sold_out" {{ $productBatch->status == 'sold_out' ? 'selected' : '' }}>Habis Terjual</option>
                         </select>
                     </div>
 

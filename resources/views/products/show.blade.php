@@ -95,13 +95,16 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Status</label>
                     <div class="mt-1">
+                        @php
+                            $statusLabel = $product->status === 'available' ? 'Tersedia' : 'Tidak Tersedia';
+                        @endphp
                         @if($product->batches->sum('quantity_sekarang') >= $product->min_stok_alert)
                             <span class="px-3 py-1 bg-green-100 text-green-800 rounded text-sm">
-                                {{ $product->status }}
+                                {{ $statusLabel }}
                             </span>
                         @else
                             <span class="px-3 py-1 bg-red-100 text-red-800 rounded text-sm">
-                                {{ $product->status }}
+                                {{ $statusLabel }}
                             </span>
                         @endif
                     </div>

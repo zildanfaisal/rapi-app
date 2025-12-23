@@ -46,6 +46,10 @@
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-green-100 text-green-800">Lunas</span>
                             @elseif ($status === 'unpaid')
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-red-100 text-red-800">Belum Lunas</span>
+                            @elseif ($status === 'overdue')
+                                <span class="inline-block px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">Terlambat</span>
+                            @elseif ($status === 'cancelled')
+                                <span class="inline-block px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">Dibatalkan</span>
                             @else
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-gray-200 text-gray-700">{{ ucfirst($status ?? '-') }}</span>
                             @endif
@@ -62,7 +66,7 @@
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="px-4 py-2 border">Produk</th>
-                                    <th class="px-4 py-2 border">Qty</th>
+                                    <th class="px-4 py-2 border">Kuantitas</th>
                                     <th class="px-4 py-2 border">Harga</th>
                                     <th class="px-4 py-2 border">Sub Total</th>
                                 </tr>

@@ -39,13 +39,13 @@
                         <div>
                             <div class="text-gray-600">Status Pembayaran</div>
                             @php $status = $suratJalan->status_pembayaran; @endphp
-                            @if ($status === 'paid')
+                            @if ($status === 'lunas')
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-green-100 text-green-800">Lunas</span>
                             @elseif ($status === 'unpaid')
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-red-100 text-red-800">Belum Lunas</span>
-                            @elseif ($status === 'overdue')
+                            @elseif ($status === 'pending')
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">Terlambat</span>
-                            @elseif ($status === 'cancelled')
+                            @elseif ($status === 'cancel')
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">Dibatalkan</span>
                             @else
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-gray-200 text-gray-700">{{ ucfirst($status ?? '-') }}</span>
