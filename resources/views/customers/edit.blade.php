@@ -25,7 +25,15 @@
                         </div>
                         <div class="mb-4">
                             <label for="email" class="block text-sm font-medium text-gray-700">{{ __('E-mail') }}</label>
-                            <input type="email" name="email" id="email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required value="{{ old('email', $customer->email) }}">
+                            <input type="email" name="email" id="email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"  value="{{ old('email', $customer->email) }}">
+                        </div>
+                        <div class="mb-4">
+                            <label for="kategori_pelanggan" class="block text-sm font-medium text-gray-700">{{ __('Kategori Pelanggan') }}</label>
+                            <select name="kategori_pelanggan" id="kategori_pelanggan" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                <option value="Toko" {{ old('kategori_pelanggan', $customer->kategori_pelanggan) == 'Toko' ? 'selected' : '' }}>{{ __('Toko') }}</option>
+                                <option value="Konsumen" {{ old('kategori_pelanggan', $customer->kategori_pelanggan) == 'Konsumen' ? 'selected' : '' }}>{{ __('Konsumen') }}</option>
+                                <option value="Aplikator/Tukang" {{ old('kategori_pelanggan', $customer->kategori_pelanggan) == 'Aplikator/Tukang' ? 'selected' : '' }}>{{ __('Aplikator/Tukang') }}</option>
+                            </select>
                         </div>
                         <div class="mb-4">
                             <label for="alamat" class="block text-sm font-medium text-gray-700">{{ __('Alamat') }}</label>
@@ -33,7 +41,7 @@
                         </div>
                         <div class="mb-4">
                             <label for="point" class="block text-sm font-medium text-gray-700">{{ __('Poin') }}</label>
-                            <input type="number" name="point" id="point" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required value="{{ old('point', $customer->point) }}">
+                            <input type="number" name="point" id="point" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"  value="{{ old('point', $customer->point) }}">
                         </div>
                         <div class="flex items-center gap-4">
                             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{{ __('Simpan') }}</button>

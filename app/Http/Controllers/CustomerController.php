@@ -24,9 +24,10 @@ class CustomerController extends Controller
         $request->validate([
             'nama_customer' => 'required|string|max:255',
             'no_hp' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'nullable|email|max:255',
             'alamat' => 'required|string|max:255',
             'point' => 'nullable|integer',
+            'kategori_pelanggan' => 'required|in:Toko,Konsumen,Aplikator/Tukang',
         ]);
 
         Customer::create([
@@ -35,6 +36,7 @@ class CustomerController extends Controller
             'email' => $request->email,
             'alamat' => $request->alamat,
             'point' => $request->point,
+            'kategori_pelanggan' => $request->kategori_pelanggan,
         ]);
 
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
@@ -75,9 +77,10 @@ public function show($id)
         $request->validate([
             'nama_customer' => 'required|string|max:255',
             'no_hp' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'nullable|email|max:255',
             'alamat' => 'required|string|max:255',
             'point' => 'nullable|integer',
+            'kategori_pelanggan' => 'required|in:Toko,Konsumen,Aplikator/Tukang',
         ]);
 
         $customer->update([
@@ -86,6 +89,7 @@ public function show($id)
             'email' => $request->email,
             'alamat' => $request->alamat,
             'point' => $request->point,
+            'kategori_pelanggan' => $request->kategori_pelanggan,
         ]);
 
         return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');

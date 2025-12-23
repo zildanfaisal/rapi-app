@@ -330,10 +330,9 @@ class InvoiceController extends Controller
                             $customer->point = 0;
                             $customer->save();
                         }
-                        $earnedPoints = intdiv((int) round($grandTotal), 100000);
-                        if ($earnedPoints > 0) {
-                            $customer->increment('point', $earnedPoints);
-                        }
+                        
+                            $customer->increment('point', 10);
+                        
                     }
                 } catch (\Throwable $e) {
                     // silently ignore point awarding errors

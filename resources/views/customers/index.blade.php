@@ -24,7 +24,7 @@
                 </div>
 
                 {{-- ================= DESKTOP TABLE ================= --}}
-                <div class="hidden lg:block w-full overflow-x-auto">
+                <div class="hidden lg:block w-full overflow-x-auto"  id="desktopWrapper">>
                     <table id="dataTables" class="min-w-full border border-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -32,6 +32,7 @@
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Nama Pelanggan</th>
                                 <th class="px-3 py-2 border text-left text-xs uppercase">No. Hp</th>
                                 <th class="px-3 py-2 border text-left text-xs uppercase">E-mail</th>
+                                <th class="px-3 py-2 border text-left text-xs uppercase">Kategori Pelanggan</th>
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Alamat</th>
                                  <th class="px-3 py-2 border text-left text-xs uppercase">Poin</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
@@ -45,21 +46,31 @@
                                 <td class="border px-3 py-2">{{ $customer->nama_customer }}</td>
                                 <td class="border px-3 py-2">{{ $customer->no_hp ?? '-' }}</td>
                                 <td class="border px-3 py-2">{{ $customer->email ?? '-' }}</td>
+                                <td class="border px-3 py-2">{{ $customer->kategori_pelanggan }}</td>
                                 <td class="border px-3 py-2">{{ $customer->alamat ?? '-' }}</td>
                                 <td class="border px-3 py-2">{{ $customer->point ?? '-' }}</td>
                                 <td class="border px-3 py-2 text-center">
-                                                               <a href="{{ route('customers.show', $customer->id) }}"
+                                    <div class="flex justify-center gap-3">
+                                        <a href="{{ route('customers.show', $customer->id) }}"
                                         class="text-green-600 hover:underline">
                                             Detail
                                         </a>
-                                    <a href="{{ route('customers.edit', $customer->id) }}" 
-                                       class="text-blue-600 hover:underline">Edit</a>
-                                    <form action="{{ route('customers.destroy', $customer->id) }}"
-                                          method="POST" class="inline" data-confirm-delete>
-                                        @csrf @method('DELETE')
-                                        <button class="text-red-600 hover:underline ms-3">Hapus</button>
-                                    </form>
+
+                                        <a href="{{ route('customers.edit', $customer->id) }}"
+                                        class="text-blue-600 hover:underline">
+                                            Edit
+                                        </a>
+
+                                        <form action="{{ route('customers.destroy', $customer->id) }}"
+                                            method="POST" data-confirm-delete>
+                                            @csrf @method('DELETE')
+                                            <button class="text-red-600 hover:underline">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
+
                             </tr>
                             @endforeach
                         </tbody>
@@ -223,18 +234,33 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function handleResponsive(){
-        if(window.innerWidth>=1024){
-            if(!dataTable){
-                dataTable=new DataTable('#dataTables',{responsive:true});
-            }
-        }else{
-            if(dataTable){
-                dataTable.destroy();
-                dataTable=null;
-            }
-            renderMobile();
+    const isDesktop = window.innerWidth >= 1024;
+
+    const mobileWrapper = document.getElementById('mobileWrapper');
+    const desktopWrapper = document.getElementById('desktopWrapper');
+
+    if(isDesktop){
+        // SHOW DESKTOP
+        desktopWrapper.style.display = 'block';
+        mobileWrapper.style.display = 'none';
+
+        if(!dataTable){
+            dataTable = new DataTable('#dataTables',{ responsive:true });
         }
+    }else{
+        // SHOW MOBILE
+        desktopWrapper.style.display = 'none';
+        mobileWrapper.style.display = 'block';
+
+        if(dataTable){
+            dataTable.destroy();
+            dataTable = null;
+        }
+
+        renderMobile();
     }
+}
+
 
     handleResponsive();
     window.addEventListener('resize',handleResponsive);

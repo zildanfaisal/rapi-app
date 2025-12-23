@@ -12,6 +12,7 @@ class Customer extends Model
         'email',
         'alamat',
         'point',
+        'kategori_pelanggan',
     ];
 
     public function invoice()

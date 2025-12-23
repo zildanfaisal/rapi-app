@@ -31,11 +31,16 @@
                 </div>
 
                 <div>
-                    <p class="text-sm text-gray-500">Poin</p>
-                    <p class="font-medium">{{ $customer->point }}</p>
+                    <p class="text-sm text-gray-500">Kategori Pelanggan</p>
+                    <p class="font-medium">{{ $customer->kategori_pelanggan }}</p>
                 </div>
 
-                <div class="md:col-span-2">
+                <div>
+                    <p class="text-sm text-gray-500">Poin</p>
+                    <p class="font-medium">{{ $customer->point ?? '0'}}</p>
+                </div>
+
+                <div>
                     <p class="text-sm text-gray-500">Alamat</p>
                     <p class="font-medium">{{ $customer->alamat }}</p>
                 </div>
