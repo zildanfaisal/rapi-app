@@ -6,9 +6,12 @@ use App\Http\Requests\StoreTransactionRequest;
 use App\Models\Invoice;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
+use App\Traits\ActivityLogger;
 
 class TransactionController extends Controller
 {
+    use ActivityLogger; I
+
     public function store(StoreTransactionRequest $request)
     {
         $data = $request->validated();
@@ -36,6 +39,8 @@ class TransactionController extends Controller
             }
 
             $invoice->update(['status_pembayaran' => $status]);
+
+            self::logCreate($trx, 'Transaksi Pembayaran');
 
             return redirect()->route('invoices.show', $invoice)->with('success', 'Payment recorded');
         });

@@ -7,115 +7,93 @@ use App\Models\ProductBatch;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Traits\ActivityLogger;
 
 class ProductBatchController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-public function index()
-{
-    // Update status expired otomatis
-    ProductBatch::whereDate('tanggal_expired', '<', Carbon::today())
-        ->where('status', '!=', 'expired')
-        ->update(['status' => 'expired']);
+    use ActivityLogger;
 
-    // Update sold out
-    ProductBatch::where('quantity_sekarang', '<=', 0)
-        ->where('status', '!=', 'sold_out')
-        ->update(['status' => 'sold_out']);
+    public function index()
+    {
+        ProductBatch::whereDate('tanggal_expired', '<', Carbon::today())
+            ->where('status', '!=', 'expired')
+            ->update(['status' => 'expired']);
 
-    // Ambil data
-    $batches = ProductBatch::with('product')->get();
+        ProductBatch::where('quantity_sekarang', '<=', 0)
+            ->where('status', '!=', 'sold_out')
+            ->update(['status' => 'sold_out']);
 
-    return view('product-batches.index', compact('batches'));
-}
+        $batches = ProductBatch::with('product')->get();
 
-    /**
-     * Show the form for creating a new resource.
-     */
+        return view('product-batches.index', compact('batches'));
+    }
+
     public function create()
     {
-        // Ambil hanya kolom yang dibutuhkan
         $products = Product::select('id', 'nama_produk', 'barcode')->get();
-
         return view('product-batches.create', compact('products'));
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'barcode' => 'nullable|string|exists:products,barcode',
+            'produk'  => 'nullable|exists:products,id',
+            'batch_number' => 'required|digits:5',
+            'harga_beli' => 'required|numeric',
+            'tanggal_masuk' => 'required|date',
+            'tanggal_expired' => 'required|date|after_or_equal:tanggal_masuk',
+            'quantity_masuk' => 'required|integer|min:1',
+            'quantity_sekarang' => 'required|integer|min:0',
+            'supplier' => 'nullable|string|max:255',
+            'status' => 'required|in:active,expired,sold_out',
+        ]);
+
+        if (!$request->filled('produk') && !$request->filled('barcode')) {
+            return back()
+                ->withErrors(['produk' => 'Pilih produk atau masukkan barcode'])
+                ->withInput();
+        }
+
+        $product = $request->filled('produk')
+            ? Product::find($request->produk)
+            : Product::where('barcode', $request->barcode)->first();
+
+        if (!$product) {
+            return back()
+                ->withErrors(['produk' => 'Produk tidak ditemukan'])
+                ->withInput();
+        }
+
+        $batch = ProductBatch::create([
+            'product_id' => $product->id,
+            'batch_number' => $request->batch_number,
+            'harga_beli' => $request->harga_beli,
+            'tanggal_masuk' => $request->tanggal_masuk,
+            'tanggal_expired' => $request->tanggal_expired,
+            'quantity_masuk' => $request->quantity_masuk,
+            'quantity_sekarang' => $request->quantity_sekarang,
+            'supplier' => $request->supplier,
+            'status' => $request->status,
+        ]);
+
+        $batch->refreshStatus();
+        $product->refreshAvailability();
 
 
+        self::logCreate($batch, 'Batch Produk');
 
-
-    /**
-     * Store a newly created resource in storage.
-     */
-   public function store(Request $request)
-{
-    $request->validate([
-        'barcode' => 'nullable|string|exists:products,barcode',
-        'produk'  => 'nullable|exists:products,id',
-        'batch_number' => 'required|digits:5',
-        'harga_beli' => 'required|numeric',
-        'tanggal_masuk' => 'required|date',
-        'tanggal_expired' => 'required|date|after_or_equal:tanggal_masuk',
-        'quantity_masuk' => 'required|integer|min:1',
-        'quantity_sekarang' => 'required|integer|min:0',
-        'supplier' => 'nullable|string|max:255',
-        'status' => 'required|in:active,expired,sold_out',
-    ]);
-
-
-    if (!$request->filled('produk') && !$request->filled('barcode')) {
-        return back()
-            ->withErrors(['produk' => 'Pilih produk atau masukkan barcode'])
-            ->withInput();
+        return redirect()
+            ->route('product-batches.index')
+            ->with('success', 'Batch produk berhasil ditambahkan!');
     }
 
-    $product = $request->filled('produk')
-        ? Product::find($request->produk)
-        : Product::where('barcode', $request->barcode)->first();
-
-    if (!$product) {
-        return back()
-            ->withErrors(['produk' => 'Produk tidak ditemukan'])
-            ->withInput();
-    }
-
-    $batch = ProductBatch::create([
-        'product_id' => $product->id,
-        'batch_number' => $request->batch_number,
-        'harga_beli' => $request->harga_beli,
-        'tanggal_masuk' => $request->tanggal_masuk,
-        'tanggal_expired' => $request->tanggal_expired,
-        'quantity_masuk' => $request->quantity_masuk,
-        'quantity_sekarang' => $request->quantity_sekarang,
-        'supplier' => $request->supplier,
-        'status' => $request->status,
-    ]);
-
-    // Refresh product availability after adding new batch
-    $batch->refreshStatus();
-    $product->refreshAvailability();
-
-    return redirect()
-        ->route('product-batches.index')
-        ->with('success', 'Batch produk berhasil ditambahkan!');
-}
-
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(ProductBatch $productBatch)
     {
-        $products = Product::all(); // untuk dropdown product
+        $products = Product::all();
         return view('product-batches.edit', compact('productBatch', 'products'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    
     public function update(Request $request, ProductBatch $productBatch)
     {
         $request->validate([
@@ -128,6 +106,11 @@ public function index()
             'quantity_sekarang' => 'required|integer|min:0',
             'supplier'          => 'nullable|string|max:255',
             'status'            => 'required|in:active,expired,sold_out',
+        ]);
+
+        $oldValues = $productBatch->only([
+            'product_id', 'batch_number', 'harga_beli', 'tanggal_masuk',
+            'tanggal_expired', 'quantity_masuk', 'quantity_sekarang', 'supplier', 'status'
         ]);
 
         $product = Product::where('barcode', $request->barcode)->first();
@@ -144,24 +127,26 @@ public function index()
             'status'            => $request->status,
         ]);
 
-        // Refresh product availability after batch update
         $productBatch->refreshStatus();
         $product->refreshAvailability();
+
+        $newValues = $productBatch->only([
+            'product_id', 'batch_number', 'harga_beli', 'tanggal_masuk',
+            'tanggal_expired', 'quantity_masuk', 'quantity_sekarang', 'supplier', 'status'
+        ]);
+        self::logUpdate($productBatch, 'Batch Produk', $oldValues, $newValues);
 
         return redirect()->route('product-batches.index')
                         ->with('success', 'Batch produk berhasil diperbarui!');
     }
 
-
-    /**
-     * Remove the specified resource.
-     */
     public function destroy(ProductBatch $productBatch)
     {
+        self::logDelete($productBatch, 'Batch Produk');
+
         $productId = $productBatch->product_id;
         $productBatch->delete();
 
-        // Refresh product availability after batch deletion
         if ($productId) {
             if ($p = Product::find($productId)) {
                 $p->refreshAvailability();
@@ -185,7 +170,6 @@ public function index()
             $end = \Carbon\Carbon::createFromFormat('Y-m', $request->end_date)->endOfMonth()->format('Y-m-d');
         }
 
-
         $query = ProductBatch::with('product');
 
         if ($filter == 'tanggal_masuk' && $start && $end) {
@@ -207,5 +191,4 @@ public function index()
 
         return $pdf->stream('laporan_batch_produk.pdf');
     }
-
 }

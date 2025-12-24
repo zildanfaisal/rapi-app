@@ -9,7 +9,9 @@
 @section('content')
 <div class="py-2 w-full">
     <div class="w-full px-4 sm:px-6 lg:px-8">
-        <div class="bg-white shadow sm:rounded-lg w-full">
+
+        {{-- =================== TABEL PENGGUNA =================== --}}
+        <div class="bg-white shadow sm:rounded-lg w-full mb-6">
             <div class="p-4 sm:p-6 lg:p-8">
 
                 {{-- HEADER --}}
@@ -25,15 +27,15 @@
                 </div>
 
                 {{-- ALERT --}}
-                @if(session('status'))
+                @if(session('success'))
                     <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm">
-                        {{ session('status') }}
+                        {{ session('success') }}
                     </div>
                 @endif
 
                 {{-- ================= DESKTOP TABLE ================= --}}
                 <div class="hidden lg:block w-full overflow-x-auto">
-                    <table id="dataTables" class="min-w-full border border-gray-200">
+                    <table id="usersTable" class="min-w-full border border-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-black-500 uppercase border-r">No</th>
@@ -57,7 +59,6 @@
                                 <td class="px-4 py-3 border-r">
                                     <span class="px-2 py-1 text-xs rounded-full
                                         {{ $user->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
-                                        
                                         {{ $user->status === 'active' ? 'Aktif' : 'Tidak Aktif' }}
                                     </span>
                                 </td>
@@ -92,8 +93,6 @@
 
                 {{-- ================= MOBILE CARD ================= --}}
                 <div class="block lg:hidden w-full" id="mobileCardWrapper">
-
-                    {{-- TOP CONTROL --}}
                     <div class="flex items-center justify-between mb-3">
                         <div class="text-sm text-gray-600">
                             Show
@@ -106,11 +105,9 @@
                         </div>
                     </div>
 
-                    {{-- CARDS --}}
                     <div id="mobileCards" class="space-y-3">
                         @foreach ($users as $user)
                         <div class="mobile-card bg-white border border-gray-200 rounded-lg shadow-sm">
-
                             <div class="px-4 py-3 bg-gray-50 border-b">
                                 <div class="text-xs text-gray-500">
                                     No. {{ ($users->currentPage()-1) * $users->perPage() + $loop->iteration }}
@@ -120,7 +117,6 @@
                                 </h4>
                                 <span class="px-2 py-1 text-xs rounded-full
                                     {{ $user->status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
-                                    
                                     {{ $user->status === 'active' ? 'Aktif' : 'Tidak Aktif' }}
                                 </span>
                             </div>
@@ -150,12 +146,10 @@
                                 @endcan
                             </div>
                             @endcanany
-
                         </div>
                         @endforeach
                     </div>
 
-                    {{-- INFO + PAGINATION --}}
                     <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
                         <div id="mobileInfo" class="text-sm text-gray-600"></div>
                         <div id="mobilePagination" class="flex gap-1 flex-wrap justify-center"></div>
@@ -164,6 +158,69 @@
 
             </div>
         </div>
+
+        {{-- =================== TABEL ACTIVITY LOGS (Super Admin Only) =================== --}}
+        @role('super-admin')
+        <div class="bg-white shadow sm:rounded-lg w-full">
+            <div class="p-4 sm:p-6 lg:p-8">
+
+                {{-- HEADER --}}
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">📋 Activity Logs</h3>
+                        <p class="text-sm text-gray-500 mt-1">Riwayat aktivitas semua user di sistem</p>
+                    </div>
+                </div>
+
+                {{-- TABLE LOGS --}}
+                <div class="w-full overflow-x-auto">
+                    <table id="activityLogsTable" class="min-w-full border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-black-500 uppercase border-r" style="width: 5%;">No</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-black-500 uppercase border-r" style="width: 15%;">User</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-black-500 uppercase border-r" style="width: 12%;">Tipe</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-black-500 uppercase border-r" style="width: 43%;">Deskripsi</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-black-500 uppercase" style="width: 15%;">Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            @foreach ($activityLogs as $log)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 text-center border-r text-sm">
+                                    {{ $loop->iteration }}
+                                </td>
+                                <td class="px-4 py-3 border-r">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ $log->user->name ?? 'System' }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ $log->user->email ?? '-' }}
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 border-r">
+                                    <span class="px-2 py-1 text-xs rounded-full {{ $log->type_badge_color }}">
+                                        {{ $log->type_name }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 border-r text-sm text-gray-700">
+                                    {{ $log->description }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">
+                                    <div>{{ $log->created_at->format('d/m/Y') }}</div>
+                                    <div class="text-xs text-gray-500">{{ $log->created_at->format('H:i:s') }}</div>
+                                </td>
+                            </tr>
+
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        @endrole
+
     </div>
 </div>
 @endsection
@@ -172,18 +229,20 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    let dataTableInstance = null;
-
+    // ============= USERS TABLE =============
+    let usersTableInstance = null;
     const cards = Array.from(document.querySelectorAll('.mobile-card'));
     const pagination = document.getElementById('mobilePagination');
     const info = document.getElementById('mobileInfo');
     const perPageSelect = document.getElementById('mobilePerPage');
     const mobileWrapper = document.getElementById('mobileCardWrapper');
 
-    let perPage = parseInt(perPageSelect.value);
+    let perPage = parseInt(perPageSelect?.value || 10);
     let currentPage = 1;
 
     function renderMobile() {
+        if (!cards.length) return;
+
         const total = cards.length;
         const totalPages = Math.ceil(total / perPage);
         const start = (currentPage - 1) * perPage;
@@ -193,12 +252,16 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.display = index >= start && index < end ? 'block' : 'none';
         });
 
-        info.textContent = `Showing ${start + 1} to ${Math.min(end, total)} of ${total} entries`;
+        if (info) {
+            info.textContent = `Showing ${start + 1} to ${Math.min(end, total)} of ${total} entries`;
+        }
 
         renderPagination(totalPages);
     }
 
     function renderPagination(totalPages) {
+        if (!pagination) return;
+
         pagination.innerHTML = '';
 
         const maxVisible = 5;
@@ -239,27 +302,43 @@ document.addEventListener('DOMContentLoaded', function () {
         }));
     }
 
-    perPageSelect.addEventListener('change', () => {
-        perPage = parseInt(perPageSelect.value);
-        currentPage = 1;
-        renderMobile();
-    });
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', () => {
+            perPage = parseInt(perPageSelect.value);
+            currentPage = 1;
+            renderMobile();
+        });
+    }
 
     function handleResponsive() {
         if (window.innerWidth >= 1024) {
-            mobileWrapper.style.display = 'none';
-            if (!dataTableInstance) {
-                dataTableInstance = new DataTable('#dataTables', {
+            if (mobileWrapper) mobileWrapper.style.display = 'none';
+            if (!usersTableInstance && document.getElementById('usersTable')) {
+                usersTableInstance = new DataTable('#usersTable', {
                     responsive: true,
                     autoWidth: false,
-                    columnDefs: [{ orderable: false, targets: -1 }]
+                    pageLength: 10,
+                    columnDefs: [{ orderable: false, targets: -1 }],
+                    language: {
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                        infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                        infoFiltered: "(difilter dari _MAX_ total data)",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    }
                 });
             }
         } else {
-            mobileWrapper.style.display = 'block';
-            if (dataTableInstance) {
-                dataTableInstance.destroy();
-                dataTableInstance = null;
+            if (mobileWrapper) mobileWrapper.style.display = 'block';
+            if (usersTableInstance) {
+                usersTableInstance.destroy();
+                usersTableInstance = null;
             }
             renderMobile();
         }
@@ -267,6 +346,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     handleResponsive();
     window.addEventListener('resize', handleResponsive);
+
+    // ============= ACTIVITY LOGS TABLE =============
+    if (document.getElementById('activityLogsTable')) {
+        new DataTable('#activityLogsTable', {
+            responsive: true,
+            autoWidth: false,
+            pageLength: 25,
+            order: [[0, 'desc']], // Sort by No (newest first)
+            columnDefs: [
+                { orderable: true, targets: [0, 1, 2, 4] }, // No, User, Tipe, Waktu bisa di-sort
+                { orderable: false, targets: [3] } // Deskripsi tidak perlu sort
+            ],
+            language: {
+                search: "Cari:",
+                lengthMenu: "Tampilkan _MENU_ logs",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ logs",
+                infoEmpty: "Menampilkan 0 sampai 0 dari 0 logs",
+                infoFiltered: "(difilter dari _MAX_ total logs)",
+                paginate: {
+                    first: "Pertama",
+                    last: "Terakhir",
+                    next: "Selanjutnya",
+                    previous: "Sebelumnya"
+                },
+                emptyTable: "Belum ada activity log",
+                zeroRecords: "Tidak ada data yang cocok"
+            }
+        });
+    }
 });
 </script>
 @endpush

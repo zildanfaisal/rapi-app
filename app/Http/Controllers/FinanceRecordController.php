@@ -6,13 +6,13 @@ use App\Models\FinanceRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\ActivityLogger;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class FinanceRecordController extends Controller
 {
-    /**
-     * Display a listing of the resource (Input Keuangan).
-     */
+    use ActivityLogger;
+
     public function index(Request $request)
     {
         $periode = $request->get('periode', date('Y-m'));
@@ -22,15 +22,12 @@ class FinanceRecordController extends Controller
             ->orderBy('tanggal', 'desc')
             ->get();
 
-        // Get budget target for this periode
         $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
 
-        // Calculate totals
         $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
         $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
         $saldo = $totalPemasukan - $totalPengeluaran;
 
-        // Get available periods from Budget Targets (not from finance records)
         $availablePeriods = \App\Models\BudgetTarget::selectRaw("DATE_FORMAT(tanggal, '%Y-%m') as periode")
             ->orderBy('tanggal', 'desc')
             ->pluck('periode')
@@ -38,13 +35,6 @@ class FinanceRecordController extends Controller
 
         return view('finance.finance-records.index', compact('financeRecords', 'periode', 'budgetTarget', 'totalPemasukan', 'totalPengeluaran', 'saldo', 'availablePeriods'));
     }
-
-    /**
-     * Display history (Riwayat Keuangan - Read Only).
-     */
-    /**
- * Display history (Riwayat Keuangan - Read Only).
- */
 
     public function previewPdf(Request $request)
     {
@@ -54,20 +44,17 @@ class FinanceRecordController extends Controller
 
         $query = FinanceRecord::with('user');
 
-        // Priority: Date range over periode
         if ($startDate && $endDate) {
             $query->whereBetween('tanggal', [$startDate, $endDate]);
         } elseif ($periode) {
             $query->where('periode', $periode);
         } else {
-            // Default to current month
             $periode = date('Y-m');
             $query->where('periode', $periode);
         }
 
         $financeRecords = $query->orderBy('tanggal', 'desc')->get();
 
-        // Get budget target
         $budgetTarget = null;
         if ($periode) {
             $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
@@ -75,12 +62,10 @@ class FinanceRecordController extends Controller
             $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [date('Y-m', strtotime($startDate))])->first();
         }
 
-        // Calculate totals
         $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
         $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
         $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
 
-        // Return preview view instead of streaming PDF directly
         return view('finance.finance-records.pdf-preview', compact(
             'financeRecords',
             'periode',
@@ -93,9 +78,6 @@ class FinanceRecordController extends Controller
         ));
     }
 
-    /**
-     * Download PDF Laporan Keuangan
-     */
     public function downloadPdf(Request $request)
     {
         $periode = $request->get('periode');
@@ -104,20 +86,17 @@ class FinanceRecordController extends Controller
 
         $query = FinanceRecord::with('user');
 
-        // Priority: Date range over periode
         if ($startDate && $endDate) {
             $query->whereBetween('tanggal', [$startDate, $endDate]);
         } elseif ($periode) {
             $query->where('periode', $periode);
         } else {
-            // Default to current month
             $periode = date('Y-m');
             $query->where('periode', $periode);
         }
 
         $financeRecords = $query->orderBy('tanggal', 'desc')->get();
 
-        // Get budget target
         $budgetTarget = null;
         if ($periode) {
             $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
@@ -125,7 +104,6 @@ class FinanceRecordController extends Controller
             $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [date('Y-m', strtotime($startDate))])->first();
         }
 
-        // Calculate totals
         $totalPemasukan = $financeRecords->where('tipe', 'income')->sum('jumlah');
         $totalPengeluaran = $financeRecords->where('tipe', 'expense')->sum('jumlah');
         $saldoSisa = $budgetTarget ? ($budgetTarget->budget_bulanan - $totalPengeluaran) : 0;
@@ -141,10 +119,8 @@ class FinanceRecordController extends Controller
             'saldoSisa'
         ));
 
-        // Set paper size and orientation
         $pdf->setPaper('a4', 'portrait');
 
-        // Generate filename
         $filename = 'Laporan-Keuangan';
         if ($periode) {
             $filename .= '-' . \Carbon\Carbon::parse($periode . '-01')->format('F-Y');
@@ -152,13 +128,11 @@ class FinanceRecordController extends Controller
             $filename .= '-' . \Carbon\Carbon::parse($startDate)->format('dMY') . '-' . \Carbon\Carbon::parse($endDate)->format('dMY');
         }
 
-        // Download PDF
         return $pdf->download($filename . '.pdf');
     }
 
     public function history(Request $request)
     {
-        // Default to current month if it has a budget target
         $currentMonth = date('Y-m');
         $hasCurrentMonthTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$currentMonth])->exists();
 
@@ -166,35 +140,27 @@ class FinanceRecordController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
 
-        // Only auto-select current month if this is the first visit (no query params at all)
         if (!$request->has('periode') && !$request->has('start_date') && !$request->has('end_date') && $hasCurrentMonthTarget) {
             $periode = $currentMonth;
         }
 
         $query = FinanceRecord::with('user');
 
-        // Priority: Date range over periode
         if ($startDate && $endDate) {
-            // If date range provided, use date range (ignore periode)
             $query->whereBetween('tanggal', [$startDate, $endDate]);
         } elseif ($periode) {
-            // If only periode selected, filter by periode
             $query->where('periode', $periode);
         }
-        // If periode is empty string (user selected "Semua Periode"), show all data
 
         $financeRecords = $query->orderBy('tanggal', 'desc')->get();
 
-        // Get budget target for selected periode
         $budgetTarget = null;
         if ($periode) {
             $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$periode])->first();
         } elseif ($startDate) {
-            // Get budget target based on start date month
             $budgetTarget = \App\Models\BudgetTarget::whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [date('Y-m', strtotime($startDate))])->first();
         }
 
-        // Get available periods
         $availablePeriods = \App\Models\BudgetTarget::selectRaw("DATE_FORMAT(tanggal, '%Y-%m') as periode")
             ->orderBy('tanggal', 'desc')
             ->pluck('periode')
@@ -203,18 +169,11 @@ class FinanceRecordController extends Controller
         return view('finance.finance-records.history', compact('financeRecords', 'periode', 'startDate', 'endDate', 'budgetTarget', 'availablePeriods'));
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('finance.finance-records.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -236,8 +195,6 @@ class FinanceRecordController extends Controller
         ]);
 
         $validated['created_by'] = Auth::id();
-
-        // Auto set periode from tanggal (YYYY-MM)
         $validated['periode'] = date('Y-m', strtotime($validated['tanggal']));
 
         $fotoPath = $request->file('foto_nota')->store('nota', 'public');
@@ -245,29 +202,23 @@ class FinanceRecordController extends Controller
         $validated['foto_nota'] = $fotoPath;
 
         FinanceRecord::create($validated);
+        $financeRecord = FinanceRecord::create($validated);
+
+        self::logCreate($financeRecord, 'Data Keuangan');
 
         return redirect()->route('finance-records.index', ['periode' => $validated['periode']])->with('success', 'Data keuangan berhasil ditambahkan');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(FinanceRecord $financeRecord)
     {
         return view('finance.finance-records.show', compact('financeRecord'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(FinanceRecord $financeRecord)
     {
         return view('finance.finance-records.edit', compact('financeRecord'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, FinanceRecord $financeRecord)
     {
         $validated = $request->validate([
@@ -288,9 +239,9 @@ class FinanceRecordController extends Controller
             'jumlah.min' => 'Jumlah tidak boleh kurang dari 0',
         ]);
 
-        $validated['created_by'] = Auth::id();
+        $oldValues = $financeRecord->only(['tanggal', 'tipe', 'kategori', 'jumlah', 'deskripsi']);
 
-        // Auto set periode from tanggal (YYYY-MM)
+        $validated['created_by'] = Auth::id();
         $validated['periode'] = date('Y-m', strtotime($validated['tanggal']));
 
       // Update SEMUA FIELD KECUALI foto_nota
@@ -313,17 +264,19 @@ class FinanceRecordController extends Controller
             ]);
         }
 
+        $newValues = $financeRecord->only(['tanggal', 'tipe', 'kategori', 'jumlah', 'deskripsi']);
+        self::logUpdate($financeRecord, 'Data Keuangan', $oldValues, $newValues);
+
         return redirect()->route('finance-records.index', ['periode' => $validated['periode']])->with('success', 'Data keuangan berhasil diperbarui');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(FinanceRecord $financeRecord)
     {
          if ($financeRecord->foto_nota && Storage::disk('public')->exists($financeRecord->foto_nota)) {
             Storage::disk('public')->delete($financeRecord->foto_nota);
         }
+        self::logDelete($financeRecord, 'Data Keuangan');
+
         $financeRecord->delete();
 
         return redirect()->route('finance-records.index')->with('success', 'Data keuangan berhasil dihapus');
