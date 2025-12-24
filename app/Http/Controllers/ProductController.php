@@ -15,7 +15,7 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-   public function index()
+    public function index()
     {
         $products = Product::with(['batches', 'latestBatch'])->get();
 
@@ -80,51 +80,51 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
- 
-
-public function show($id)
-{
-    $product = Product::with(['batches', 'latestBatch'])->findOrFail($id);
-
-    // === STOK MASUK (DARI PRODUCT BATCH) ===
-    $stokMasuk = ProductBatch::where('product_id', $id)
-        ->get()
-        ->map(function ($batch) {
-            return [
-                'type' => 'masuk',
-                'batch_number' => $batch->batch_number,
-                'quantity' => $batch->quantity_masuk,
-                'tanggal' => $batch->tanggal_masuk,
-                'keterangan' => 'Pemasukan Batch',
-            ];
-        });
-
-    // === STOK KELUAR (DARI PENJUALAN) ===
-    $stokKeluar = InvoiceItem::where('product_id', $id)
-        ->with(['invoice', 'batch'])
-        ->get()
-        ->map(function ($item) {
-            return [
-                'type' => 'keluar',
-                'batch_number' => optional($item->batch)->batch_number ?? '-',
-                'quantity' => $item->quantity,
-                'tanggal' => optional($item->invoice)->tanggal_invoice,
-                'keterangan' => 'Penjualan',
-            ];
-        });
 
 
-    // === GABUNG & SORT BY TANGGAL ===
-    $riwayatStok = $stokMasuk
-        ->merge($stokKeluar)
-        ->sortBy('tanggal')
-        ->values();
+    public function show($id)
+    {
+        $product = Product::with(['batches', 'latestBatch'])->findOrFail($id);
 
-    return view('products.show', compact(
-        'product',
-        'riwayatStok'
-    ));
-}
+        // === STOK MASUK (DARI PRODUCT BATCH) ===
+        $stokMasuk = ProductBatch::where('product_id', $id)
+            ->get()
+            ->map(function ($batch) {
+                return [
+                    'type' => 'masuk',
+                    'batch_number' => $batch->batch_number,
+                    'quantity' => $batch->quantity_masuk,
+                    'tanggal' => $batch->tanggal_masuk,
+                    'keterangan' => 'Pemasukan Batch',
+                ];
+            });
+
+        // === STOK KELUAR (DARI PENJUALAN) ===
+        $stokKeluar = InvoiceItem::where('product_id', $id)
+            ->with(['invoice', 'batch'])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'type' => 'keluar',
+                    'batch_number' => optional($item->batch)->batch_number ?? '-',
+                    'quantity' => $item->quantity,
+                    'tanggal' => optional($item->invoice)->tanggal_invoice,
+                    'keterangan' => 'Penjualan',
+                ];
+            });
+
+
+        // === GABUNG & SORT BY TANGGAL ===
+        $riwayatStok = $stokMasuk
+            ->merge($stokKeluar)
+            ->sortBy('tanggal')
+            ->values();
+
+        return view('products.show', compact(
+            'product',
+            'riwayatStok'
+        ));
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -180,69 +180,77 @@ public function show($id)
         return redirect()->route('products.index')
             ->with('success', 'Product deleted successfully.');
     }
-        
+
     public function downloadBarcode(Request $request, $id)
-{
-    $product = Product::findOrFail($id);
+    {
+        $product = Product::findOrFail($id);
 
-    // Ambil parameter ukuran dari request dalam CM (default values)
-    $widthCm = $request->input('width', 5); // cm
-    $heightCm = $request->input('height', 3); // cm
-    
-    // Konversi CM ke Pixel (1 cm = 37.8 pixels at 96 DPI)
-    $dpi = 96;
-    $cmToPixel = $dpi / 2.54; // 1 inch = 2.54 cm
-    
-    $targetWidth = round($widthCm * $cmToPixel);
-    $targetHeight = round($heightCm * $cmToPixel);
-    
-    // Hitung width multiplier untuk barcode berdasarkan target width
-    $width = max(1, $widthCm / 2.5); // Sesuaikan multiplier
-    $height = $targetHeight - 40; // Kurangi space untuk text
+        $widthMm  = (int) $request->input('width', 64);
+        $heightMm = (int) $request->input('height', 32);
 
-    $barcodePng = DNS1D::getBarcodePNG($product->barcode, 'C128', $width, $height);
-    $barcodeBinary = base64_decode($barcodePng);
-    $barcodeImage = imagecreatefromstring($barcodeBinary);
+        $dpi = 96;
+        $mmToPixel = $dpi / 25.4;
 
-    $barcodeWidth = imagesx($barcodeImage);
-    $barcodeHeight = imagesy($barcodeImage);
+        $targetWidth  = round($widthMm * $mmToPixel);
+        $targetHeight = round($heightMm * $mmToPixel);
 
-    $padding = 10;
-    $newWidth = $barcodeWidth + ($padding * 2);
-    $newHeight = $barcodeHeight + 40;
+        $padding = 10;
+        $textSpace = 30;
 
-    $final = imagecreatetruecolor($newWidth, $newHeight);
+        $barcodeHeight = $targetHeight - $textSpace;
+        $scaleX = max(1, ($targetWidth - ($padding * 2)) / 100);
 
-    $white = imagecolorallocate($final, 255, 255, 255);
-    $black = imagecolorallocate($final, 0, 0, 0);
+        $barcodePng = DNS1D::getBarcodePNG(
+            $product->barcode,
+            'C128',
+            $scaleX,
+            $barcodeHeight
+        );
 
-    imagefilledrectangle($final, 0, 0, $newWidth, $newHeight, $white);
+        $barcodeImage = imagecreatefromstring(base64_decode($barcodePng));
 
-    imagecopy(
-        $final,
-        $barcodeImage,
-        $padding, 
-        0,        
-        0, 0,
-        $barcodeWidth,
-        $barcodeHeight
-    );
+        $barcodeWidth  = imagesx($barcodeImage);
+        $barcodeHeight = imagesy($barcodeImage);
 
-    $text = $product->barcode;
-    $textX = ($newWidth / 2) - (strlen($text) * 4);
-    $textY = $barcodeHeight + 10;
+        $final = imagecreatetruecolor($targetWidth, $targetHeight);
 
-    imagestring($final, 5, $textX, $textY, $text, $black);
+        $white = imagecolorallocate($final, 255, 255, 255);
+        $black = imagecolorallocate($final, 0, 0, 0);
 
-    ob_start();
-    imagepng($final);
-    $result = ob_get_clean();
+        imagefilledrectangle($final, 0, 0, $targetWidth, $targetHeight, $white);
 
-    imagedestroy($barcodeImage);
-    imagedestroy($final);
+        imagecopy(
+            $final,
+            $barcodeImage,
+            ($targetWidth - $barcodeWidth) / 2,
+            0,
+            0,
+            0,
+            $barcodeWidth,
+            $barcodeHeight
+        );
 
-    return response($result)
-        ->header('Content-Type', 'image/png')
-        ->header('Content-Disposition', 'attachment; filename="barcode-'.$product->nama_produk.'.png"');
-}
+        imagestring(
+            $final,
+            5,
+            ($targetWidth / 2) - (strlen($product->barcode) * 4),
+            $barcodeHeight + 5,
+            $product->barcode,
+            $black
+        );
+
+        ob_start();
+        imagepng($final);
+        $result = ob_get_clean();
+
+        imagedestroy($barcodeImage);
+        imagedestroy($final);
+
+        return response($result)
+            ->header('Content-Type', 'image/png')
+            ->header(
+                'Content-Disposition',
+                'attachment; filename="barcode-' . $product->nama_produk . '.png"'
+            );
+    }
 }

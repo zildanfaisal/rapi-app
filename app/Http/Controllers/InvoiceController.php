@@ -52,9 +52,9 @@ class InvoiceController extends Controller
         $customers = \App\Models\Customer::all();
         $products = \App\Models\Product::all();
         $batches = \App\Models\ProductBatch::query()
-            ->where(function($q){
+            ->where(function ($q) {
                 $q->whereNull('tanggal_expired')
-                  ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
+                    ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
             })
             ->where('quantity_sekarang', '>', 0)
             ->orderByDesc('created_at')
@@ -72,15 +72,15 @@ class InvoiceController extends Controller
         $selectedBatchIds = $invoice->items->pluck('batch_id')->filter()->unique()->values()->all();
 
         $batchQuery = \App\Models\ProductBatch::query()
-            ->where(function($q){
+            ->where(function ($q) {
                 $q->whereNull('tanggal_expired')
-                  ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
+                    ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
             });
 
         if (!empty($selectedBatchIds)) {
-            $batchQuery->where(function($q) use ($selectedBatchIds) {
+            $batchQuery->where(function ($q) use ($selectedBatchIds) {
                 $q->where('quantity_sekarang', '>', 0)
-                  ->orWhereIn('id', $selectedBatchIds);
+                    ->orWhereIn('id', $selectedBatchIds);
             });
         } else {
             $batchQuery->where('quantity_sekarang', '>', 0);
@@ -93,7 +93,10 @@ class InvoiceController extends Controller
 
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
     {
+
         $data = $request->validated();
+
+
 
         return DB::transaction(function () use ($data, $invoice) {
             $oldCustomerId = $invoice->customer_id;
@@ -127,7 +130,9 @@ class InvoiceController extends Controller
                 $newQty = $newByBatch[$batchId] ?? 0;
                 $delta = $newQty - $oldQty; // >0 perlu kurangi stok, <0 kembalikan stok
                 $batch = ProductBatch::find($batchId);
-                if (!$batch) { continue; }
+                if (!$batch) {
+                    continue;
+                }
 
                 if ($delta > 0) {
                     if ((int) $batch->quantity_sekarang < $delta) {
@@ -141,9 +146,14 @@ class InvoiceController extends Controller
                 // Refresh status & product availability
                 $batch->refresh();
                 $batch->refreshStatus();
-                if ($batch->product) { $batch->product->refreshAvailability(); }
-                else if ($p = Product::find($batch->product_id)) { $p->refreshAvailability(); }
+                if ($batch->product) {
+                    $batch->product->refreshAvailability();
+                } else if ($p = Product::find($batch->product_id)) {
+                    $p->refreshAvailability();
+                }
             }
+
+            $oldStatus = $invoice->status_pembayaran;
 
             // 2) Update header invoice (kecuali grand_total dihitung ulang di bawah)
             $invoice->update([
@@ -204,61 +214,32 @@ class InvoiceController extends Controller
             } catch (\Throwable $e) {
                 // Abaikan error sinkronisasi SJ agar tidak menggagalkan update invoice
             }
+            $newStatus = $invoice->status_pembayaran;
 
-            // 6) Update poin customer secara tepat:
-            //    - Jika tetap paid: sesuaikan delta poin berdasarkan perubahan grand_total
-            //    - Jika transisi paid <-> unpaid: sesuaikan secara penuh
-            $isNowPaid = $invoice->status_pembayaran === 'paid';
-            $oldEarnedPoints = $wasPaid ? intdiv((int) round($oldGrandTotal), 100000) : 0;
-            $newEarnedPoints = $isNowPaid ? intdiv((int) round($grandTotal), 100000) : 0;
+            $wasPaid   = $oldStatus === 'paid';
+            $isNowPaid = $newStatus === 'paid';
 
-            try {
-                // Jika customer berubah, koreksi di masing-masing customer
-                if ($oldCustomerId !== $invoice->customer_id) {
-                    if ($oldEarnedPoints > 0 && $oldCustomerId) {
-                        $oldCustomer = \App\Models\Customer::find($oldCustomerId);
-                        if ($oldCustomer) {
-                            $curr = (int) ($oldCustomer->point ?? 0);
-                            $oldCustomer->update(['point' => max(0, $curr - $oldEarnedPoints)]);
-                        }
-                    }
-                    if ($newEarnedPoints > 0 && $invoice->customer_id) {
-                        $newCustomer = \App\Models\Customer::find($invoice->customer_id);
-                        if ($newCustomer) {
-                            if ($newCustomer->point === null) { $newCustomer->point = 0; $newCustomer->save(); }
-                            $newCustomer->increment('point', $newEarnedPoints);
-                        }
-                    }
-                } else {
+            if ($wasPaid !== $isNowPaid) {
+                try {
                     $customer = \App\Models\Customer::find($invoice->customer_id);
                     if ($customer) {
-                        if ($customer->point === null) { $customer->point = 0; $customer->save(); }
+                        if ($isNowPaid) {
+                            // unpaid → paid
+                            $customer->increment('point', 1);
+                        } else {
+                            // paid → unpaid
+                            $customer->decrement('point', 1);
 
-                        if ($isNowPaid && $wasPaid) {
-                            // Status tetap paid: terapkan delta poin
-                            $delta = $newEarnedPoints - $oldEarnedPoints;
-                            if ($delta !== 0) {
-                                if ($delta > 0) {
-                                    $customer->increment('point', $delta);
-                                } else {
-                                    $curr = (int) ($customer->point ?? 0);
-                                    $customer->update(['point' => max(0, $curr + $delta)]);
-                                }
-                            }
-                        } elseif ($isNowPaid && !$wasPaid) {
-                            // Baru menjadi paid: tambahkan poin penuh
-                            if ($newEarnedPoints > 0) { $customer->increment('point', $newEarnedPoints); }
-                        } elseif (!$isNowPaid && $wasPaid) {
-                            // Tidak lagi paid: kurangi poin penuh yang sebelumnya diberikan
-                            if ($oldEarnedPoints > 0) {
-                                $curr = (int) ($customer->point ?? 0);
-                                $customer->update(['point' => max(0, $curr - $oldEarnedPoints)]);
+                            // safety
+                            $customer->refresh();
+                            if ($customer->point < 0) {
+                                $customer->update(['point' => 0]);
                             }
                         }
                     }
+                } catch (\Throwable $e) {
+                    // ignore
                 }
-            } catch (\Throwable $e) {
-                // Abaikan error poin agar tidak mengganggu update invoice
             }
 
             return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully');
@@ -314,7 +295,9 @@ class InvoiceController extends Controller
                     if ($batch->product) {
                         $batch->product->refreshAvailability();
                     } else {
-                        if ($p = Product::find($batch->product_id)) { $p->refreshAvailability(); }
+                        if ($p = Product::find($batch->product_id)) {
+                            $p->refreshAvailability();
+                        }
                     }
                 }
             }
@@ -330,9 +313,8 @@ class InvoiceController extends Controller
                             $customer->point = 0;
                             $customer->save();
                         }
-                        
-                            $customer->increment('point', 10);
-                        
+
+                        $customer->increment('point', 1);
                     }
                 } catch (\Throwable $e) {
                     // silently ignore point awarding errors
