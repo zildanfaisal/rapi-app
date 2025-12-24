@@ -3,16 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use App\Traits\ActivityLogger;
 
 class UserController extends Controller
 {
+    use ActivityLogger;
+
     public function index()
     {
         $users = User::with('roles')->paginate(15);
-        return view('admin.users.index', compact('users'));
+
+        // Load activity logs untuk super admin
+        $activityLogs = ActivityLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.users.index', compact('users', 'activityLogs'));
     }
 
     public function create()
@@ -43,6 +53,9 @@ class UserController extends Controller
             $user->syncRoles($validated['roles']);
         }
 
+        // Log aktivitas create user
+        self::logCreate($user, 'Pengguna');
+
         return redirect()->route('users.index')->with('success', 'User berhasil dibuat!');
     }
 
@@ -64,6 +77,14 @@ class UserController extends Controller
             'roles.*' => 'string|exists:roles,name',
         ]);
 
+        // Simpan nilai lama untuk logging
+        $oldValues = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'status' => $user->status,
+            'roles' => $user->roles->pluck('name')->toArray(),
+        ];
+
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         if (!empty($validated['password'])) {
@@ -78,12 +99,27 @@ class UserController extends Controller
             $user->syncRoles($validated['roles'] ?? []);
         }
 
+        // Nilai baru untuk logging
+        $newValues = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'status' => $user->status,
+            'roles' => $user->roles->pluck('name')->toArray(),
+        ];
+
+        // Log aktivitas update user
+        self::logUpdate($user, 'Pengguna', $oldValues, $newValues);
+
         return redirect()->route('users.index')->with('success', 'User berhasil diupdate!');
     }
 
     public function destroy(User $user)
     {
+        // Log aktivitas sebelum delete
+        self::logDelete($user, 'Pengguna');
+
         $user->delete();
+
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
     }
 }

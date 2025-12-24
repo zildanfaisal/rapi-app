@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Traits\ActivityLogger;
 
 class CustomerController extends Controller
 {
+    use ActivityLogger;
+
     public function index()
     {
         // Gunakan get() atau orderBy untuk performa lebih baik
@@ -29,7 +32,7 @@ class CustomerController extends Controller
             'point' => 'nullable|integer',
         ]);
 
-        Customer::create([
+        $customer = Customer::create([
             'nama_customer' => $request->nama_customer,
             'no_hp' => $request->no_hp,
             'email' => $request->email,
@@ -37,33 +40,32 @@ class CustomerController extends Controller
             'point' => $request->point,
         ]);
 
+        self::logCreate($customer, 'Pelanggan');
+
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
-public function show($id)
-{
-    $customer = Customer::with([
-        'invoices.invoiceItems.product',
-        'invoices.invoiceItems.batch' // ⬅️ JIKA BATCH RELASI
-    ])->findOrFail($id);
 
-    foreach ($customer->invoices as $inv) {
-        $inv->items_json = $inv->invoiceItems->map(function ($item) {
-            return [
-                'batch_number' => $item->batch->batch_number ?? '-', // ✅ FIX
-                'produk'       => $item->product->nama_produk,
-                'qty'          => $item->quantity,
-                'harga'        => $item->harga,
-                'subtotal'     => $item->quantity * $item->harga,
-            ];
-        });
+    public function show($id)
+    {
+        $customer = Customer::with([
+            'invoices.invoiceItems.product',
+            'invoices.invoiceItems.batch'
+        ])->findOrFail($id);
+
+        foreach ($customer->invoices as $inv) {
+            $inv->items_json = $inv->invoiceItems->map(function ($item) {
+                return [
+                    'batch_number' => $item->batch->batch_number ?? '-',
+                    'produk'       => $item->product->nama_produk,
+                    'qty'          => $item->quantity,
+                    'harga'        => $item->harga,
+                    'subtotal'     => $item->quantity * $item->harga,
+                ];
+            });
+        }
+
+        return view('customers.show', compact('customer'));
     }
-
-    return view('customers.show', compact('customer'));
-}
-
-
-
-
 
     public function edit(Customer $customer)
     {
@@ -80,6 +82,8 @@ public function show($id)
             'point' => 'nullable|integer',
         ]);
 
+        $oldValues = $customer->only(['nama_customer', 'no_hp', 'email', 'alamat', 'point']);
+
         $customer->update([
             'nama_customer' => $request->nama_customer,
             'no_hp' => $request->no_hp,
@@ -88,11 +92,16 @@ public function show($id)
             'point' => $request->point,
         ]);
 
+        $newValues = $customer->only(['nama_customer', 'no_hp', 'email', 'alamat', 'point']);
+        self::logUpdate($customer, 'Pelanggan', $oldValues, $newValues);
+
         return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
     }
 
     public function destroy(Customer $customer)
     {
+        self::logDelete($customer, 'Pelanggan');
+
         $customer->delete();
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');

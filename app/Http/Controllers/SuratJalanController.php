@@ -8,12 +8,11 @@ use App\Models\SuratJalan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-
+use App\Traits\ActivityLogger;
 class SuratJalanController extends Controller
 {
-    /**
-     * Ensure Surat Jalan grand_total is persisted based on invoice + shipping
-     */
+    use ActivityLogger;
+
     private function syncSuratJalanTotals(array $ids = null): void
     {
         try {
@@ -26,22 +25,20 @@ class SuratJalanController extends Controller
                     $invoiceTotal = (float) ($sj->invoice->grand_total ?? 0);
                     $shipping = (float) ($sj->ongkos_kirim ?? 0);
                     $computed = $invoiceTotal + $shipping;
-                    // Only update when different to avoid unnecessary writes
                     if ((float) ($sj->getRawOriginal('grand_total') ?? 0) !== $computed) {
                         $sj->update(['grand_total' => $computed, 'status_pembayaran' => $sj->invoice->status_pembayaran ?? $sj->status_pembayaran]);
                     }
                 }
             });
         } catch (\Throwable $e) {
-            // ignore to avoid breaking pages
         }
     }
+
     public function index(Request $request)
     {
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
 
-        // Persist totals before listing
         $this->syncSuratJalanTotals();
 
         $base = SuratJalan::with(['customer', 'invoice'])
@@ -58,9 +55,9 @@ class SuratJalanController extends Controller
 
         return view('penjualan.surat_jalan.index', compact('suratJalans', 'totalCount', 'paidCount', 'dateFrom', 'dateTo'));
     }
+
     public function create()
     {
-        // Only show invoices that do not yet have a Surat Jalan
         $usedInvoiceIds = SuratJalan::query()->select('invoice_id');
         $invoices = Invoice::with(['customer'])
             ->whereNotIn('id', $usedInvoiceIds)
@@ -90,13 +87,14 @@ class SuratJalanController extends Controller
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
             ]);
 
+            self::logCreate($sj, 'Surat Jalan');
+
             return redirect()->route('surat-jalan.index', $sj)->with('success', 'Surat Jalan created successfully');
         });
     }
 
     public function show(SuratJalan $suratJalan)
     {
-        // Persist this record's total before rendering
         $this->syncSuratJalanTotals([$suratJalan->id]);
         $suratJalan->load(['invoice', 'customer', 'transactions']);
         return view('penjualan.surat_jalan.show', compact('suratJalan'));
@@ -113,7 +111,6 @@ class SuratJalanController extends Controller
 
     public function edit(SuratJalan $suratJalan)
     {
-        // Persist this record's total before edit view
         $this->syncSuratJalanTotals([$suratJalan->id]);
         $suratJalan->load(['invoice', 'customer']);
         $invoices = Invoice::with(['customer'])->orderByDesc('created_at')->get();
@@ -125,6 +122,11 @@ class SuratJalanController extends Controller
         $data = $request->validated();
 
         return DB::transaction(function () use ($data, $suratJalan) {
+            $oldValues = $suratJalan->only([
+                'customer_id', 'invoice_id', 'tanggal', 'ongkos_kirim',
+                'grand_total', 'status_pembayaran', 'alasan_cancel'
+            ]);
+
             $invoice = Invoice::findOrFail($data['invoice_id']);
             $grandTotal = $data['grand_total'] ?? ($invoice->grand_total + ($data['ongkos_kirim'] ?? 0));
 
@@ -139,12 +141,20 @@ class SuratJalanController extends Controller
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
             ]);
 
+            $newValues = $suratJalan->only([
+                'customer_id', 'invoice_id', 'tanggal', 'ongkos_kirim',
+                'grand_total', 'status_pembayaran', 'alasan_cancel'
+            ]);
+            self::logUpdate($suratJalan, 'Surat Jalan', $oldValues, $newValues);
+
             return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan updated successfully');
         });
     }
 
     public function destroy(SuratJalan $suratJalan)
     {
+        self::logDelete($suratJalan, 'Surat Jalan');
+
         $suratJalan->delete();
         return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan deleted successfully');
     }

@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\MonthlyTarget;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
+use App\Traits\ActivityLogger;
 
 class MonthlyTargetController extends Controller
 {
+    use ActivityLogger;
+
     public function index(Request $request)
     {
         $targets = MonthlyTarget::orderByDesc('created_at')->paginate(20);
 
-        // Compute paid-only actuals per target for display consistency
         $targets->getCollection()->transform(function($t){
             $paidSum = Invoice::query()
                 ->whereDate('tanggal_invoice', '>=', $t->start_date)
@@ -20,11 +22,9 @@ class MonthlyTargetController extends Controller
                 ->where('status_pembayaran', 'paid')
                 ->sum('grand_total');
 
-            // Remaining amount to hit the target (paid invoices only)
             $remaining = max(0, ($t->target_amount ?? 0) - ($paidSum ?? 0));
             $t->computed_remaining = $remaining;
 
-            // Auto-update status to 'achieved' when target reached
             if ($remaining <= 0 && $t->status !== 'achieved') {
                 try {
                     $t->update([
@@ -32,14 +32,11 @@ class MonthlyTargetController extends Controller
                         'achieved_total' => 0,
                     ]);
                 } catch (\Throwable $e) {
-                    // ignore persistence errors to avoid breaking listing
                 }
             } else {
-                // Keep achieved_total reflecting remaining for consistency
                 try {
                     $t->update(['achieved_total' => $remaining]);
                 } catch (\Throwable $e) {
-                    // ignore
                 }
             }
 
@@ -82,12 +79,14 @@ class MonthlyTargetController extends Controller
         $data['status'] = $status;
 
         $target = MonthlyTarget::create($data);
+
+        self::logCreate($target, 'Target Bulanan');
+
         return redirect()->route('monthly-targets.index')->with('success', 'Target bulanan dibuat');
     }
 
     public function show(MonthlyTarget $monthlyTarget)
     {
-        // Recompute actuals for display accuracy and auto-sync status
         $actuals = Invoice::query()
             ->whereDate('tanggal_invoice', '>=', $monthlyTarget->start_date)
             ->whereDate('tanggal_invoice', '<=', $monthlyTarget->end_date)
@@ -102,13 +101,11 @@ class MonthlyTargetController extends Controller
                     'achieved_total' => 0,
                 ]);
             } catch (\Throwable $e) {
-                // ignore
             }
         } else {
             try {
                 $monthlyTarget->update(['achieved_total' => $remaining]);
             } catch (\Throwable $e) {
-                // ignore
             }
         }
 
@@ -135,6 +132,10 @@ class MonthlyTargetController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        $oldValues = $monthlyTarget->only([
+            'name', 'start_date', 'end_date', 'target_amount', 'notes', 'status'
+        ]);
+
         $actuals = Invoice::query()
             ->whereDate('tanggal_invoice', '>=', $data['start_date'])
             ->whereDate('tanggal_invoice', '<=', $data['end_date'])
@@ -151,11 +152,19 @@ class MonthlyTargetController extends Controller
         $data['status'] = $status;
 
         $monthlyTarget->update($data);
+
+        $newValues = $monthlyTarget->only([
+            'name', 'start_date', 'end_date', 'target_amount', 'notes', 'status'
+        ]);
+        self::logUpdate($monthlyTarget, 'Target Bulanan', $oldValues, $newValues);
+
         return redirect()->route('monthly-targets.index')->with('success', 'Target bulanan diperbarui');
     }
 
     public function destroy(MonthlyTarget $monthlyTarget)
     {
+        self::logDelete($monthlyTarget, 'Target Bulanan');
+
         $monthlyTarget->delete();
         return redirect()->route('monthly-targets.index')->with('success', 'Target bulanan dihapus');
     }

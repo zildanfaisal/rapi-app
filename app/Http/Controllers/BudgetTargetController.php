@@ -4,29 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\BudgetTarget;
 use Illuminate\Http\Request;
+use App\Traits\ActivityLogger;
 
 class BudgetTargetController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use ActivityLogger; 
+
     public function index()
     {
         $budgetTargets = BudgetTarget::orderBy('tanggal', 'desc')->get();
         return view('finance.budget-target.index', compact('budgetTargets'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('finance.budget-target.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -40,30 +34,24 @@ class BudgetTargetController extends Controller
             'budget_bulanan.min' => 'Budget bulanan tidak boleh kurang dari 0',
         ]);
 
-        BudgetTarget::create($validated);
+        $budgetTarget = BudgetTarget::create($validated);
+
+
+        self::logCreate($budgetTarget, 'Target Anggaran');
 
         return redirect()->route('budget-target.index')->with('success', 'Target anggaran berhasil ditambahkan');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(BudgetTarget $budgetTarget)
     {
         return view('finance.budget-target.show', compact('budgetTarget'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(BudgetTarget $budgetTarget)
     {
         return view('finance.budget-target.edit', compact('budgetTarget'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, BudgetTarget $budgetTarget)
     {
         $validated = $request->validate([
@@ -77,16 +65,21 @@ class BudgetTargetController extends Controller
             'budget_bulanan.min' => 'Budget bulanan tidak boleh kurang dari 0',
         ]);
 
+
+        $oldValues = $budgetTarget->only(['tanggal', 'budget_bulanan']);
+
         $budgetTarget->update($validated);
+
+        $newValues = $budgetTarget->only(['tanggal', 'budget_bulanan']);
+        self::logUpdate($budgetTarget, 'Target Anggaran', $oldValues, $newValues);
 
         return redirect()->route('budget-target.index')->with('success', 'Target anggaran berhasil diperbarui');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(BudgetTarget $budgetTarget)
     {
+        self::logDelete($budgetTarget, 'Target Anggaran');
+
         $budgetTarget->delete();
 
         return redirect()->route('budget-target.index')->with('success', 'Target anggaran berhasil dihapus');

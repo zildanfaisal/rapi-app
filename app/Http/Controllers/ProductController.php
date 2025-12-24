@@ -8,14 +8,13 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\ProductBatch;
 use App\Models\InvoiceItem;
 use DNS1D;
-
+use App\Traits\ActivityLogger;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-   public function index()
+    use ActivityLogger;
+
+    public function index()
     {
         $products = Product::with(['batches', 'latestBatch'])->get();
 
@@ -31,20 +30,11 @@ class ProductController extends Controller
         return view('products.index', compact('products'));
     }
 
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('products.create');
     }
 
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -61,7 +51,7 @@ class ProductController extends Controller
 
         $fotoPath = $request->file('foto_produk')->store('produk', 'public');
 
-        Product::create([
+        $product = Product::create([
             'nama_produk'      => $request->nama_produk,
             'deskripsi'        => $request->deskripsi,
             'barcode'          => $request->barcode,
@@ -73,70 +63,57 @@ class ProductController extends Controller
             'status'           => $request->status,
         ]);
 
+        self::logCreate($product, 'Produk');
+
         return redirect()->route('products.index')
             ->with('success', 'Product berhasil ditambahkan!');
     }
 
-    /**
-     * Display the specified resource.
-     */
- 
+    public function show($id)
+    {
+        $product = Product::with(['batches', 'latestBatch'])->findOrFail($id);
 
-public function show($id)
-{
-    $product = Product::with(['batches', 'latestBatch'])->findOrFail($id);
+        $stokMasuk = ProductBatch::where('product_id', $id)
+            ->get()
+            ->map(function ($batch) {
+                return [
+                    'type' => 'masuk',
+                    'batch_number' => $batch->batch_number,
+                    'quantity' => $batch->quantity_masuk,
+                    'tanggal' => $batch->tanggal_masuk,
+                    'keterangan' => 'Pemasukan Batch',
+                ];
+            });
 
-    // === STOK MASUK (DARI PRODUCT BATCH) ===
-    $stokMasuk = ProductBatch::where('product_id', $id)
-        ->get()
-        ->map(function ($batch) {
-            return [
-                'type' => 'masuk',
-                'batch_number' => $batch->batch_number,
-                'quantity' => $batch->quantity_masuk,
-                'tanggal' => $batch->tanggal_masuk,
-                'keterangan' => 'Pemasukan Batch',
-            ];
-        });
+        $stokKeluar = InvoiceItem::where('product_id', $id)
+            ->with(['invoice', 'batch'])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'type' => 'keluar',
+                    'batch_number' => optional($item->batch)->batch_number ?? '-',
+                    'quantity' => $item->quantity,
+                    'tanggal' => optional($item->invoice)->tanggal_invoice,
+                    'keterangan' => 'Penjualan',
+                ];
+            });
 
-    // === STOK KELUAR (DARI PENJUALAN) ===
-    $stokKeluar = InvoiceItem::where('product_id', $id)
-        ->with(['invoice', 'batch'])
-        ->get()
-        ->map(function ($item) {
-            return [
-                'type' => 'keluar',
-                'batch_number' => optional($item->batch)->batch_number ?? '-',
-                'quantity' => $item->quantity,
-                'tanggal' => optional($item->invoice)->tanggal_invoice,
-                'keterangan' => 'Penjualan',
-            ];
-        });
+        $riwayatStok = $stokMasuk
+            ->merge($stokKeluar)
+            ->sortBy('tanggal')
+            ->values();
 
+        return view('products.show', compact(
+            'product',
+            'riwayatStok'
+        ));
+    }
 
-    // === GABUNG & SORT BY TANGGAL ===
-    $riwayatStok = $stokMasuk
-        ->merge($stokKeluar)
-        ->sortBy('tanggal')
-        ->values();
-
-    return view('products.show', compact(
-        'product',
-        'riwayatStok'
-    ));
-}
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Product $product)
     {
         return view('products.edit', compact('product'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -150,8 +127,12 @@ public function show($id)
             'status'           => 'required|in:available,unavailable',
         ]);
 
-        if ($request->hasFile('foto_produk')) {
+        $oldValues = $product->only([
+            'nama_produk', 'deskripsi', 'barcode', 'kategori',
+            'harga', 'satuan', 'min_stok_alert', 'status'
+        ]);
 
+        if ($request->hasFile('foto_produk')) {
             if ($product->foto_produk && Storage::disk('public')->exists($product->foto_produk)) {
                 Storage::disk('public')->delete($product->foto_produk);
             }
@@ -162,15 +143,21 @@ public function show($id)
 
         $product->update($request->except('foto_produk'));
 
+
+        $newValues = $product->only([
+            'nama_produk', 'deskripsi', 'barcode', 'kategori',
+            'harga', 'satuan', 'min_stok_alert', 'status'
+        ]);
+        self::logUpdate($product, 'Produk', $oldValues, $newValues);
+
         return redirect()->route('products.index')
             ->with('success', 'Product berhasil diperbarui!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Product $product)
     {
+        self::logDelete($product, 'Produk');
+
         if ($product->foto_produk && Storage::disk('public')->exists($product->foto_produk)) {
             Storage::disk('public')->delete($product->foto_produk);
         }
@@ -180,7 +167,7 @@ public function show($id)
         return redirect()->route('products.index')
             ->with('success', 'Product deleted successfully.');
     }
-        
+
     public function downloadBarcode($id)
     {
         $product = Product::findOrFail($id);
@@ -206,8 +193,8 @@ public function show($id)
         imagecopy(
             $final,
             $barcodeImage,
-            $padding, 
-            0,        
+            $padding,
+            0,
             0, 0,
             $barcodeWidth,
             $barcodeHeight
