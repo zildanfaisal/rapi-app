@@ -24,7 +24,7 @@
                     </div>
 
                     {{-- ================= DESKTOP TABLE ================= --}}
-                    <div class="hidden lg:block w-full overflow-x-auto" id="desktopWrapper">>
+                    <div class="hidden lg:block w-full overflow-x-auto" id="desktopWrapper">
                         <table id="dataTables" class="min-w-full border border-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
