@@ -11,6 +11,7 @@
     <div class="w-full px-4 sm:px-6 lg:px-8">
 
         {{-- HEADER --}}
+        @can('monthly-target-create')
         <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
             <h3 class="text-lg font-semibold">{{ __('Daftar Target Bulanan') }}</h3>
             <a href="{{ route('monthly-targets.create') }}"
@@ -20,6 +21,7 @@
                 + Buat Target
             </a>
         </div>
+        @endcan
 
         {{-- MAIN WRAPPER --}}
         <div class="bg-white shadow sm:rounded-lg w-full">

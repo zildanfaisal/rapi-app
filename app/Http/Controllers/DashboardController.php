@@ -147,6 +147,57 @@ class DashboardController extends Controller
         ));
     }
 
+    /**
+     * Scan endpoint: find product by barcode and return JSON details
+     */
+    public function scanProduct(Request $request)
+    {
+        $code = trim((string) $request->query('code', ''));
+        if ($code === '') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Kode barcode kosong',
+            ], 422);
+        }
+
+        // Normalize common scanner prefixes/suffixes
+        $normalized = preg_replace('/[^A-Za-z0-9]/', '', $code);
+
+        $product = \App\Models\Product::query()
+            ->where('barcode', $normalized)
+            ->first();
+
+        if (!$product) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Produk tidak ditemukan',
+            ], 404);
+        }
+
+        $stock = (int) $product->batches()->sum('quantity_sekarang');
+        $latestBatch = $product->latestBatch()->first();
+
+        return response()->json([
+            'ok' => true,
+            'data' => [
+                'id' => $product->id,
+                'nama_produk' => $product->nama_produk,
+                'barcode' => $product->barcode,
+                'kategori' => $product->kategori,
+                'harga' => $product->harga,
+                'satuan' => $product->satuan,
+                'status' => $product->status,
+                'stok' => $stock,
+                'foto_url' => $product->foto_produk ? asset('storage/'.$product->foto_produk) : null,
+                'batch_terbaru' => $latestBatch ? [
+                    'kode_batch' => $latestBatch->kode_batch ?? null,
+                    'expired_at' => $latestBatch->expired_at ?? null,
+                    'quantity_sekarang' => $latestBatch->quantity_sekarang ?? null,
+                ] : null,
+            ],
+        ]);
+    }
+
     private function pushDepositAlerts(): void
     {
         $today = \Carbon\Carbon::today()->toDateString();

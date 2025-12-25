@@ -35,6 +35,14 @@
                     <div class="min-w-0">
                         <input type="month" name="month" value="{{ $filterMonth ?? now()->format('Y-m') }}" class="px-3 py-2.5 border rounded-lg text-sm sm:text-base w-full max-w-full" id="monthFilterInput">
                     </div>
+                    @can('products.view')
+                    <div class="flex items-center gap-2 ml-auto">
+                        <button type="button" id="scanModeToggle" class="px-3 py-2.5 rounded-lg text-sm border transition-colors bg-white hover:bg-gray-50 flex items-center gap-2">
+                            <span class="inline-block w-2 h-2 rounded-full" id="scanModeIndicator"></span>
+                            <span id="scanModeText">Scan Mode: OFF</span>
+                        </button>
+                    </div>
+                    @endcan
                 </form>
                 <script>
                     document.addEventListener('DOMContentLoaded', function(){
@@ -334,6 +342,26 @@
                 @endif
             </div>
 
+        </div>
+
+        <!-- Scan Result Modal -->
+        <div id="scanModal" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-black/40"></div>
+            <div class="relative max-w-lg mx-auto mt-24 bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Hasil Scan Produk</h3>
+                    <button class="text-gray-500 hover:text-gray-700" id="scanModalClose" aria-label="Close">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div class="p-4 sm:p-6" id="scanModalBody">
+                    <div class="text-center text-gray-500">Memuat data produk...</div>
+                </div>
+                <div class="p-4 border-t border-gray-100 flex justify-end gap-2">
+                    <a id="scanModalViewProduct" href="#" class="px-3 py-2 rounded-lg text-sm bg-indigo-600 text-white hover:bg-indigo-700">Lihat Detail</a>
+                    <button id="scanModalDismiss" class="px-3 py-2 rounded-lg text-sm border bg-white hover:bg-gray-50">Tutup</button>
+                </div>
+            </div>
         </div>
 
         <!-- Quick Actions -->
@@ -654,5 +682,131 @@
             }
         }
     });
+</script>
+
+<script>
+    // --- Global Keyboard-Wedge Scan Mode ---
+    (function(){
+        const toggleBtn = document.getElementById('scanModeToggle');
+        const indicator = document.getElementById('scanModeIndicator');
+        const textEl = document.getElementById('scanModeText');
+        const modal = document.getElementById('scanModal');
+        const modalBody = document.getElementById('scanModalBody');
+        const modalClose = document.getElementById('scanModalClose');
+        const modalDismiss = document.getElementById('scanModalDismiss');
+        const viewProductBtn = document.getElementById('scanModalViewProduct');
+
+        let scanMode = false;
+        let buffer = '';
+        let timeoutId = null;
+        let busy = false; // avoid re-entrant while modal open
+
+        function setIndicator(active){
+            if (!indicator || !textEl) return;
+            indicator.className = 'inline-block w-2 h-2 rounded-full ' + (active ? 'bg-green-500' : 'bg-gray-400');
+            textEl.textContent = 'Scan Mode: ' + (active ? 'ON' : 'OFF');
+        }
+        setIndicator(false);
+
+        function openModal(){
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            busy = true;
+        }
+        function closeModal(){
+            if (!modal) return;
+            modal.classList.add('hidden');
+            busy = false;
+        }
+
+        function finalizeBuffer(){
+            const code = buffer.trim();
+            buffer = '';
+            if (!code || code.length < 6) return; // minimal barcode length guard
+            // sanitize to alnum
+            const cleaned = code.replace(/[^A-Za-z0-9]/g, '');
+            // fetch product
+            openModal();
+            if (modalBody) modalBody.innerHTML = '<div class="text-center text-gray-500">Memuat data produk...</div>';
+            fetch("{{ route('scan.product') }}" + '?' + new URLSearchParams({code: cleaned}), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({ ok:false, message:'Gagal parse respons' }));
+                if (!res.ok || !data.ok) {
+                    const msg = (data && data.message) ? data.message : 'Produk tidak ditemukan';
+                    if (modalBody) modalBody.innerHTML = '<div class="text-center text-red-600">' + msg + '</div>';
+                    viewProductBtn && (viewProductBtn.classList.add('hidden'));
+                    return;
+                }
+                const p = data.data;
+                const detailHtml = `
+                    <div class="flex items-start gap-4">
+                        <div class="w-20 h-20 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nama_produk}" class="w-full h-full object-cover">` : ''}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-lg font-semibold text-gray-800 truncate">${p.nama_produk ?? 'Produk'}</div>
+                            <div class="text-sm text-gray-600 truncate">Barcode: ${p.barcode ?? '-'}</div>
+                            <div class="text-sm text-gray-600 truncate">Kategori: ${p.kategori ?? '-'}</div>
+                            <div class="text-sm text-gray-600 truncate">Satuan: ${p.satuan ?? '-'}</div>
+                            <div class="mt-2 text-gray-800"><span class="font-medium">Harga:</span> Rp ${new Intl.NumberFormat('id-ID').format(p.harga ?? 0)}</div>
+                            <div class="text-gray-800"><span class="font-medium">Stok:</span> ${p.stok ?? 0}</div>
+                            ${p.batch_terbaru ? `<div class="text-gray-600 text-sm">Batch Terbaru: ${p.batch_terbaru.kode_batch ?? '-'} • Exp: ${p.batch_terbaru.expired_at ?? '-'}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+                if (modalBody) modalBody.innerHTML = detailHtml;
+                if (viewProductBtn) {
+                    viewProductBtn.href = "{{ url('/products') }}" + '/' + p.id;
+                    viewProductBtn.classList.remove('hidden');
+                }
+            })
+            .catch(() => {
+                if (modalBody) modalBody.innerHTML = '<div class="text-center text-red-600">Terjadi kesalahan jaringan</div>';
+                viewProductBtn && (viewProductBtn.classList.add('hidden'));
+            });
+        }
+
+        document.addEventListener('keydown', function(ev){
+            if (!scanMode) return;
+            if (busy) return;
+            const t = ev.target;
+            const isEditable = (t && (t.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(t.tagName)));
+            if (isEditable) return; // don't hijack normal input
+
+            // Typical scanners send fast bursts ending with Enter
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                finalizeBuffer();
+                return;
+            }
+
+            const key = ev.key;
+            if (!/^[A-Za-z0-9]$/.test(key)) return;
+            buffer += key;
+            // If no key comes within 120ms, finalize (fallback if scanner not sending Enter)
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(finalizeBuffer, 120);
+        }, true);
+
+        function toggleScanMode(){
+            scanMode = !scanMode;
+            setIndicator(scanMode);
+        }
+
+        if (toggleBtn){
+            toggleBtn.addEventListener('click', function(){
+                toggleScanMode();
+            });
+        }
+
+        // Modal controls
+        [modalClose, modalDismiss].forEach(btn => btn && btn.addEventListener('click', function(){
+            closeModal();
+        }));
+        // Close on backdrop click
+        modal && modal.addEventListener('click', function(e){
+            if (e.target === modal) closeModal();
+        });
+    })();
 </script>
 @endpush
