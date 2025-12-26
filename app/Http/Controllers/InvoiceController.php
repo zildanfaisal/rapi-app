@@ -6,6 +6,7 @@ use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -82,13 +83,24 @@ class InvoiceController extends Controller
         }
 
         return DB::transaction(function () use ($data, $ongkir, $diskon, $metodePembayaran, $buktiPath) {
+            // Tentukan customer_id: jika customer_type = new, buat pelanggan baru
+            $customerId = null;
+            if (($data['customer_type'] ?? 'existing') === 'new') {
+                $newCustomer = Customer::create([
+                    'nama_customer' => $data['customer_name'],
+                    'kategori_pelanggan' => $data['kategori_pelanggan'] ?? 'Konsumen',
+                ]);
+                $customerId = $newCustomer->id;
+            } else {
+                $customerId = $data['customer_id'];
+            }
             // Tentukan status setor berdasarkan metode pembayaran
             $statusSetor = ($metodePembayaran && $metodePembayaran !== 'tunai') ? 'sudah' : ($data['status_setor'] ?? 'belum');
             $tanggalSetor = $statusSetor === 'sudah' ? now()->toDateString() : null;
 
             $invoice = Invoice::create([
                 'invoice_number' => $data['invoice_number'] ?? Str::upper(Str::random(8)),
-                'customer_id' => $data['customer_id'],
+                'customer_id' => $customerId,
                 'user_id' => $data['user_id'],
                 'tanggal_invoice' => $data['tanggal_invoice'],
                 'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],

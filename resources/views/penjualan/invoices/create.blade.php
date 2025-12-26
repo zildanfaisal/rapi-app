@@ -25,29 +25,90 @@
                         @csrf
                         <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                         <div class="mb-4">
-                            <label for="customer_id" class="block text-sm font-medium text-gray-700">{{ __('Pelanggan') }}</label>
-                            <select name="customer_id" id="customer_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
-                                <option value="" disabled selected>{{ __('Pilih Pelanggan') }}</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->nama_customer }} - {{ $customer->kategori_pelanggan }}</option>
-                                @endforeach
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Jenis Pelanggan
+                            </label>
+
+                            <div class="flex gap-4 mb-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="customer_type" value="existing" checked
+                                        class="text-purple-600 focus:ring-purple-500">
+                                    <span class="text-sm">Pelanggan Terdaftar</span>
+                                </label>
+
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="customer_type" value="new"
+                                        class="text-purple-600 focus:ring-purple-500">
+                                    <span class="text-sm">Pelanggan Baru</span>
+                                </label>
+                            </div>
+
+                            <div id="existing-customer" class="mb-4">
+                                <label for="customer_id" class="block text-sm font-medium text-gray-700">
+                                    Pilih Pelanggan
+                                </label>
+                                <select name="customer_id" id="customer_id"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                    <option value="" disabled selected>Pilih Pelanggan</option>
+                                    @foreach ($customers as $customer)
+                                        <option value="{{ $customer->id }}">
+                                            {{ $customer->nama_customer }} - {{ $customer->kategori_pelanggan }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div id="new-customer" class="mb-4 hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="customer_name" class="block text-sm font-medium text-gray-700">
+                                        Nama Pelanggan Baru
+                                    </label>
+                                    <input type="text" name="customer_name" id="customer_name"
+                                        placeholder="Masukkan nama pelanggan..."
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="kategori_pelanggan"
+                                        class="block text-sm font-medium text-gray-700">{{ __('Kategori Pelanggan') }}</label>
+                                    <select name="kategori_pelanggan" id="kategori_pelanggan"
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                        required>
+                                        <option value="Toko">{{ __('Toko') }}</option>
+                                        <option value="Konsumen" selected>{{ __('Konsumen') }}</option>
+                                        <option value="Aplikator/Tukang">{{ __('Aplikator/Tukang') }}</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="tanggal_invoice" class="block text-sm font-medium text-gray-700">{{ __('Tanggal Invoice') }}</label>
-                                <input type="date" name="tanggal_invoice" id="tanggal_invoice" value="{{ old('tanggal_invoice') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                <label for="tanggal_invoice"
+                                    class="block text-sm font-medium text-gray-700">{{ __('Tanggal Invoice') }}</label>
+                                <input type="date" name="tanggal_invoice" id="tanggal_invoice"
+                                    value="{{ old('tanggal_invoice') }}"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                    required>
                             </div>
                             <div>
-                                <label for="tanggal_jatuh_tempo" class="block text-sm font-medium text-gray-700">{{ __('Jatuh Tempo') }}</label>
-                                <input type="date" name="tanggal_jatuh_tempo" id="tanggal_jatuh_tempo" value="{{ old('tanggal_jatuh_tempo') }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                <label for="tanggal_jatuh_tempo"
+                                    class="block text-sm font-medium text-gray-700">{{ __('Jatuh Tempo') }}</label>
+                                <input type="date" name="tanggal_jatuh_tempo" id="tanggal_jatuh_tempo"
+                                    value="{{ old('tanggal_jatuh_tempo') }}"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                    required>
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label for="invoice_number" class="block text-sm font-medium text-gray-700">{{ __('Nomor Invoice') }}</label>
+                            <label for="invoice_number"
+                                class="block text-sm font-medium text-gray-700">{{ __('Nomor Invoice') }}</label>
                             <div class="mt-1 flex gap-2">
-                                <input type="text" name="invoice_number" id="invoice_number" value="{{ old('invoice_number') }}" class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" readonly placeholder="Klik Generate">
-                                <button type="button" id="generate-invoice" class="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('Generate') }}</button>
+                                <input type="text" name="invoice_number" id="invoice_number"
+                                    value="{{ old('invoice_number') }}"
+                                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                    readonly placeholder="Klik Generate">
+                                <button type="button" id="generate-invoice"
+                                    class="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('Generate') }}</button>
                             </div>
                         </div>
                         <div class="mb-6">
@@ -55,52 +116,78 @@
                             <div class="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div class="sm:col-span-2">
                                     <label for="scan-barcode" class="block text-xs text-gray-600">Barcode Produk</label>
-                                    <input type="text" id="scan-barcode" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="Masukkan Barcode" autocomplete="off">
+                                    <input type="text" id="scan-barcode"
+                                        class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                        placeholder="Masukkan Barcode" autocomplete="off">
                                 </div>
                                 <div class="flex items-end">
-                                    <button type="button" id="scan-clear" class="px-3 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Bersihkan</button>
+                                    <button type="button" id="scan-clear"
+                                        class="px-3 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Bersihkan</button>
                                 </div>
                             </div>
                             <div id="items-wrapper" class="space-y-3">
                                 <div class="item-row grid grid-cols-1 sm:grid-cols-4 gap-3">
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Produk') }}</label>
-                                        <select name="items[0][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                        <select name="items[0][product_id]"
+                                            class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            required>
                                             <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
-                                            @foreach($products as $product)
-                                                <option value="{{ $product->id }}" data-barcode="{{ $product->barcode }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                                            @foreach ($products as $product)
+                                                <option value="{{ $product->id }}"
+                                                    data-barcode="{{ $product->barcode }}"
+                                                    data-price="{{ $product->harga ?? ($product->price ?? 0) }}">
+                                                    {{ $product->nama_produk ?? ($product->nama ?? 'Produk #' . $product->id) }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
-                                        <select name="items[0][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                        <select name="items[0][batch_id]"
+                                            class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            required>
                                             <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
-                                            @foreach($batches as $batch)
-                                                <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
+                                            @foreach ($batches as $batch)
+                                                <option value="{{ $batch->id }}"
+                                                    data-product="{{ $batch->product_id }}"
+                                                    data-stock="{{ (int) $batch->quantity_sekarang }}">
+                                                    {{ $batch->batch_number }} —
+                                                    {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }}
+                                                    — Stok: {{ $batch->quantity_sekarang }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Qty') }}</label>
-                                        <input type="number" name="items[0][quantity]" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                        <input type="number" name="items[0][quantity]"
+                                            class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            required>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Harga') }}</label>
                                         <div class="mt-1 flex items-center">
                                             <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-                                            <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" autocomplete="off" />
+                                            <input type="text"
+                                                class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                placeholder="0" autocomplete="off" />
                                             <input type="hidden" name="items[0][harga]" class="item-price" required />
-                                            <button type="button" class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Hapus item">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            <button type="button"
+                                                class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                                                aria-label="Hapus item">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                                    class="size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                                 </svg>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <button type="button" id="add-item" class="mt-3 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700">{{ __('Tambah Produk') }}</button>
+                            <button type="button" id="add-item"
+                                class="mt-3 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700">{{ __('Tambah Produk') }}</button>
                         </div>
                         <div class="mb-6">
                             <div class="space-y-3">
@@ -109,62 +196,59 @@
                                         <label class="block text-xs text-gray-600">{{ __('Ongkos Kirim') }}</label>
                                         <div class="mt-1 flex items-center">
                                             <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-                                            <input type="text" id="ongkos-kirim-display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" autocomplete="off" />
-                                            <input type="hidden" name="ongkos_kirim" id="ongkos-kirim"/>
+                                            <input type="text" id="ongkos-kirim-display"
+                                                class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                placeholder="0" autocomplete="off" />
+                                            <input type="hidden" name="ongkos_kirim" id="ongkos-kirim" />
                                         </div>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Diskon (Opsional)') }}</label>
                                         <div class="mt-1 flex items-center">
                                             <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-                                            <input type="text" id="diskon-display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" autocomplete="off" />
-                                            <input type="hidden" name="diskon" id="diskon"/>
+                                            <input type="text" id="diskon-display"
+                                                class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                placeholder="0" autocomplete="off" />
+                                            <input type="hidden" name="diskon" id="diskon" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="mb-6">
-                            <label for="metode_pembayaran" class="block text-sm font-medium text-gray-700">{{ __('Metode Pembayaran') }}</label>
+                            <label for="metode_pembayaran"
+                                class="block text-sm font-medium text-gray-700">{{ __('Metode Pembayaran') }}</label>
                             <label class="flex items-center gap-2 mt-2">
-                                <input
-                                    type="radio"
-                                    name="metode_pembayaran"
-                                    value="tunai"
-                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio"
-                                >
+                                <input type="radio" name="metode_pembayaran" value="tunai"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio">
                                 <span class="text-sm text-gray-700">Tunai (Cash)</span>
                             </label>
                             <label class="flex items-center gap-2 mt-2">
-                                <input
-                                    type="radio"
-                                    name="metode_pembayaran"
-                                    value="transfer"
-                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio"
-                                >
+                                <input type="radio" name="metode_pembayaran" value="transfer"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio">
                                 <span class="text-sm text-gray-700">Transfer (TF)</span>
                             </label>
                             <label class="flex items-center gap-2 mt-2">
-                                <input
-                                    type="radio"
-                                    name="metode_pembayaran"
-                                    value="qris"
-                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio"
-                                >
+                                <input type="radio" name="metode_pembayaran" value="qris"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio">
                                 <span class="text-sm text-gray-700">QRIS</span>
                             </label>
                         </div>
                         <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:none;">
-                            <label for="bukti_setor" class="block text-sm font-medium text-gray-700">{{ __('Bukti Pembayaran') }}</label>
-                            <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                            <label for="bukti_setor"
+                                class="block text-sm font-medium text-gray-700">{{ __('Bukti Pembayaran') }}</label>
+                            <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*"
+                                class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
                         </div>
                         <div class="mb-4">
-                            <label for="status_pembayaran" class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
-                            <select name="status_pembayaran" id="status_pembayaran" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                                <option value="unpaid" @selected(old('status_pembayaran','unpaid')=='unpaid')>Belum Lunas</option>
-                                <option value="paid" @selected(old('status_pembayaran')=='paid')>Lunas</option>
-                                <option value="overdue" @selected(old('status_pembayaran')=='overdue')>Terlambat</option>
-                                <option value="cancelled" @selected(old('status_pembayaran')=='cancelled')>Dibatalkan</option>
+                            <label for="status_pembayaran"
+                                class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
+                            <select name="status_pembayaran" id="status_pembayaran"
+                                class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                <option value="unpaid" @selected(old('status_pembayaran', 'unpaid') == 'unpaid')>Belum Lunas</option>
+                                <option value="paid" @selected(old('status_pembayaran') == 'paid')>Lunas</option>
+                                <option value="overdue" @selected(old('status_pembayaran') == 'overdue')>Terlambat</option>
+                                <option value="cancelled" @selected(old('status_pembayaran') == 'cancelled')>Dibatalkan</option>
                             </select>
                         </div>
                         <div class="mb-4">
@@ -174,8 +258,10 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{{ __('Simpan') }}</button>
-                            <a href="{{ route('invoices.index') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">{{ __('Batal') }}</a>
+                            <button type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{{ __('Simpan') }}</button>
+                            <a href="{{ route('invoices.index') }}"
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">{{ __('Batal') }}</a>
                         </div>
                     </form>
                 </div>
@@ -185,141 +271,158 @@
 @endsection
 
 @push('scripts')
-<script>
-    (function() {
-        let index = 1;
-        const wrapper = document.getElementById('items-wrapper');
-        const addBtn = document.getElementById('add-item');
-        const grandEl = document.getElementById('grand-total');
-        const scanInput = document.getElementById('scan-barcode');
-        const scanClear = document.getElementById('scan-clear');
+    <script>
+        (function() {
+            let index = 1;
+            const wrapper = document.getElementById('items-wrapper');
+            const addBtn = document.getElementById('add-item');
+            const grandEl = document.getElementById('grand-total');
+            const scanInput = document.getElementById('scan-barcode');
+            const scanClear = document.getElementById('scan-clear');
 
-        const PRODUCT_CATALOG = {!! json_encode(
-            $products->map(function($p){
-                return [
-                    'id' => $p->id,
-                    'barcode' => $p->barcode,
-                    'price' => $p->harga ?? $p->price ?? 0,
-                ];
-            })->values()->toArray()
-        ) !!};
+            const radios = document.querySelectorAll('input[name="customer_type"]');
+            const existing = document.getElementById('existing-customer');
+            const newer = document.getElementById('new-customer');
 
+            const PRODUCT_CATALOG = {!! json_encode(
+                $products->map(function ($p) {
+                        return [
+                            'id' => $p->id,
+                            'barcode' => $p->barcode,
+                            'price' => $p->harga ?? ($p->price ?? 0),
+                        ];
+                    })->values()->toArray(),
+            ) !!};
 
-        function formatRupiah(num) {
-            // Pastikan input string/number, hilangkan .00 di belakang jika ada
-            num = num.toString();
-            // Jika ada koma/desimal, buang bagian desimal
-            if (num.indexOf('.') !== -1) {
-                num = num.split('.')[0];
-            }
-            if (num.indexOf(',') !== -1) {
-                num = num.split(',')[0];
-            }
-            // Format ribuan
-            return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        }
-
-        function unformatRupiah(str) {
-            return (str || '').toString().replace(/[^0-9]/g, '');
-        }
-
-        function recalc() {
-            let total = 0;
-            // Hitung total produk
-            wrapper.querySelectorAll('.item-row').forEach(row => {
-                const qty = parseFloat(row.querySelector('input[name$="[quantity]"]').value || 0);
-                const hargaRawEl = row.querySelector('.item-price');
-                const harga = parseFloat(hargaRawEl?.value || 0);
-                total += (qty * harga);
+            radios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'existing') {
+                        existing.classList.remove('hidden');
+                        newer.classList.add('hidden');
+                    } else {
+                        existing.classList.add('hidden');
+                        newer.classList.remove('hidden');
+                    }
+                });
             });
-            // Tambahkan ongkos kirim
-            const ongkirVal = document.getElementById('ongkos-kirim')?.value;
-            const ongkir = ongkirVal ? parseInt(ongkirVal, 10) : 0;
-            if (!isNaN(ongkir) && ongkirVal !== '') total += ongkir;
-            // Kurangi diskon
-            const diskonVal = document.getElementById('diskon')?.value;
-            const diskon = diskonVal ? parseInt(diskonVal, 10) : 0;
-            if (!isNaN(diskon) && diskonVal !== '') total -= diskon;
-            if (total < 0) total = 0;
-            grandEl.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(total);
-        }
-        // Format rupiah untuk ongkos kirim dan diskon
-        function handleRupiahInput(displayId, hiddenId) {
-            const display = document.getElementById(displayId);
-            const hidden = document.getElementById(hiddenId);
-            if (!display || !hidden) return;
-            display.addEventListener('input', function() {
+
+            function formatRupiah(num) {
+                // Pastikan input string/number, hilangkan .00 di belakang jika ada
+                num = num.toString();
+                // Jika ada koma/desimal, buang bagian desimal
+                if (num.indexOf('.') !== -1) {
+                    num = num.split('.')[0];
+                }
+                if (num.indexOf(',') !== -1) {
+                    num = num.split(',')[0];
+                }
+                // Format ribuan
+                return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            }
+
+            function unformatRupiah(str) {
+                return (str || '').toString().replace(/[^0-9]/g, '');
+            }
+
+            function recalc() {
+                let total = 0;
+                // Hitung total produk
+                wrapper.querySelectorAll('.item-row').forEach(row => {
+                    const qty = parseFloat(row.querySelector('input[name$="[quantity]"]').value || 0);
+                    const hargaRawEl = row.querySelector('.item-price');
+                    const harga = parseFloat(hargaRawEl?.value || 0);
+                    total += (qty * harga);
+                });
+                // Tambahkan ongkos kirim
+                const ongkirVal = document.getElementById('ongkos-kirim')?.value;
+                const ongkir = ongkirVal ? parseInt(ongkirVal, 10) : 0;
+                if (!isNaN(ongkir) && ongkirVal !== '') total += ongkir;
+                // Kurangi diskon
+                const diskonVal = document.getElementById('diskon')?.value;
+                const diskon = diskonVal ? parseInt(diskonVal, 10) : 0;
+                if (!isNaN(diskon) && diskonVal !== '') total -= diskon;
+                if (total < 0) total = 0;
+                grandEl.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(total);
+            }
+            // Format rupiah untuk ongkos kirim dan diskon
+            function handleRupiahInput(displayId, hiddenId) {
+                const display = document.getElementById(displayId);
+                const hidden = document.getElementById(hiddenId);
+                if (!display || !hidden) return;
+                display.addEventListener('input', function() {
+                    let val = unformatRupiah(display.value);
+                    // Jika kosong, biarkan kosong
+                    if (val === '') {
+                        display.value = '';
+                        hidden.value = '';
+                        recalc();
+                        return;
+                    }
+                    display.value = formatRupiah(val);
+                    hidden.value = val;
+                    recalc();
+                });
+                // Inisialisasi jika ada value lama
                 let val = unformatRupiah(display.value);
-                // Jika kosong, biarkan kosong
-                if (val === '') {
+                if (val !== '') {
+                    display.value = formatRupiah(val);
+                    hidden.value = val;
+                } else {
                     display.value = '';
                     hidden.value = '';
-                    recalc();
+                }
+            }
+
+            handleRupiahInput('ongkos-kirim-display', 'ongkos-kirim');
+            handleRupiahInput('diskon-display', 'diskon');
+
+            function selectProductInRow(row, productId) {
+                const sel = row.querySelector('.item-product');
+                if (!sel) return;
+                sel.value = String(productId);
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+                const qtyInput = row.querySelector('input[name$="[quantity]"]');
+                if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) qtyInput.value = 1;
+            }
+
+            function getEmptyRowOrAdd() {
+                let row = Array.from(wrapper.querySelectorAll('.item-row')).find(r => {
+                    const sel = r.querySelector('.item-product');
+                    return sel && !sel.value;
+                });
+                if (!row) {
+                    addBtn.click();
+                    const rows = wrapper.querySelectorAll('.item-row');
+                    row = rows[rows.length - 1];
+                }
+                return row;
+            }
+
+            function handleScan(code) {
+                const bc = String(code || '').trim();
+                if (!bc) return;
+                const found = PRODUCT_CATALOG.find(p => (p.barcode || '') === bc);
+                if (!found) {
+                    alert('Produk dengan barcode tersebut tidak ditemukan');
                     return;
                 }
-                display.value = formatRupiah(val);
-                hidden.value = val;
+                const row = getEmptyRowOrAdd();
+                selectProductInRow(row, found.id);
                 recalc();
-            });
-            // Inisialisasi jika ada value lama
-            let val = unformatRupiah(display.value);
-            if (val !== '') {
-                display.value = formatRupiah(val);
-                hidden.value = val;
-            } else {
-                display.value = '';
-                hidden.value = '';
             }
-        }
 
-        handleRupiahInput('ongkos-kirim-display', 'ongkos-kirim');
-        handleRupiahInput('diskon-display', 'diskon');
-
-        function selectProductInRow(row, productId) {
-            const sel = row.querySelector('.item-product');
-            if (!sel) return;
-            sel.value = String(productId);
-            sel.dispatchEvent(new Event('change', { bubbles: true }));
-            const qtyInput = row.querySelector('input[name$="[quantity]"]');
-            if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) qtyInput.value = 1;
-        }
-
-        function getEmptyRowOrAdd() {
-            let row = Array.from(wrapper.querySelectorAll('.item-row')).find(r => {
-                const sel = r.querySelector('.item-product');
-                return sel && !sel.value;
-            });
-            if (!row) {
-                addBtn.click();
-                const rows = wrapper.querySelectorAll('.item-row');
-                row = rows[rows.length - 1];
-            }
-            return row;
-        }
-
-        function handleScan(code) {
-            const bc = String(code || '').trim();
-            if (!bc) return;
-            const found = PRODUCT_CATALOG.find(p => (p.barcode || '') === bc);
-            if (!found) {
-                alert('Produk dengan barcode tersebut tidak ditemukan');
-                return;
-            }
-            const row = getEmptyRowOrAdd();
-            selectProductInRow(row, found.id);
-            recalc();
-        }
-
-        addBtn.addEventListener('click', function() {
-            const tpl = document.createElement('div');
-            tpl.className = 'item-row grid grid-cols-1 sm:grid-cols-4 gap-3';
-            tpl.innerHTML = `
+            addBtn.addEventListener('click', function() {
+                const tpl = document.createElement('div');
+                tpl.className = 'item-row grid grid-cols-1 sm:grid-cols-4 gap-3';
+                tpl.innerHTML = `
                 <div>
                     <label class="block text-xs text-gray-600">{{ __('Produk') }}</label>
                     <select name="items[${index}][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
-                        @foreach($products as $product)
-                            <option value="{{ $product->id }}" data-barcode="{{ $product->barcode }}" data-price="{{ $product->harga ?? $product->price ?? 0 }}">{{ $product->nama_produk ?? $product->nama ?? 'Produk #'.$product->id }}</option>
+                        @foreach ($products as $product)
+                            <option value="{{ $product->id }}" data-barcode="{{ $product->barcode }}" data-price="{{ $product->harga ?? ($product->price ?? 0) }}">{{ $product->nama_produk ?? ($product->nama ?? 'Produk #' . $product->id) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -327,7 +430,7 @@
                     <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
                     <select name="items[${index}][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
-                        @foreach($batches as $batch)
+                        @foreach ($batches as $batch)
                             <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
                         @endforeach
                     </select>
@@ -350,160 +453,165 @@
                     </div>
                 </div>
             `;
-            wrapper.appendChild(tpl);
-            index++;
-        });
-
-        // Generate invoice number on button click
-        document.getElementById('generate-invoice').addEventListener('click', function() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let out = '';
-            for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random()*chars.length)];
-            document.getElementById('invoice_number').value = out;
-        });
-
-        // Auto-fill harga when product selected
-        wrapper.addEventListener('change', function(e){
-            if (e.target.matches('select[name^="items"][name$="[product_id]"]')) {
-                const priceAttr = e.target.options[e.target.selectedIndex]?.getAttribute('data-price');
-                const row = e.target.closest('.item-row');
-                const priceDisplay = row.querySelector('.item-price-display');
-                const priceHidden = row.querySelector('.item-price');
-                if (priceDisplay && priceHidden && priceAttr) {
-                    priceHidden.value = String(priceAttr);
-                    priceDisplay.value = formatRupiah(String(priceAttr));
-                    recalc();
-                }
-                // Filter batch options matching selected product
-                const productId = e.target.value;
-                const batchSelect = row.querySelector('.item-batch');
-                if (batchSelect) {
-                    Array.from(batchSelect.options).forEach(opt => {
-                        if (!opt.value) return; // skip placeholder
-                        const p = opt.getAttribute('data-product');
-                        opt.hidden = (p !== productId);
-                    });
-                    // Reset selection
-                    batchSelect.value = '';
-                    // Also reset qty max since batch changed
-                    const qtyInput = row.querySelector('input[name$="[quantity]"]');
-                    if (qtyInput) {
-                        qtyInput.removeAttribute('max');
-                    }
-                }
-            }
-            // When batch selected, set qty max from data-stock
-            if (e.target.matches('select[name^="items"][name$="[batch_id]"]')) {
-                const row = e.target.closest('.item-row');
-                const qtyInput = row.querySelector('input[name$="[quantity]"]');
-                const opt = e.target.options[e.target.selectedIndex];
-                const stock = parseInt(opt?.getAttribute('data-stock') || '0', 10);
-                if (qtyInput) {
-                    if (stock > 0) {
-                        qtyInput.setAttribute('max', String(stock));
-                        // Clamp current value to max
-                        const cur = parseInt(qtyInput.value || '0', 10);
-                        if (cur > stock) qtyInput.value = String(stock);
-                    } else {
-                        qtyInput.setAttribute('max', '0');
-                        qtyInput.value = '0';
-                    }
-                }
-            }
-        });
-
-        wrapper.addEventListener('input', function(e){
-            if (e.target.classList.contains('item-price-display')) {
-                const row = e.target.closest('.item-row');
-                const priceHidden = row.querySelector('.item-price');
-                let val = unformatRupiah(e.target.value);
-                if (val === '') {
-                    e.target.value = '';
-                    priceHidden.value = '';
-                    recalc();
-                    return;
-                }
-                e.target.value = formatRupiah(val);
-                priceHidden.value = val;
-                recalc();
-            }
-        });
-
-        // Recalculate on qty or harga change
-        wrapper.addEventListener('input', function(e){
-            if (e.target.matches('input[name$="[quantity]"]')) {
-                const maxAttr = e.target.getAttribute('max');
-                const maxVal = maxAttr ? parseInt(maxAttr, 10) : null;
-
-                // Kalau kosong, biarin dulu
-                if (e.target.value === '') {
-                    recalc();
-                    return;
-                }
-
-                let val = parseInt(e.target.value, 10);
-
-                if (!isNaN(val) && maxVal !== null && val > maxVal) {
-                    e.target.value = String(maxVal);
-                }
-
-                recalc();
-            }
-        });
-
-
-        // Remove item row on click "x / Hapus"
-        wrapper.addEventListener('click', function(e){
-            const btn = e.target.closest('.remove-item');
-            if (!btn) return;
-            const row = btn.closest('.item-row');
-            if (row) {
-                row.remove();
-                recalc();
-            }
-        });
-
-        // Scan handler: auto-handle without pressing Enter
-        if (scanInput) {
-            let scanTimer = null;
-            const triggerScan = () => {
-                const val = (scanInput.value || '').trim();
-                if (!val) return;
-                handleScan(val);
-                scanInput.value = '';
-            };
-            scanInput.addEventListener('input', function(){
-                if (scanTimer) clearTimeout(scanTimer);
-                // small debounce to let scanner finish
-                scanTimer = setTimeout(triggerScan, 150);
+                wrapper.appendChild(tpl);
+                index++;
             });
-            // also trigger on change for scanners that fire change
-            scanInput.addEventListener('change', triggerScan);
-        }
-        if (scanClear) {
-            scanClear.addEventListener('click', function(){ scanInput && (scanInput.value = ''); scanInput && scanInput.focus(); });
-        }
 
-        // JIKA METODE PEMBAYARAN BUKAN TUNAI, TAMPILKAN INPUT FILE BUKTI PEMBAYARAN
-        function toggleBuktiPembayaran() {
-            const radios = document.querySelectorAll('.metode-pembayaran-radio');
-            let selected = null;
-            radios.forEach(r => { if (r.checked) selected = r.value; });
-            const wrapper = document.getElementById('bukti-pembayaran-wrapper');
-            if (selected && selected !== 'tunai') {
-                wrapper.style.display = '';
-            } else {
-                wrapper.style.display = 'none';
+            // Generate invoice number on button click
+            document.getElementById('generate-invoice').addEventListener('click', function() {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let out = '';
+                for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+                document.getElementById('invoice_number').value = out;
+            });
+
+            // Auto-fill harga when product selected
+            wrapper.addEventListener('change', function(e) {
+                if (e.target.matches('select[name^="items"][name$="[product_id]"]')) {
+                    const priceAttr = e.target.options[e.target.selectedIndex]?.getAttribute('data-price');
+                    const row = e.target.closest('.item-row');
+                    const priceDisplay = row.querySelector('.item-price-display');
+                    const priceHidden = row.querySelector('.item-price');
+                    if (priceDisplay && priceHidden && priceAttr) {
+                        priceHidden.value = String(priceAttr);
+                        priceDisplay.value = formatRupiah(String(priceAttr));
+                        recalc();
+                    }
+                    // Filter batch options matching selected product
+                    const productId = e.target.value;
+                    const batchSelect = row.querySelector('.item-batch');
+                    if (batchSelect) {
+                        Array.from(batchSelect.options).forEach(opt => {
+                            if (!opt.value) return; // skip placeholder
+                            const p = opt.getAttribute('data-product');
+                            opt.hidden = (p !== productId);
+                        });
+                        // Reset selection
+                        batchSelect.value = '';
+                        // Also reset qty max since batch changed
+                        const qtyInput = row.querySelector('input[name$="[quantity]"]');
+                        if (qtyInput) {
+                            qtyInput.removeAttribute('max');
+                        }
+                    }
+                }
+                // When batch selected, set qty max from data-stock
+                if (e.target.matches('select[name^="items"][name$="[batch_id]"]')) {
+                    const row = e.target.closest('.item-row');
+                    const qtyInput = row.querySelector('input[name$="[quantity]"]');
+                    const opt = e.target.options[e.target.selectedIndex];
+                    const stock = parseInt(opt?.getAttribute('data-stock') || '0', 10);
+                    if (qtyInput) {
+                        if (stock > 0) {
+                            qtyInput.setAttribute('max', String(stock));
+                            // Clamp current value to max
+                            const cur = parseInt(qtyInput.value || '0', 10);
+                            if (cur > stock) qtyInput.value = String(stock);
+                        } else {
+                            qtyInput.setAttribute('max', '0');
+                            qtyInput.value = '0';
+                        }
+                    }
+                }
+            });
+
+            wrapper.addEventListener('input', function(e) {
+                if (e.target.classList.contains('item-price-display')) {
+                    const row = e.target.closest('.item-row');
+                    const priceHidden = row.querySelector('.item-price');
+                    let val = unformatRupiah(e.target.value);
+                    if (val === '') {
+                        e.target.value = '';
+                        priceHidden.value = '';
+                        recalc();
+                        return;
+                    }
+                    e.target.value = formatRupiah(val);
+                    priceHidden.value = val;
+                    recalc();
+                }
+            });
+
+            // Recalculate on qty or harga change
+            wrapper.addEventListener('input', function(e) {
+                if (e.target.matches('input[name$="[quantity]"]')) {
+                    const maxAttr = e.target.getAttribute('max');
+                    const maxVal = maxAttr ? parseInt(maxAttr, 10) : null;
+
+                    // Kalau kosong, biarin dulu
+                    if (e.target.value === '') {
+                        recalc();
+                        return;
+                    }
+
+                    let val = parseInt(e.target.value, 10);
+
+                    if (!isNaN(val) && maxVal !== null && val > maxVal) {
+                        e.target.value = String(maxVal);
+                    }
+
+                    recalc();
+                }
+            });
+
+
+            // Remove item row on click "x / Hapus"
+            wrapper.addEventListener('click', function(e) {
+                const btn = e.target.closest('.remove-item');
+                if (!btn) return;
+                const row = btn.closest('.item-row');
+                if (row) {
+                    row.remove();
+                    recalc();
+                }
+            });
+
+            // Scan handler: auto-handle without pressing Enter
+            if (scanInput) {
+                let scanTimer = null;
+                const triggerScan = () => {
+                    const val = (scanInput.value || '').trim();
+                    if (!val) return;
+                    handleScan(val);
+                    scanInput.value = '';
+                };
+                scanInput.addEventListener('input', function() {
+                    if (scanTimer) clearTimeout(scanTimer);
+                    // small debounce to let scanner finish
+                    scanTimer = setTimeout(triggerScan, 150);
+                });
+                // also trigger on change for scanners that fire change
+                scanInput.addEventListener('change', triggerScan);
             }
-        }
-        document.querySelectorAll('.metode-pembayaran-radio').forEach(radio => {
-            radio.addEventListener('change', toggleBuktiPembayaran);
-        });
-        // Jalankan saat load jika ada value lama
-        toggleBuktiPembayaran();
+            if (scanClear) {
+                scanClear.addEventListener('click', function() {
+                    scanInput && (scanInput.value = '');
+                    scanInput && scanInput.focus();
+                });
+            }
 
-        // Also recalc on initial load (in case defaults present)
-        recalc();
-    })();
-</script>
+            // JIKA METODE PEMBAYARAN BUKAN TUNAI, TAMPILKAN INPUT FILE BUKTI PEMBAYARAN
+            function toggleBuktiPembayaran() {
+                const radios = document.querySelectorAll('.metode-pembayaran-radio');
+                let selected = null;
+                radios.forEach(r => {
+                    if (r.checked) selected = r.value;
+                });
+                const wrapper = document.getElementById('bukti-pembayaran-wrapper');
+                if (selected && selected !== 'tunai') {
+                    wrapper.style.display = '';
+                } else {
+                    wrapper.style.display = 'none';
+                }
+            }
+            document.querySelectorAll('.metode-pembayaran-radio').forEach(radio => {
+                radio.addEventListener('change', toggleBuktiPembayaran);
+            });
+            // Jalankan saat load jika ada value lama
+            toggleBuktiPembayaran();
+
+            // Also recalc on initial load (in case defaults present)
+            recalc();
+        })();
+    </script>
 @endpush
