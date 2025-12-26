@@ -55,9 +55,19 @@
                             @endif
                         </div>
                         <div>
+                            <div class="text-gray-600">Metode Pembayaran</div>
+                            <div class="font-semibold">{{ ucfirst($invoice->metode_pembayaran ?? '-') }}</div>
+                        </div>
+                        <div>
                             <div class="text-gray-600">Status Setor</div>
                             @php $isSetor = ($invoice->status_setor ?? 'belum') === 'sudah'; @endphp
                             <span class="inline-block px-2 py-1 rounded text-xs {{ $isSetor ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">{{ $isSetor ? 'Setor' : 'Belum' }}</span>
+                        </div>
+                        <div>
+                            <div class="text-gray-600">Bukti Pembayaran</div>
+                            {!! $invoice->bukti_setor
+                                ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$invoice->bukti_setor).'">Lihat</a>'
+                                : '-' !!}
                         </div>
                     </div>
 
@@ -83,9 +93,32 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="3" class="px-4 py-2 border text-right font-semibold">Grand Total</td>
-                                    <td class="px-4 py-2 border font-semibold">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</td>
+                                    <td colspan="3" class="px-4 py-2 border text-right font-semibold">
+                                        Ongkos Kirim <span class="text-xs text-gray-500">(+)</span>
+                                    </td>
+                                    <td class="px-4 py-2 border font-semibold text-green-600">
+                                        + Rp {{ number_format($invoice->ongkos_kirim ?? 0, 0, ',', '.') }}
+                                    </td>
                                 </tr>
+
+                                <tr>
+                                    <td colspan="3" class="px-4 py-2 border text-right font-semibold">
+                                        Diskon <span class="text-xs text-gray-500">(−)</span>
+                                    </td>
+                                    <td class="px-4 py-2 border font-semibold text-red-600">
+                                        − Rp {{ number_format($invoice->diskon ?? 0, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+
+                                <tr class="bg-gray-50">
+                                    <td colspan="3" class="px-4 py-2 border text-right font-bold">
+                                        Grand Total
+                                    </td>
+                                    <td class="px-4 py-2 border font-bold">
+                                        Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+
                             </tfoot>
                         </table>
                     </div>

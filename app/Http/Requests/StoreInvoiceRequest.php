@@ -22,8 +22,14 @@ class StoreInvoiceRequest extends FormRequest
             'tanggal_jatuh_tempo' => ['required', 'date', 'after_or_equal:tanggal_invoice'],
             'status_pembayaran' => ['nullable', 'in:unpaid,paid,overdue,cancelled,partial'],
             'status_setor' => ['nullable', 'in:belum,sudah'],
-            'bukti_setor' => ['nullable', 'string'],
+            // File upload untuk bukti setor
+            'bukti_setor' => ['nullable', 'image', 'max:5120'], // maks 5MB
             'alasan_cancel' => ['nullable', 'string'],
+
+            // Kolom tambahan dari form
+            'metode_pembayaran' => ['nullable', 'in:tunai,transfer,qris'],
+            'ongkos_kirim' => ['nullable', 'string'], // dikirim sebagai angka string; diparse di controller
+            'diskon' => ['nullable', 'string'], // dikirim sebagai angka string; diparse di controller
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],

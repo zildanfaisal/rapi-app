@@ -21,7 +21,7 @@
                             </ul>
                         </div>
                     @endif
-                    <form method="POST" action="{{ route('invoices.store') }}">
+                    <form method="POST" action="{{ route('invoices.store') }}" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="user_id" value="{{ auth()->id() }}">
                         <div class="mb-4">
@@ -29,7 +29,7 @@
                             <select name="customer_id" id="customer_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                 <option value="" disabled selected>{{ __('Pilih Pelanggan') }}</option>
                                 @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->nama_customer }}</option>
+                                    <option value="{{ $customer->id }}" @selected(old('customer_id') == $customer->id)>{{ $customer->nama_customer }} - {{ $customer->kategori_pelanggan }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -89,7 +89,7 @@
                                         <label class="block text-xs text-gray-600">{{ __('Harga') }}</label>
                                         <div class="mt-1 flex items-center">
                                             <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-                                            <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" />
+                                            <input type="text" class="item-price-display w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" autocomplete="off" />
                                             <input type="hidden" name="items[0][harga]" class="item-price" required />
                                             <button type="button" class="remove-item ml-2 px-2 py-2 bg-red-600 text-white rounded hover:bg-red-700" aria-label="Hapus item">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -101,6 +101,62 @@
                                 </div>
                             </div>
                             <button type="button" id="add-item" class="mt-3 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700">{{ __('Tambah Produk') }}</button>
+                        </div>
+                        <div class="mb-6">
+                            <div class="space-y-3">
+                                <div class="item-row grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-600">{{ __('Ongkos Kirim') }}</label>
+                                        <div class="mt-1 flex items-center">
+                                            <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
+                                            <input type="text" id="ongkos-kirim-display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" autocomplete="off" />
+                                            <input type="hidden" name="ongkos_kirim" id="ongkos-kirim"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600">{{ __('Diskon (Opsional)') }}</label>
+                                        <div class="mt-1 flex items-center">
+                                            <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
+                                            <input type="text" id="diskon-display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" autocomplete="off" />
+                                            <input type="hidden" name="diskon" id="diskon"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label for="metode_pembayaran" class="block text-sm font-medium text-gray-700">{{ __('Metode Pembayaran') }}</label>
+                            <label class="flex items-center gap-2 mt-2">
+                                <input
+                                    type="radio"
+                                    name="metode_pembayaran"
+                                    value="tunai"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio"
+                                >
+                                <span class="text-sm text-gray-700">Tunai (Cash)</span>
+                            </label>
+                            <label class="flex items-center gap-2 mt-2">
+                                <input
+                                    type="radio"
+                                    name="metode_pembayaran"
+                                    value="transfer"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio"
+                                >
+                                <span class="text-sm text-gray-700">Transfer (TF)</span>
+                            </label>
+                            <label class="flex items-center gap-2 mt-2">
+                                <input
+                                    type="radio"
+                                    name="metode_pembayaran"
+                                    value="qris"
+                                    class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio"
+                                >
+                                <span class="text-sm text-gray-700">QRIS</span>
+                            </label>
+                        </div>
+                        <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:none;">
+                            <label for="bukti_setor" class="block text-sm font-medium text-gray-700">{{ __('Bukti Pembayaran') }}</label>
+                            <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
                         </div>
                         <div class="mb-4">
                             <label for="status_pembayaran" class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
@@ -150,7 +206,17 @@
 
 
         function formatRupiah(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            // Pastikan input string/number, hilangkan .00 di belakang jika ada
+            num = num.toString();
+            // Jika ada koma/desimal, buang bagian desimal
+            if (num.indexOf('.') !== -1) {
+                num = num.split('.')[0];
+            }
+            if (num.indexOf(',') !== -1) {
+                num = num.split(',')[0];
+            }
+            // Format ribuan
+            return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
         function unformatRupiah(str) {
@@ -159,14 +225,55 @@
 
         function recalc() {
             let total = 0;
+            // Hitung total produk
             wrapper.querySelectorAll('.item-row').forEach(row => {
                 const qty = parseFloat(row.querySelector('input[name$="[quantity]"]').value || 0);
                 const hargaRawEl = row.querySelector('.item-price');
                 const harga = parseFloat(hargaRawEl?.value || 0);
                 total += (qty * harga);
             });
+            // Tambahkan ongkos kirim
+            const ongkirVal = document.getElementById('ongkos-kirim')?.value;
+            const ongkir = ongkirVal ? parseInt(ongkirVal, 10) : 0;
+            if (!isNaN(ongkir) && ongkirVal !== '') total += ongkir;
+            // Kurangi diskon
+            const diskonVal = document.getElementById('diskon')?.value;
+            const diskon = diskonVal ? parseInt(diskonVal, 10) : 0;
+            if (!isNaN(diskon) && diskonVal !== '') total -= diskon;
+            if (total < 0) total = 0;
             grandEl.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(total);
         }
+        // Format rupiah untuk ongkos kirim dan diskon
+        function handleRupiahInput(displayId, hiddenId) {
+            const display = document.getElementById(displayId);
+            const hidden = document.getElementById(hiddenId);
+            if (!display || !hidden) return;
+            display.addEventListener('input', function() {
+                let val = unformatRupiah(display.value);
+                // Jika kosong, biarkan kosong
+                if (val === '') {
+                    display.value = '';
+                    hidden.value = '';
+                    recalc();
+                    return;
+                }
+                display.value = formatRupiah(val);
+                hidden.value = val;
+                recalc();
+            });
+            // Inisialisasi jika ada value lama
+            let val = unformatRupiah(display.value);
+            if (val !== '') {
+                display.value = formatRupiah(val);
+                hidden.value = val;
+            } else {
+                display.value = '';
+                hidden.value = '';
+            }
+        }
+
+        handleRupiahInput('ongkos-kirim-display', 'ongkos-kirim');
+        handleRupiahInput('diskon-display', 'diskon');
 
         function selectProductInRow(row, productId) {
             const sel = row.querySelector('.item-product');
@@ -305,6 +412,23 @@
             }
         });
 
+        wrapper.addEventListener('input', function(e){
+            if (e.target.classList.contains('item-price-display')) {
+                const row = e.target.closest('.item-row');
+                const priceHidden = row.querySelector('.item-price');
+                let val = unformatRupiah(e.target.value);
+                if (val === '') {
+                    e.target.value = '';
+                    priceHidden.value = '';
+                    recalc();
+                    return;
+                }
+                e.target.value = formatRupiah(val);
+                priceHidden.value = val;
+                recalc();
+            }
+        });
+
         // Recalculate on qty or harga change
         wrapper.addEventListener('input', function(e){
             if (e.target.matches('input[name$="[quantity]"]')) {
@@ -359,6 +483,24 @@
         if (scanClear) {
             scanClear.addEventListener('click', function(){ scanInput && (scanInput.value = ''); scanInput && scanInput.focus(); });
         }
+
+        // JIKA METODE PEMBAYARAN BUKAN TUNAI, TAMPILKAN INPUT FILE BUKTI PEMBAYARAN
+        function toggleBuktiPembayaran() {
+            const radios = document.querySelectorAll('.metode-pembayaran-radio');
+            let selected = null;
+            radios.forEach(r => { if (r.checked) selected = r.value; });
+            const wrapper = document.getElementById('bukti-pembayaran-wrapper');
+            if (selected && selected !== 'tunai') {
+                wrapper.style.display = '';
+            } else {
+                wrapper.style.display = 'none';
+            }
+        }
+        document.querySelectorAll('.metode-pembayaran-radio').forEach(radio => {
+            radio.addEventListener('change', toggleBuktiPembayaran);
+        });
+        // Jalankan saat load jika ada value lama
+        toggleBuktiPembayaran();
 
         // Also recalc on initial load (in case defaults present)
         recalc();

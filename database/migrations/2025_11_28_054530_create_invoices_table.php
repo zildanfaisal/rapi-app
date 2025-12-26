@@ -18,7 +18,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->date('tanggal_invoice');
             $table->date('tanggal_jatuh_tempo');
+            $table->decimal('ongkos_kirim', 15, 2)->default(0)->nullable();
+            $table->decimal('diskon', 15, 2)->default(0)->nullable();
             $table->decimal('grand_total', 15, 2);
+            $table->text('metode_pembayaran')->nullable();
             $table->enum('status_pembayaran', ['paid', 'unpaid', 'overdue', 'cancelled'])->default('unpaid');
             $table->enum('status_setor', ['sudah', 'belum'])->default('belum');
             $table->text('bukti_setor')->nullable();

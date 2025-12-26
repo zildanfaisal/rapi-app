@@ -13,6 +13,7 @@ use App\Http\Requests\SetorInvoiceRequest;
 use App\Models\ProductBatch;
 use App\Models\Product;
 use App\Traits\ActivityLogger;
+use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
@@ -69,20 +70,41 @@ class InvoiceController extends Controller
     {
         $data = $request->validated();
 
-        return DB::transaction(function () use ($data) {
+        // Normalisasi input tambahan dari form
+        $ongkir = (int) preg_replace('/\D/', '', (string) ($request->input('ongkos_kirim') ?? 0));
+        $diskon = (int) preg_replace('/\D/', '', (string) ($request->input('diskon') ?? 0));
+        $metodePembayaran = $request->input('metode_pembayaran');
+
+        // Handle upload bukti_setor (jika ada) — gunakan path yang sama dengan updateSetor
+        $buktiPath = null;
+        if ($request->hasFile('bukti_setor')) {
+            $buktiPath = $request->file('bukti_setor')->store('setor', 'public');
+        }
+
+        return DB::transaction(function () use ($data, $ongkir, $diskon, $metodePembayaran, $buktiPath) {
+            // Tentukan status setor berdasarkan metode pembayaran
+            $statusSetor = ($metodePembayaran && $metodePembayaran !== 'tunai') ? 'sudah' : ($data['status_setor'] ?? 'belum');
+            $tanggalSetor = $statusSetor === 'sudah' ? now()->toDateString() : null;
+
             $invoice = Invoice::create([
                 'invoice_number' => $data['invoice_number'] ?? Str::upper(Str::random(8)),
                 'customer_id' => $data['customer_id'],
                 'user_id' => $data['user_id'],
                 'tanggal_invoice' => $data['tanggal_invoice'],
                 'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],
-                'tanggal_setor' => null,
+                'tanggal_setor' => $tanggalSetor,
                 'status_pembayaran' => $data['status_pembayaran'] ?? 'unpaid',
-                'status_setor' => $data['status_setor'] ?? 'belum',
-                'bukti_setor' => $data['bukti_setor'] ?? null,
+                'status_setor' => $statusSetor,
+                'bukti_setor' => $buktiPath,
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
                 'grand_total' => 0,
             ]);
+
+            // Jika kolom tersedia di DB, set nilai tambahan
+            if (!is_null($metodePembayaran)) { $invoice->metode_pembayaran = $metodePembayaran; }
+            $invoice->ongkos_kirim = $ongkir;
+            $invoice->diskon = $diskon;
+            $invoice->save();
 
             $grandTotal = 0;
             foreach ($data['items'] as $item) {
@@ -119,6 +141,8 @@ class InvoiceController extends Controller
                 }
             }
 
+            // Terapkan ongkos kirim (+) dan diskon (-) ke grand total
+            $grandTotal = max(0, (float) $grandTotal + (float) $ongkir - (float) $diskon);
             $invoice->update(['grand_total' => $grandTotal]);
 
             if (($invoice->status_pembayaran ?? 'unpaid') === 'paid') {
@@ -175,7 +199,21 @@ class InvoiceController extends Controller
     {
         $data = $request->validated();
 
-        return DB::transaction(function () use ($data, $invoice) {
+        // Normalisasi input tambahan dari form update
+        $ongkir = (int) preg_replace('/\D/', '', (string) ($request->input('ongkos_kirim') ?? 0));
+        $diskon = (int) preg_replace('/\D/', '', (string) ($request->input('diskon') ?? 0));
+        $metodePembayaran = $request->input('metode_pembayaran');
+
+        // Handle upload bukti_setor (jika ada) — gunakan path 'setor' dan hapus lama
+        $buktiPath = null;
+        if ($request->hasFile('bukti_setor')) {
+            if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
+                Storage::disk('public')->delete($invoice->bukti_setor);
+            }
+            $buktiPath = $request->file('bukti_setor')->store('setor', 'public');
+        }
+
+        return DB::transaction(function () use ($data, $invoice, $ongkir, $diskon, $metodePembayaran, $buktiPath) {
             $oldValues = $invoice->only([
                 'customer_id', 'user_id', 'tanggal_invoice', 'tanggal_jatuh_tempo',
                 'status_pembayaran', 'grand_total', 'alasan_cancel'
@@ -228,6 +266,14 @@ class InvoiceController extends Controller
                 else if ($p = Product::find($batch->product_id)) { $p->refreshAvailability(); }
             }
 
+            // Tentukan status_setor berdasarkan metode pembayaran (jika non tunai, set 'sudah')
+            $statusSetor = $invoice->status_setor;
+            $tanggalSetor = $invoice->tanggal_setor;
+            if ($metodePembayaran && $metodePembayaran !== 'tunai') {
+                $statusSetor = 'sudah';
+                $tanggalSetor = now()->toDateString();
+            }
+
             $invoice->update([
                 'customer_id' => $data['customer_id'],
                 'user_id' => $data['user_id'],
@@ -235,7 +281,16 @@ class InvoiceController extends Controller
                 'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],
                 'status_pembayaran' => $data['status_pembayaran'],
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
+                'status_setor' => $statusSetor,
+                'tanggal_setor' => $tanggalSetor,
             ]);
+
+            // Set kolom tambahan jika tersedia
+            if (!is_null($metodePembayaran)) { $invoice->metode_pembayaran = $metodePembayaran; }
+            $invoice->ongkos_kirim = $ongkir;
+            $invoice->diskon = $diskon;
+            if (!is_null($buktiPath)) { $invoice->bukti_setor = $buktiPath; }
+            $invoice->save();
 
             $invoice->items()->delete();
 
@@ -258,6 +313,8 @@ class InvoiceController extends Controller
                 }
             }
 
+            // Terapkan ongkos kirim (+) dan diskon (-) ke grand total
+            $grandTotal = max(0, (float) $grandTotal + (float) $ongkir - (float) $diskon);
             $invoice->update(['grand_total' => $grandTotal]);
 
             try {
@@ -360,6 +417,10 @@ class InvoiceController extends Controller
     {
         self::logDelete($invoice, 'Invoice');
 
+        if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
+            Storage::disk('public')->delete($invoice->bukti_setor);
+        }
+
         $invoice->delete();
         return redirect()->route('invoices.index')->with('success', 'Invoice deleted successfully');
     }
@@ -399,8 +460,8 @@ class InvoiceController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('bukti_setor')) {
-            if ($invoice->bukti_setor && \Illuminate\Support\Facades\Storage::disk('public')->exists($invoice->bukti_setor)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($invoice->bukti_setor);
+            if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
+                Storage::disk('public')->delete($invoice->bukti_setor);
             }
             $path = $request->file('bukti_setor')->store('setor', 'public');
             $data['bukti_setor'] = $path;

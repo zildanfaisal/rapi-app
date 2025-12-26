@@ -26,6 +26,10 @@ class UpdateInvoiceRequest extends FormRequest
                 'unique:invoices,invoice_number,' . $invoiceId
             ],
             'status_pembayaran' => ['required', 'in:unpaid,paid,overdue,cancelled'],
+            'metode_pembayaran' => ['nullable', 'in:tunai,transfer,qris'],
+            'ongkos_kirim' => ['nullable', 'string'],
+            'diskon' => ['nullable', 'string'],
+            'bukti_setor' => ['nullable', 'image', 'max:5120'],
             'alasan_cancel' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],

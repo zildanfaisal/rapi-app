@@ -319,11 +319,10 @@
                 </div>
             </div>
             <div class="company-info">
-                Jl. Alamat Perusahaan No. 123<br>
-                Kota, Provinsi 12345<br>
-                Telp: (021) 1234-5678<br>
-                Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a5cccbc3cae5d5c0d7d0d6c4cdc4c4cb8bc6cac8">[email&#160;protected]</a><br>
-                Website: www.perusahaan.com
+                Jl. Jend. Soeharto No.124, Naikolan, Kec. Maulafa<br>
+                Kota Kupang, Provinsi Nusa Tenggara Timur 85142<br>
+                Telp: 08881930769<br>
+                Email: <a href="#">rapipvcinterior@gmail.com</a><br>
             </div>
         </div>
         <div class="header-right">
@@ -366,10 +365,10 @@
         <div class="info-box">
             <div class="info-title">Informasi Pembayaran</div>
             <div class="info-content">
-                <strong>Metode:</strong> Transfer Bank<br>
+                <strong>Metode:</strong> {{ ucfirst($invoice->metode_pembayaran ?? '-') }}<br>
                 <strong>Bank:</strong> BCA<br>
-                <strong>No. Rek:</strong> 1234567890<br>
-                <strong>A/N:</strong> NAMA PERUSAHAAN
+                <strong>No. Rek:</strong> 5870230895<br>
+                <strong>A/N:</strong> H HERMAWAN WISNU PUTRA
             </div>
         </div>
     </div>
@@ -389,10 +388,27 @@
         @foreach($invoice->items as $index => $item)
             <tr>
                 <td class="center">{{ $index + 1 }}</td>
-                <td>{{ $item->product->nama_product ?? $item->product->nama ?? 'Produk #'.$item->product_id }}</td>
+                <td>{{ $item->product->nama_produk ?? $item->product->nama ?? 'Produk #'.$item->product_id }}</td>
                 <td class="center">{{ $item->quantity }}</td>
                 <td class="right">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                 <td class="right">Rp {{ number_format($item->sub_total, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td class="right" colspan="4">
+                    Ongkos Kirim
+                </td>
+                <td class="right">
+                    Rp {{ number_format($invoice->ongkos_kirim ?? 0, 0, ',', '.') }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="right" colspan="4">
+                    Diskon
+                </td>
+                <td class="right">
+                    Rp {{ number_format($invoice->diskon ?? 0, 0, ',', '.') }}
+                </td>
             </tr>
         @endforeach
         </tbody>
@@ -404,16 +420,6 @@
             <span class="summary-label">Sub Total:</span>
             <span class="summary-value">Rp {{ number_format($invoice->items->sum('sub_total'), 0, ',', '.') }}</span>
         </div>
-        {{-- Uncomment jika ada diskon atau pajak
-        <div class="summary-row">
-            <span class="summary-label">Diskon:</span>
-            <span class="summary-value">Rp 0</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">PPN (11%):</span>
-            <span class="summary-value">Rp 0</span>
-        </div>
-        --}}
         <div class="summary-row summary-total">
             <span class="summary-label">GRAND TOTAL:</span>
             <span class="summary-value">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</span>

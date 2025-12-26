@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
         $paIpong = User::firstOrCreate(
             ['email' => 'ipong@gmail.com'],
             [
-                'name' => 'Pa Ipong',
+                'name' => 'Ipong',
                 'password' => Hash::make('password'),
                 'status' => 'active',
             ]
@@ -34,9 +34,9 @@ class UserSeeder extends Seeder
 
         // 2. Pa Adi (Super Admin)
         $paAdi = User::firstOrCreate(
-            ['email' => 'adi@gmail.com'],
+            ['email' => 'adhi@gmail.com'],
             [
-                'name' => 'Pa Adi',
+                'name' => 'Adhi',
                 'password' => Hash::make('password'),
                 'status' => 'active',
             ]
@@ -45,17 +45,17 @@ class UserSeeder extends Seeder
             $paAdi->assignRole($superRole);
         }
 
-        // 3. Bang Bagas (Super Admin)
-        $bangBagas = User::firstOrCreate(
+        // 3.  Bagas (Super Admin)
+        $bagas = User::firstOrCreate(
             ['email' => 'bagas@gmail.com'],
             [
-                'name' => 'Bang Bagas',
+                'name' => 'Bagas',
                 'password' => Hash::make('password'),
                 'status' => 'active',
             ]
         );
-        if (!$bangBagas->hasRole($superRole->name)) {
-            $bangBagas->assignRole($superRole);
+        if (!$bagas->hasRole($superRole->name)) {
+            $bagas->assignRole($superRole);
         }
 
         // ============================================
@@ -63,24 +63,24 @@ class UserSeeder extends Seeder
         // ============================================
 
         // 4. Bule (Admin)
-        $bule = User::firstOrCreate(
-            ['email' => 'bule@gmail.com'],
+        $lutfi = User::firstOrCreate(
+            ['email' => 'lutfi@gmail.com'],
             [
-                'name' => 'Bule',
+                'name' => 'Lutfi',
                 'password' => Hash::make('password'),
                 'status' => 'active',
             ]
         );
-        if (!$bule->hasRole($adminRole->name)) {
-            $bule->assignRole($adminRole);
+        if (!$lutfi->hasRole($adminRole->name)) {
+            $lutfi->assignRole($adminRole);
         }
 
         // Output info
         $this->command->info('✅ Default users created successfully:');
         $this->command->info('   - Pa Ipong (Super Admin): ipong@gmail.com');
-        $this->command->info('   - Pa Adi (Super Admin): adi@gmail.com');
-        $this->command->info('   - Bang Bagas (Super Admin): bagas@gmail.com');
-        $this->command->info('   - Bule (Admin): bule@gmail.com');
+        $this->command->info('   - Pa Adhi (Super Admin): adhi@gmail.com');
+        $this->command->info('   - Bagas (Super Admin): bagas@gmail.com');
+        $this->command->info('   - Lutfi (Admin): lutfi@gmail.com');
         $this->command->info('   Default password: password');
     }
 }

@@ -106,6 +106,7 @@
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Tanggal</th>
                                 <th class="px-3 py-2 border text-right text-xs uppercase">Total</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Status</th>
+                                <th class="px-3 py-2 border text-center text-xs uppercase">Bukti Pembayaran</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
                             </tr>
                         </thead>
@@ -135,6 +136,11 @@
                                     @else
                                         <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{ ucfirst($i->status_pembayaran) }}</span>
                                     @endif
+                                </td>
+                                <td class="border px-3 py-2">
+                                    {!! $i->bukti_setor
+                                        ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$i->bukti_setor).'">Lihat</a>'
+                                        : '-' !!}
                                 </td>
                                 <td class="border px-3 py-2">
                                     <div class="flex flex-col space-y-1">
@@ -193,6 +199,24 @@
                         <div>Qty: {{ $i->items->sum('quantity') }}</div>
                         <div>Total: <b>Rp {{ number_format($i->grand_total,0,',','.') }}</b></div>
                         <div>Tanggal: {{ $i->tanggal_invoice }}</div>
+                        <div>Status: 
+                            @if($i->status_pembayaran === 'paid')
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Lunas</span>
+                            @elseif($i->status_pembayaran === 'unpaid')
+                                <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Lunas</span>
+                            @elseif($i->status_pembayaran === 'overdue')
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Terlambat</span>
+                            @elseif($i->status_pembayaran === 'cancelled')
+                                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Batal</span>
+                            @else
+                                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{ ucfirst($i->status_pembayaran) }}</span>
+                            @endif    
+                        </div>
+                        <div>Bukti Pembayaran: 
+                            {!! $i->bukti_setor
+                                ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$i->bukti_setor).'">Lihat</a>'
+                                : '-' !!}
+                        </div>
                     </div>
 
                     <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">

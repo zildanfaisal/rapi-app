@@ -66,12 +66,11 @@ class RolePermissionSeeder extends Seeder
         // Admin gets a subset
         $adminPermissions = [
             // Master Products
-            'products.view', 'products.create', 'products.update', 'products.delete',
             'product-batches.view', 'product-batches.create', 'product-batches.update', 'product-batches.delete',
             'product-batches.report',
             // Penjualan
-            'monthly-target.view', 'monthly-target.create', 'monthly-target.update', 'monthly-target.delete',
-            'invoices.view', 'invoices.create', 'invoices.update', 'invoices.setor', 'invoices.setor-update', 'invoices.delete', 'invoices.report',
+            'monthly-target.view',
+            'invoices.view', 'invoices.create', 'invoices.update', 'invoices.setor', 'invoices.delete', 'invoices.report',
             'surat-jalan.view', 'surat-jalan.create', 'surat-jalan.update', 'surat-jalan.delete', 'surat-jalan.report',
             'transactions.view', 'transactions.create',
             // Finance (Input Keuangan + History)

@@ -23,7 +23,7 @@
                             </ul>
                         </div>
                     @endif
-                    <form method="POST" action="{{ route('invoices.update', $invoice->id) }}">
+                    <form method="POST" action="{{ route('invoices.update', $invoice->id) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="user_id" value="{{ auth()->id() }}">
@@ -32,7 +32,7 @@
                             <select name="customer_id" id="customer_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                 <option value="" disabled selected>{{ __('Pilih Pelanggan') }}</option>
                                 @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" @selected(old('customer_id', $invoice->customer_id) == $customer->id)>{{ $customer->nama_customer }}</option>
+                                    <option value="{{ $customer->id }}" @selected(old('customer_id', $invoice->customer_id) == $customer->id)>{{ $customer->nama_customer }} - {{ $customer->kategori_pelanggan }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -131,6 +131,48 @@
                                 <option value="cancelled" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='cancelled')>Dibatalkan</option>
                             </select>
                         </div>
+                        <div class="mb-6">
+                            <div class="space-y-3">
+                                <div class="item-row grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-600">{{ __('Ongkos Kirim') }}</label>
+                                        <div class="mt-1 flex items-center">
+                                            <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
+                                            <input type="text" id="ongkos-kirim-display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" autocomplete="off" value="{{ old('ongkos_kirim', $invoice->ongkos_kirim ?? '') ? number_format(old('ongkos_kirim', $invoice->ongkos_kirim), 0, ',', '.') : '' }}" />
+                                            <input type="hidden" name="ongkos_kirim" id="ongkos-kirim" value="{{ old('ongkos_kirim', $invoice->ongkos_kirim ?? '') }}"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600">{{ __('Diskon (Opsional)') }}</label>
+                                        <div class="mt-1 flex items-center">
+                                            <span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
+                                            <input type="text" id="diskon-display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" autocomplete="off" value="{{ old('diskon', $invoice->diskon ?? '') ? number_format(old('diskon', $invoice->diskon), 0, ',', '.') : '' }}" />
+                                            <input type="hidden" name="diskon" id="diskon" value="{{ old('diskon', $invoice->diskon ?? '') }}"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label for="metode_pembayaran" class="block text-sm font-medium text-gray-700">{{ __('Metode Pembayaran') }}</label>
+                            @php $metode = old('metode_pembayaran', $invoice->metode_pembayaran ?? null); @endphp
+                            <label class="flex items-center gap-2 mt-2">
+                                <input type="radio" name="metode_pembayaran" value="tunai" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio" @checked($metode === 'tunai')>
+                                <span class="text-sm text-gray-700">Tunai (Cash)</span>
+                            </label>
+                            <label class="flex items-center gap-2 mt-2">
+                                <input type="radio" name="metode_pembayaran" value="transfer" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio" @checked($metode === 'transfer')>
+                                <span class="text-sm text-gray-700">Transfer (TF)</span>
+                            </label>
+                            <label class="flex items-center gap-2 mt-2">
+                                <input type="radio" name="metode_pembayaran" value="qris" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio" @checked($metode === 'qris')>
+                                <span class="text-sm text-gray-700">QRIS</span>
+                            </label>
+                        </div>
+                        <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:none;">
+                            <label for="bukti_setor" class="block text-sm font-medium text-gray-700">{{ __('Bukti Pembayaran') }}</label>
+                            <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                        </div>
                         <div class="mb-4">
                             <label for="alasan_cancel" class="block text-sm font-medium text-gray-700">{{ __('Alasan Batal') }}</label>
                             <div class="mt-1 flex gap-2">
@@ -219,7 +261,10 @@
 
 
         function formatRupiah(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            num = num.toString();
+            if (num.indexOf('.') !== -1) num = num.split('.')[0];
+            if (num.indexOf(',') !== -1) num = num.split(',')[0];
+            return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
         function unformatRupiah(str) {
@@ -234,8 +279,59 @@
                 const harga = parseFloat(hargaRawEl?.value || 0);
                 total += (qty * harga);
             });
+            // Tambahkan ongkos kirim, kurangi diskon
+            const ongkirVal = document.getElementById('ongkos-kirim')?.value;
+            const diskonVal = document.getElementById('diskon')?.value;
+            const ongkir = ongkirVal ? parseInt(ongkirVal, 10) : 0;
+            const diskon = diskonVal ? parseInt(diskonVal, 10) : 0;
+            if (!isNaN(ongkir) && ongkirVal !== '') total += ongkir;
+            if (!isNaN(diskon) && diskonVal !== '') total -= diskon;
+            if (total < 0) total = 0;
             grandEl.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(total);
         }
+
+        // Format rupiah untuk ongkir & diskon
+        function handleRupiahInput(displayId, hiddenId) {
+            const display = document.getElementById(displayId);
+            const hidden = document.getElementById(hiddenId);
+            if (!display || !hidden) return;
+            display.addEventListener('input', function() {
+                let val = (display.value || '').toString().replace(/[^0-9]/g, '');
+                if (val === '') {
+                    display.value = '';
+                    hidden.value = '';
+                    recalc();
+                    return;
+                }
+                display.value = formatRupiah(val);
+                hidden.value = val;
+                recalc();
+            });
+            // init on load
+            let val = (display.value || '').toString().replace(/[^0-9]/g, '');
+            if (val !== '') {
+                display.value = formatRupiah(val);
+                hidden.value = val;
+            } else {
+                display.value = '';
+                hidden.value = '';
+            }
+        }
+
+        handleRupiahInput('ongkos-kirim-display', 'ongkos-kirim');
+        handleRupiahInput('diskon-display', 'diskon');
+
+        // Tampilkan input bukti setor jika metode bukan tunai
+        function toggleBuktiPembayaran() {
+            const radios = document.querySelectorAll('.metode-pembayaran-radio');
+            let selected = null;
+            radios.forEach(r => { if (r.checked) selected = r.value; });
+            const bw = document.getElementById('bukti-pembayaran-wrapper');
+            if (selected && selected !== 'tunai') bw.style.display = '';
+            else bw.style.display = 'none';
+        }
+        document.querySelectorAll('.metode-pembayaran-radio').forEach(r => r.addEventListener('change', toggleBuktiPembayaran));
+        toggleBuktiPembayaran();
 
         addBtn.addEventListener('click', function() {
             const tpl = document.createElement('div');
