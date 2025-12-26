@@ -161,20 +161,25 @@
 			recalc();
 			toggleAlasanRequiredEdit();
 		})();
+		const fotoInput = document.getElementById('bukti_pengiriman');
+		const previewImage = document.getElementById('previewImage');
+
+		if (fotoInput && previewImage) {
+			fotoInput.addEventListener('change', function(event) {
+				const file = event.target.files[0];
+
+				if (file) {
+					previewImage.src = URL.createObjectURL(file);
+					previewImage.classList.remove('hidden');
+				} else {
+					previewImage.classList.add('hidden');
+					previewImage.src = "";
+				}
+			});
+		}
+
 	})();
 
 	// Preview Foto Upload
-	document.getElementById('bukti_pengiriman').addEventListener('change', function(event) {
-		let preview = document.getElementById('previewImage');
-		let file = event.target.files[0];
-
-		if (file) {
-			preview.src = URL.createObjectURL(file);
-			preview.classList.remove('hidden');
-		} else {
-			preview.classList.add('hidden');
-			preview.src = "";
-		}
-	});
 </script>
 @endpush

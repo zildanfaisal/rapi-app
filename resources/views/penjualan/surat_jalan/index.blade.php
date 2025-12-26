@@ -85,15 +85,10 @@
                                 <td class="px-3 py-2 border text-left">{{ $sj->customer->nama_customer ?? '-' }}</td>
                                 <td class="px-3 py-2 border text-left">{{ $sj->invoice->invoice_number ?? $sj->invoice_id }}</td>
                                 <td class="px-3 py-2 border text-center">{{ $sj->tanggal }}</td>
-                                <td class="px-3 py-2 border text-center">
-                                    @if($sj->bukti_pengiriman)
-                                    <img
-                                        src="{{ asset('storage/' . $sj->bukti_pengiriman) }}"
-                                        class="mt-2 w-40 h-40 object-cover rounded-md border"
-                                        alt="Bukti Pengiriman">
-                                    @else
-                                    -
-                                    @endif
+                                <td class="border px-3 py-2">
+                                    {!! $sj->bukti_pengiriman
+                                    ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$sj->bukti_pengiriman).'">Lihat</a>'
+                                    : '-' !!}
                                 </td>
 
                                 <td class="px-3 py-2 border text-center">

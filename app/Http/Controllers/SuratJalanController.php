@@ -111,6 +111,7 @@ class SuratJalanController extends Controller
     {
         $this->syncSuratJalanTotals([$suratJalan->id]);
         $suratJalan->load(['invoice', 'customer', 'transactions']);
+
         return view('penjualan.surat_jalan.show', compact('suratJalan'));
     }
 
@@ -128,6 +129,7 @@ class SuratJalanController extends Controller
         $this->syncSuratJalanTotals([$suratJalan->id]);
         $suratJalan->load(['invoice', 'customer']);
         $invoices = Invoice::with(['customer'])->orderByDesc('created_at')->get();
+        print($suratJalan->bukti_pengiriman);
         return view('penjualan.surat_jalan.edit', compact('suratJalan', 'invoices'));
     }
 
@@ -192,8 +194,8 @@ class SuratJalanController extends Controller
     public function destroy(SuratJalan $suratJalan)
     {
         self::logDelete($suratJalan, 'Surat Jalan');
-        if ($product->foto_produk && Storage::disk('public')->exists($product->foto_produk)) {
-            Storage::disk('public')->delete($product->foto_produk);
+        if ($suratJalan->bukti_pengiriman && Storage::disk('public')->exists($suratJalan->bukti_pengiriman)) {
+            Storage::disk('public')->delete($suratJalan->bukti_pengiriman);
         }
         $suratJalan->delete();
         return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan deleted successfully');

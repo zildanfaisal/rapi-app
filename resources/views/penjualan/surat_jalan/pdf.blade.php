@@ -311,11 +311,10 @@
                     </div>
                 </div>
                 <div class="company-info">
-                    Jl. Alamat Perusahaan No. 123<br>
-                    Kota, Provinsi 12345<br>
-                    Telp: (021) 1234-5678<br>
-                    Email: info@perusahaan.com<br>
-                    Website: www.perusahaan.com
+                    Jl. Jend. Soeharto No.124, Naikolan, Kec. Maulafa<br>
+                    Kota Kupang, Provinsi Nusa Tenggara Timur 85142<br>
+                    Telp: 08881930769<br>
+                    Email: <a href="#">rapipvcinterior@gmail.com</a><br>
                 </div>
             </div>
             <div class="header-right">
@@ -348,7 +347,7 @@
                 <div class="info-title">Informasi Pengiriman</div>
                 <div class="info-content">
                     <strong>Invoice:</strong> {{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}<br>
-                    <strong>Ongkos Kirim:</strong> Rp {{ number_format($suratJalan->ongkos_kirim ?? 0, 0, ',', '.') }}<br>
+                    <strong>Ongkos Kirim:</strong> Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}<br>
                     <strong>Status:</strong> {{ ucfirst($suratJalan->status) }}
                 </div>
             </div>
@@ -358,35 +357,50 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 40%;">Nomor Invoice</th>
-                    <th class="right" style="width: 20%;">Grand Total Invoice</th>
-                    <th class="right" style="width: 20%;">Ongkir</th>
-                    <th class="right" style="width: 20%;">Grand Total SJ</th>
+                    <th style="width: 50%;">Nomor Invoice</th>
+                    <th class="right" style="width: 50%;">Sub Total</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>{{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}</td>
                     <td class="right">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</td>
-                    <td class="right">Rp {{ number_format($suratJalan->ongkos_kirim ?? 0, 0, ',', '.') }}</td>
-                    <td class="right">Rp {{ number_format($suratJalan->grand_total ?? 0, 0, ',', '.') }}</td>
                 </tr>
+                <tr>
+
+                    <td class="right" colspan="2">
+                        Ongkos Kirim Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}
+                    </td>
+                </tr>
+
+                <tr>
+
+                    <td class="right" colspan="2">
+                        Diskon Rp {{ number_format($suratJalan->invoice->diskon ?? 0, 0, ',', '.') }}
+                    </td>
+                </tr>
+
+
             </tbody>
         </table>
 
         <!-- Summary -->
         <div class="summary">
             <div class="summary-row">
-                <span class="summary-label">Total Invoice:</span>
+                <span class="summary-label">Sub Total :</span>
                 <span class="summary-value">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</span>
             </div>
             <div class="summary-row">
                 <span class="summary-label">Ongkos Kirim:</span>
-                <span class="summary-value">Rp {{ number_format($suratJalan->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
+                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Diskon:</span>
+                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->diskon ?? 0, 0, ',', '.') }}</span>
             </div>
             <div class="summary-row summary-total">
                 <span class="summary-label">GRAND TOTAL:</span>
-                <span class="summary-value">Rp {{ number_format($suratJalan->grand_total ?? 0, 0, ',', '.') }}</span>
+                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->grand_total - $suratJalan->invoice->diskon + $suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
             </div>
         </div>
 

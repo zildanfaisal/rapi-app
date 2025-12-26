@@ -55,18 +55,45 @@
                         <table class="min-w-full border border-gray-300 text-sm">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-4 py-2 border">Ongkir</th>
-                                    <th class="px-4 py-2 border">Grand Total Invoice</th>
-                                    <th class="px-4 py-2 border">Grand Total Surat Jalan</th>
+                                    <th class="px-4 py-2 border">No Invoice</th>
+                                    <th class="px-4 py-2 border">Sub Total Invoice</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr class="text-center hover:bg-gray-50">
-                                    <td class="px-4 py-2 border">Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-2 border">{{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}</td>
                                     <td class="px-4 py-2 border">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</td>
-                                    <td class="px-4 py-2 border">Rp {{ number_format($suratJalan->grand_total ?? 0, 0, ',', '.') }}</td>
                                 </tr>
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="1" class="px-4 py-2 border text-right font-semibold">
+                                        Ongkos Kirim <span class="text-xs text-gray-500">(+)</span>
+                                    </td>
+                                    <td class="px-4 py-2 border font-semibold text-green-600">
+                                        + Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="1" class="px-4 py-2 border text-right font-semibold">
+                                        Diskon <span class="text-xs text-gray-500">(−)</span>
+                                    </td>
+                                    <td class="px-4 py-2 border font-semibold text-red-600 right">
+                                        − Rp {{ number_format($suratJalan->invoice->diskon ?? 0, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+
+                                <tr class="bg-gray-50">
+                                    <td colspan="1" class="px-4 py-2 border text-right font-bold">
+                                        Grand Total
+                                    </td>
+                                    <td class="px-4 py-2 border font-bold">
+                                        Rp {{ number_format($suratJalan->invoice->grand_total - ($suratJalan->invoice->diskon ?? 0) + ($suratJalan->invoice->ongkos_kirim ?? 0), 0, ',', '.') }}
+                                    </td>
+                                </tr>
+
+                            </tfoot>
                         </table>
                     </div>
 
