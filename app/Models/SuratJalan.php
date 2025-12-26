@@ -7,15 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class SuratJalan extends Model
 {
     protected $table = 'surat_jalans';
-    
+
     protected $fillable = [
         'nomor_surat_jalan',
         'invoice_id',
         'customer_id',
         'tanggal',
-        'ongkos_kirim',
-        'grand_total',
-        'status_pembayaran',
+        'status',
+        'bukti_pengiriman',
         'alasan_cancel',
     ];
 

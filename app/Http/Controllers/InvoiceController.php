@@ -15,6 +15,9 @@ use App\Models\ProductBatch;
 use App\Models\Product;
 use App\Traits\ActivityLogger;
 use Illuminate\Support\Facades\Storage;
+use App\Models\SuratJalan;
+use App\Http\Controllers\Log;
+
 
 class InvoiceController extends Controller
 {
@@ -113,7 +116,9 @@ class InvoiceController extends Controller
             ]);
 
             // Jika kolom tersedia di DB, set nilai tambahan
-            if (!is_null($metodePembayaran)) { $invoice->metode_pembayaran = $metodePembayaran; }
+            if (!is_null($metodePembayaran)) {
+                $invoice->metode_pembayaran = $metodePembayaran;
+            }
             $invoice->ongkos_kirim = $ongkir;
             $invoice->diskon = $diskon;
             $invoice->save();
@@ -171,6 +176,17 @@ class InvoiceController extends Controller
                 } catch (\Throwable $e) {
                 }
             }
+            SuratJalan::create([
+                'nomor_surat_jalan' => 'SJ-' . now()->format('ymd') . '-' . Str::upper(Str::random(5)),
+                'customer_id'       => $invoice->customer_id,
+                'invoice_id'        => $invoice->id,
+                'tanggal'           => $invoice->tanggal_invoice ?? now()->toDateString(),
+                'status'            => 'belum dikirim',
+                'bukti_pengiriman'  => null,
+                'alasan_cancel'     => null,
+            ]);
+
+
 
 
             self::logCreate($invoice, 'Invoice', 'Penjualan');
@@ -188,15 +204,15 @@ class InvoiceController extends Controller
         $selectedBatchIds = $invoice->items->pluck('batch_id')->filter()->unique()->values()->all();
 
         $batchQuery = \App\Models\ProductBatch::query()
-            ->where(function($q){
+            ->where(function ($q) {
                 $q->whereNull('tanggal_expired')
-                  ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
+                    ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
             });
 
         if (!empty($selectedBatchIds)) {
-            $batchQuery->where(function($q) use ($selectedBatchIds) {
+            $batchQuery->where(function ($q) use ($selectedBatchIds) {
                 $q->where('quantity_sekarang', '>', 0)
-                  ->orWhereIn('id', $selectedBatchIds);
+                    ->orWhereIn('id', $selectedBatchIds);
             });
         } else {
             $batchQuery->where('quantity_sekarang', '>', 0);
@@ -227,8 +243,13 @@ class InvoiceController extends Controller
 
         return DB::transaction(function () use ($data, $invoice, $ongkir, $diskon, $metodePembayaran, $buktiPath) {
             $oldValues = $invoice->only([
-                'customer_id', 'user_id', 'tanggal_invoice', 'tanggal_jatuh_tempo',
-                'status_pembayaran', 'grand_total', 'alasan_cancel'
+                'customer_id',
+                'user_id',
+                'tanggal_invoice',
+                'tanggal_jatuh_tempo',
+                'status_pembayaran',
+                'grand_total',
+                'alasan_cancel'
             ]);
 
             $oldCustomerId = $invoice->customer_id;
@@ -261,7 +282,9 @@ class InvoiceController extends Controller
                 $newQty = $newByBatch[$batchId] ?? 0;
                 $delta = $newQty - $oldQty;
                 $batch = ProductBatch::find($batchId);
-                if (!$batch) { continue; }
+                if (!$batch) {
+                    continue;
+                }
 
                 if ($delta > 0) {
                     if ((int) $batch->quantity_sekarang < $delta) {
@@ -274,8 +297,11 @@ class InvoiceController extends Controller
 
                 $batch->refresh();
                 $batch->refreshStatus();
-                if ($batch->product) { $batch->product->refreshAvailability(); }
-                else if ($p = Product::find($batch->product_id)) { $p->refreshAvailability(); }
+                if ($batch->product) {
+                    $batch->product->refreshAvailability();
+                } else if ($p = Product::find($batch->product_id)) {
+                    $p->refreshAvailability();
+                }
             }
 
             // Tentukan status_setor berdasarkan metode pembayaran (jika non tunai, set 'sudah')
@@ -298,10 +324,14 @@ class InvoiceController extends Controller
             ]);
 
             // Set kolom tambahan jika tersedia
-            if (!is_null($metodePembayaran)) { $invoice->metode_pembayaran = $metodePembayaran; }
+            if (!is_null($metodePembayaran)) {
+                $invoice->metode_pembayaran = $metodePembayaran;
+            }
             $invoice->ongkos_kirim = $ongkir;
             $invoice->diskon = $diskon;
-            if (!is_null($buktiPath)) { $invoice->bukti_setor = $buktiPath; }
+            if (!is_null($buktiPath)) {
+                $invoice->bukti_setor = $buktiPath;
+            }
             $invoice->save();
 
             $invoice->items()->delete();
@@ -330,24 +360,25 @@ class InvoiceController extends Controller
             $invoice->update(['grand_total' => $grandTotal]);
 
             try {
-                $suratJalans = \App\Models\SuratJalan::where('invoice_id', $invoice->id)->get();
+                $suratJalans = SuratJalan::where('invoice_id', $invoice->id)->get();
+
                 foreach ($suratJalans as $sj) {
                     if ($isCancelled) {
+                        \Log::info('Before update', ['status' => $sj->status]);
+
                         $sj->update([
-                            'status_pembayaran' => 'cancel',
-                            'grand_total' => 0,
-                            'ongkos_kirim' => 0,
+                            'status'        => 'cancel', // langsung string aja, gak perlu variable
                             'alasan_cancel' => $data['alasan_cancel'] ?? null,
                         ]);
-                    } else {
-                        $sj->update([
-                            'grand_total' => ((float) $grandTotal) + ((float) ($sj->ongkos_kirim ?? 0)),
-                            'status_pembayaran' => $invoice->status_pembayaran,
-                        ]);
+
+                        $sj->refresh(); // reload dari database
+                        \Log::info('After update', ['status' => $sj->status]);
                     }
                 }
             } catch (\Throwable $e) {
+                // optional: log error
             }
+
 
             $isNowPaid = $invoice->status_pembayaran === 'paid';
             $oldEarnedPoints = $wasPaid ? intdiv((int) round($oldGrandTotal), 100000) : 0;
@@ -365,14 +396,20 @@ class InvoiceController extends Controller
                     if ($newEarnedPoints > 0 && $invoice->customer_id) {
                         $newCustomer = \App\Models\Customer::find($invoice->customer_id);
                         if ($newCustomer) {
-                            if ($newCustomer->point === null) { $newCustomer->point = 0; $newCustomer->save(); }
+                            if ($newCustomer->point === null) {
+                                $newCustomer->point = 0;
+                                $newCustomer->save();
+                            }
                             $newCustomer->increment('point', $newEarnedPoints);
                         }
                     }
                 } else {
                     $customer = \App\Models\Customer::find($invoice->customer_id);
                     if ($customer) {
-                        if ($customer->point === null) { $customer->point = 0; $customer->save(); }
+                        if ($customer->point === null) {
+                            $customer->point = 0;
+                            $customer->save();
+                        }
 
                         if ($isNowPaid && $wasPaid) {
                             $delta = $newEarnedPoints - $oldEarnedPoints;
@@ -385,7 +422,9 @@ class InvoiceController extends Controller
                                 }
                             }
                         } elseif ($isNowPaid && !$wasPaid) {
-                            if ($newEarnedPoints > 0) { $customer->increment('point', $newEarnedPoints); }
+                            if ($newEarnedPoints > 0) {
+                                $customer->increment('point', $newEarnedPoints);
+                            }
                         } elseif (!$isNowPaid && $wasPaid) {
                             if ($oldEarnedPoints > 0) {
                                 $curr = (int) ($customer->point ?? 0);
@@ -398,8 +437,13 @@ class InvoiceController extends Controller
             }
 
             $newValues = $invoice->only([
-                'customer_id', 'user_id', 'tanggal_invoice', 'tanggal_jatuh_tempo',
-                'status_pembayaran', 'grand_total', 'alasan_cancel'
+                'customer_id',
+                'user_id',
+                'tanggal_invoice',
+                'tanggal_jatuh_tempo',
+                'status_pembayaran',
+                'grand_total',
+                'alasan_cancel'
             ]);
             self::logUpdate($invoice, 'Invoice', $oldValues, $newValues, 'Penjualan');
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -288,139 +289,156 @@
             body {
                 padding: 0;
             }
+
             .actions {
                 display: none;
             }
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <!-- Header -->
-    <div class="header">
-        <div class="header-left">
-            <div class="logo-wrapper">
-                <div class="logo-cell">
-                    <img src="{{ public_path('images/logo-rapi.png') }}" alt="Logo" class="logo">
-                </div>
-                <div class="company-cell">
-                    <div class="company-name">RAPI PVC</div>
-                </div>
-            </div>
-            <div class="company-info">
-                Jl. Alamat Perusahaan No. 123<br>
-                Kota, Provinsi 12345<br>
-                Telp: (021) 1234-5678<br>
-                Email: info@perusahaan.com<br>
-                Website: www.perusahaan.com
-            </div>
-        </div>
-        <div class="header-right">
-            <div class="document-title">SURAT JALAN</div>
-            <div class="sj-meta">
-                <strong>No:</strong> {{ $suratJalan->nomor_surat_jalan ?? '-' }}<br>
-                <strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($suratJalan->tanggal)->format('d/m/Y') }}<br>
-                @if($suratJalan->status_pembayaran == 'lunas')
-                    <span class="status-badge status-lunas">{{ $suratJalan->status_pembayaran }}</span>
-                @elseif($suratJalan->status_pembayaran == 'cancel')
-                    <span class="status-badge status-cancel">{{ $suratJalan->status_pembayaran }}</span>
-                @else
-                    <span class="status-badge status-belum">{{ $suratJalan->status_pembayaran }}</span>
-                @endif
-            </div>
-        </div>
-    </div>
-
-    <!-- Info Section -->
-    <div class="info-section">
-        <div class="info-box">
-            <div class="info-title">Kepada</div>
-            <div class="info-content">
-                <strong>Nama:</strong> {{ $suratJalan->customer->nama_customer ?? '-' }}<br>
-                <strong>Telepon:</strong> {{ $suratJalan->customer->no_hp ?? '-' }}<br>
-                <strong>Alamat:</strong> {{ $suratJalan->customer->alamat ?? '-' }}
-            </div>
-        </div>
-        <div class="info-box">
-            <div class="info-title">Informasi Pengiriman</div>
-            <div class="info-content">
-                <strong>Invoice:</strong> {{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}<br>
-                <strong>Ongkos Kirim:</strong> Rp {{ number_format($suratJalan->ongkos_kirim ?? 0, 0, ',', '.') }}<br>
-                <strong>Status:</strong> {{ ucfirst($suratJalan->status_pembayaran) }}
-            </div>
-        </div>
-    </div>
-
-    <!-- Invoice Table -->
-    <table>
-        <thead>
-        <tr>
-            <th style="width: 40%;">Nomor Invoice</th>
-            <th class="right" style="width: 20%;">Grand Total Invoice</th>
-            <th class="right" style="width: 20%;">Ongkir</th>
-            <th class="right" style="width: 20%;">Grand Total SJ</th>
-        </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}</td>
-                <td class="right">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</td>
-                <td class="right">Rp {{ number_format($suratJalan->ongkos_kirim ?? 0, 0, ',', '.') }}</td>
-                <td class="right">Rp {{ number_format($suratJalan->grand_total ?? 0, 0, ',', '.') }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Summary -->
-    <div class="summary">
-        <div class="summary-row">
-            <span class="summary-label">Total Invoice:</span>
-            <span class="summary-value">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Ongkos Kirim:</span>
-            <span class="summary-value">Rp {{ number_format($suratJalan->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
-        </div>
-        <div class="summary-row summary-total">
-            <span class="summary-label">GRAND TOTAL:</span>
-            <span class="summary-value">Rp {{ number_format($suratJalan->grand_total ?? 0, 0, ',', '.') }}</span>
-        </div>
-    </div>
-
-    @if($suratJalan->status_pembayaran === 'cancel' && $suratJalan->alasan_cancel)
-    <div style="clear: both; margin-top: 20px; padding: 15px; background: #f8d7da; border-left: 4px solid #721c24; border-radius: 5px;">
-        <strong style="color: #721c24;">Alasan Pembatalan:</strong><br>
-        <span style="font-size: 12px; color: #721c24;">{{ $suratJalan->alasan_cancel }}</span>
-    </div>
-    @endif
-
-    <!-- Signature Section -->
-    <div class="signature-section">
-        <table style="width: 100%; border: none;">
-            <tr>
-                <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
-                    <div class="signature-title">Penerima</div>
-                    <div class="signature-line">
-                        <div class="signature-name">{{ $suratJalan->customer->nama_customer ?? '_______________' }}</div>
-                        <div class="signature-position">Pelanggan</div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-wrapper">
+                    <div class="logo-cell">
+                        <img src="{{ public_path('images/logo-rapi.png') }}" alt="Logo" class="logo">
                     </div>
-                </td>
-                <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
-                    <div class="signature-title">Hormat Kami</div>
-                    <div class="signature-line">
-                        <div class="signature-name">{{ $suratJalan->user->name ?? 'Admin' }}</div>
-                        <div class="signature-position">{{ $suratJalan->user->jabatan ?? 'Staff Pengiriman' }}</div>
+                    <div class="company-cell">
+                        <div class="company-name">RAPI PVC</div>
                     </div>
-                </td>
-            </tr>
+                </div>
+                <div class="company-info">
+                    Jl. Jend. Soeharto No.124, Naikolan, Kec. Maulafa<br>
+                    Kota Kupang, Provinsi Nusa Tenggara Timur 85142<br>
+                    Telp: 08881930769<br>
+                    Email: <a href="#">rapipvcinterior@gmail.com</a><br>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="document-title">SURAT JALAN</div>
+                <div class="sj-meta">
+                    <strong>No:</strong> {{ $suratJalan->nomor_surat_jalan ?? '-' }}<br>
+                    <strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($suratJalan->tanggal)->format('d/m/Y') }}<br>
+                    @if($suratJalan->status == 'sudah dikirim')
+                    <span class="status-badge status-lunas">{{ $suratJalan->status }}</span>
+                    @elseif($suratJalan->status == 'cancel')
+                    <span class="status-badge status-cancel">{{ $suratJalan->status }}</span>
+                    @elseif($suratJalan->status == 'belum dikirim')
+                    <span class="status-badge status-belum">{{ $suratJalan->status }}</span>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <div class="info-box">
+                <div class="info-title">Kepada</div>
+                <div class="info-content">
+                    <strong>Nama:</strong> {{ $suratJalan->customer->nama_customer ?? '-' }}<br>
+                    <strong>Telepon:</strong> {{ $suratJalan->customer->no_hp ?? '-' }}<br>
+                    <strong>Alamat:</strong> {{ $suratJalan->customer->alamat ?? '-' }}
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-title">Informasi Pengiriman</div>
+                <div class="info-content">
+                    <strong>Invoice:</strong> {{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}<br>
+                    <strong>Ongkos Kirim:</strong> Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}<br>
+                    <strong>Status:</strong> {{ ucfirst($suratJalan->status) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50%;">Nomor Invoice</th>
+                    <th class="right" style="width: 50%;">Sub Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}</td>
+                    <td class="right">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+
+                    <td class="right" colspan="2">
+                        Ongkos Kirim Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}
+                    </td>
+                </tr>
+
+                <tr>
+
+                    <td class="right" colspan="2">
+                        Diskon Rp {{ number_format($suratJalan->invoice->diskon ?? 0, 0, ',', '.') }}
+                    </td>
+                </tr>
+
+
+            </tbody>
         </table>
-    </div>
 
-    <!-- Footer -->
-    <div class="footer">
-        <p>Terima kasih atas kepercayaan Anda. Dokumen ini dicetak secara otomatis dan sah tanpa tanda tangan basah.</p>
-        <p>{{ now()->format('d F Y H:i:s') }}</p>
+        <!-- Summary -->
+        <div class="summary">
+            <div class="summary-row">
+                <span class="summary-label">Sub Total :</span>
+                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Ongkos Kirim:</span>
+                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Diskon:</span>
+                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->diskon ?? 0, 0, ',', '.') }}</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span class="summary-label">GRAND TOTAL:</span>
+                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->grand_total - $suratJalan->invoice->diskon + $suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
+            </div>
+        </div>
+
+        @if($suratJalan->status_pembayaran === 'cancel' && $suratJalan->alasan_cancel)
+        <div style="clear: both; margin-top: 20px; padding: 15px; background: #f8d7da; border-left: 4px solid #721c24; border-radius: 5px;">
+            <strong style="color: #721c24;">Alasan Pembatalan:</strong><br>
+            <span style="font-size: 12px; color: #721c24;">{{ $suratJalan->alasan_cancel }}</span>
+        </div>
+        @endif
+
+        <!-- Signature Section -->
+        <div class="signature-section">
+            <table style="width: 100%; border: none;">
+                <tr>
+                    <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
+                        <div class="signature-title">Penerima</div>
+                        <div class="signature-line">
+                            <div class="signature-name">{{ $suratJalan->customer->nama_customer ?? '_______________' }}</div>
+                            <div class="signature-position">Pelanggan</div>
+                        </div>
+                    </td>
+                    <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
+                        <div class="signature-title">Hormat Kami</div>
+                        <div class="signature-line">
+                            <div class="signature-name">{{ $suratJalan->user->name ?? 'Admin' }}</div>
+                            <div class="signature-position">{{ $suratJalan->user->jabatan ?? 'Staff Pengiriman' }}</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Terima kasih atas kepercayaan Anda. Dokumen ini dicetak secara otomatis dan sah tanpa tanda tangan basah.</p>
+            <p>{{ now()->format('d F Y H:i:s') }}</p>
+        </div>
     </div>
-</div>
 </body>
+
 </html>
