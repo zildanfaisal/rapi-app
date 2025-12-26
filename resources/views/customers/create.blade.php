@@ -39,7 +39,7 @@
 
                         <div class="mb-4">
                             <label for="alamat" class="block text-sm font-medium text-gray-700">{{ __('Alamat') }}</label>
-                            <textarea name="alamat" id="alamat" cols="30" rows="5" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required></textarea>
+                            <textarea name="alamat" id="alamat" cols="30" rows="5" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"></textarea>
                         </div>
                         <div class="mb-4">
                             <label for="point" class="block text-sm font-medium text-gray-700">{{ __('Poin') }}</label>
