@@ -122,15 +122,6 @@
                             </div>
                             <button type="button" id="add-item" class="mt-3 px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700">{{ __('Tambah Produk') }}</button>
                         </div>
-                        <div class="mb-4">
-                            <label for="status_pembayaran" class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
-                            <select name="status_pembayaran" id="status_pembayaran" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                                <option value="unpaid" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='unpaid')>Belum Lunas</option>
-                                <option value="paid" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='paid')>Lunas</option>
-                                <option value="overdue" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='overdue')>Terlambat</option>
-                                <option value="cancelled" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='cancelled')>Dibatalkan</option>
-                            </select>
-                        </div>
                         <div class="mb-6">
                             <div class="space-y-3">
                                 <div class="item-row grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -172,6 +163,15 @@
                         <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:none;">
                             <label for="bukti_setor" class="block text-sm font-medium text-gray-700">{{ __('Bukti Pembayaran') }}</label>
                             <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                        </div>
+                        <div class="mb-4">
+                            <label for="status_pembayaran" class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
+                            <select name="status_pembayaran" id="status_pembayaran" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                <option value="unpaid" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='unpaid')>Belum Lunas</option>
+                                <option value="paid" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='paid')>Lunas</option>
+                                <option value="overdue" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='overdue')>Terlambat</option>
+                                <option value="cancelled" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='cancelled')>Dibatalkan</option>
+                            </select>
                         </div>
                         <div class="mb-4">
                             <label for="alasan_cancel" class="block text-sm font-medium text-gray-700">{{ __('Alasan Batal') }}</label>
