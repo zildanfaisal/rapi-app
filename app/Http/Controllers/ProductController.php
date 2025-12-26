@@ -63,7 +63,7 @@ class ProductController extends Controller
             'status'           => $request->status,
         ]);
 
-        self::logCreate($product, 'Produk');
+        self::logCreate($product, 'Produk', 'Produk');
 
         return redirect()->route('products.index')
             ->with('success', 'Product berhasil ditambahkan!');
@@ -148,7 +148,7 @@ class ProductController extends Controller
             'nama_produk', 'deskripsi', 'barcode', 'kategori',
             'harga', 'satuan', 'min_stok_alert', 'status'
         ]);
-        self::logUpdate($product, 'Produk', $oldValues, $newValues);
+        self::logUpdate($product, 'Produk', $oldValues, $newValues, 'Produk');
 
         return redirect()->route('products.index')
             ->with('success', 'Product berhasil diperbarui!');
@@ -156,7 +156,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        self::logDelete($product, 'Produk');
+        self::logDelete($product, 'Produk', 'Produk');
 
         if ($product->foto_produk && Storage::disk('public')->exists($product->foto_produk)) {
             Storage::disk('public')->delete($product->foto_produk);

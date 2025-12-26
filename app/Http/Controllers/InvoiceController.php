@@ -161,7 +161,7 @@ class InvoiceController extends Controller
             }
 
 
-            self::logCreate($invoice, 'Invoice');
+            self::logCreate($invoice, 'Invoice', 'Penjualan');
 
             return redirect()->route('invoices.index')->with('success', 'Invoice created successfully');
         });
@@ -389,7 +389,7 @@ class InvoiceController extends Controller
                 'customer_id', 'user_id', 'tanggal_invoice', 'tanggal_jatuh_tempo',
                 'status_pembayaran', 'grand_total', 'alasan_cancel'
             ]);
-            self::logUpdate($invoice, 'Invoice', $oldValues, $newValues);
+            self::logUpdate($invoice, 'Invoice', $oldValues, $newValues, 'Penjualan');
 
             return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully');
         });
@@ -415,7 +415,7 @@ class InvoiceController extends Controller
 
     public function destroy(Invoice $invoice)
     {
-        self::logDelete($invoice, 'Invoice');
+        self::logDelete($invoice, 'Invoice', 'Penjualan');
 
         if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
             Storage::disk('public')->delete($invoice->bukti_setor);

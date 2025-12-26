@@ -12,7 +12,6 @@ class CustomerController extends Controller
 
     public function index()
     {
-        // Gunakan get() atau orderBy untuk performa lebih baik
         $customers = Customer::orderBy('nama_customer', 'asc')->get();
         return view('customers.index', compact('customers'));
     }
@@ -42,7 +41,8 @@ class CustomerController extends Controller
             'kategori_pelanggan' => $request->kategori_pelanggan,
         ]);
 
-        self::logCreate($customer, 'Pelanggan');
+        // ← PARAMETER KE-3 ADALAH CATEGORY
+        self::logCreate($customer, 'Pelanggan', 'Pelanggan');
 
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
@@ -97,14 +97,17 @@ class CustomerController extends Controller
         ]);
 
         $newValues = $customer->only(['nama_customer', 'no_hp', 'email', 'alamat', 'point']);
-        self::logUpdate($customer, 'Pelanggan', $oldValues, $newValues);
+
+        // ← PARAMETER KE-5 ADALAH CATEGORY
+        self::logUpdate($customer, 'Pelanggan', $oldValues, $newValues, 'Pelanggan');
 
         return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
     }
 
     public function destroy(Customer $customer)
     {
-        self::logDelete($customer, 'Pelanggan');
+        // ← PARAMETER KE-3 ADALAH CATEGORY
+        self::logDelete($customer, 'Pelanggan', 'Pelanggan');
 
         $customer->delete();
 

@@ -10,7 +10,7 @@ use App\Traits\ActivityLogger;
 
 class TransactionController extends Controller
 {
-    use ActivityLogger; I
+    use ActivityLogger;
 
     public function store(StoreTransactionRequest $request)
     {
@@ -18,6 +18,9 @@ class TransactionController extends Controller
 
         return DB::transaction(function () use ($data) {
             $invoice = Invoice::findOrFail($data['invoice_id']);
+
+            // Simpan status lama untuk logging
+            $oldStatus = $invoice->status_pembayaran;
 
             $trx = Transaction::create([
                 'invoice_id' => $invoice->id,
@@ -40,7 +43,13 @@ class TransactionController extends Controller
 
             $invoice->update(['status_pembayaran' => $status]);
 
-            self::logCreate($trx, 'Transaksi Pembayaran');
+            // ✅ LOG CREATE TRANSAKSI dengan kategori
+            self::logCreate($trx, 'Transaksi Pembayaran', 'Riwayat Transaksi');
+
+            // ✅ LOG PERUBAHAN STATUS jika status berubah
+            if ($oldStatus != $status) {
+                self::logStatusChange($invoice, 'Invoice', $oldStatus, $status, 'Riwayat Transaksi');
+            }
 
             return redirect()->route('invoices.show', $invoice)->with('success', 'Payment recorded');
         });

@@ -8,7 +8,7 @@ use App\Traits\ActivityLogger;
 
 class BudgetTargetController extends Controller
 {
-    use ActivityLogger; 
+    use ActivityLogger;
 
     public function index()
     {
@@ -36,8 +36,7 @@ class BudgetTargetController extends Controller
 
         $budgetTarget = BudgetTarget::create($validated);
 
-
-        self::logCreate($budgetTarget, 'Target Anggaran');
+        self::logCreate($budgetTarget, 'Target Anggaran', 'Target Anggaran');
 
         return redirect()->route('budget-target.index')->with('success', 'Target anggaran berhasil ditambahkan');
     }
@@ -71,14 +70,14 @@ class BudgetTargetController extends Controller
         $budgetTarget->update($validated);
 
         $newValues = $budgetTarget->only(['tanggal', 'budget_bulanan']);
-        self::logUpdate($budgetTarget, 'Target Anggaran', $oldValues, $newValues);
+        self::logUpdate($budgetTarget, 'Target Anggaran', $oldValues, $newValues, 'Target Anggaran');
 
         return redirect()->route('budget-target.index')->with('success', 'Target anggaran berhasil diperbarui');
     }
 
     public function destroy(BudgetTarget $budgetTarget)
     {
-        self::logDelete($budgetTarget, 'Target Anggaran');
+        self::logDelete($budgetTarget, 'Target Anggaran', 'Target Anggaran');
 
         $budgetTarget->delete();
 

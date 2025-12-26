@@ -15,7 +15,7 @@ class MonthlyTargetController extends Controller
     {
         $targets = MonthlyTarget::orderByDesc('created_at')->paginate(20);
 
-        $targets->getCollection()->transform(function($t){
+        $targets->getCollection()->transform(function ($t) {
             $paidSum = Invoice::query()
                 ->whereDate('tanggal_invoice', '>=', $t->start_date)
                 ->whereDate('tanggal_invoice', '<=', $t->end_date)
@@ -80,8 +80,7 @@ class MonthlyTargetController extends Controller
 
         $target = MonthlyTarget::create($data);
 
-        self::logCreate($target, 'Target Bulanan');
-
+        self::logCreate($target, 'Target Bulanan', 'Target Bulanan');
         return redirect()->route('monthly-targets.index')->with('success', 'Target bulanan dibuat');
     }
 
@@ -133,7 +132,12 @@ class MonthlyTargetController extends Controller
         ]);
 
         $oldValues = $monthlyTarget->only([
-            'name', 'start_date', 'end_date', 'target_amount', 'notes', 'status'
+            'name',
+            'start_date',
+            'end_date',
+            'target_amount',
+            'notes',
+            'status'
         ]);
 
         $actuals = Invoice::query()
@@ -154,16 +158,21 @@ class MonthlyTargetController extends Controller
         $monthlyTarget->update($data);
 
         $newValues = $monthlyTarget->only([
-            'name', 'start_date', 'end_date', 'target_amount', 'notes', 'status'
+            'name',
+            'start_date',
+            'end_date',
+            'target_amount',
+            'notes',
+            'status'
         ]);
-        self::logUpdate($monthlyTarget, 'Target Bulanan', $oldValues, $newValues);
+        self::logUpdate($monthlyTarget, 'Target Bulanan', $oldValues, $newValues, 'Target Bulanan');
 
         return redirect()->route('monthly-targets.index')->with('success', 'Target bulanan diperbarui');
     }
 
     public function destroy(MonthlyTarget $monthlyTarget)
     {
-        self::logDelete($monthlyTarget, 'Target Bulanan');
+        self::logDelete($monthlyTarget, 'Target Bulanan', 'Target Bulanan');
 
         $monthlyTarget->delete();
         return redirect()->route('monthly-targets.index')->with('success', 'Target bulanan dihapus');

@@ -54,7 +54,7 @@ class UserController extends Controller
         }
 
         // Log aktivitas create user
-        self::logCreate($user, 'Pengguna');
+        self::logCreate($user, 'Pengguna', 'Pengguna');
 
         return redirect()->route('users.index')->with('success', 'User berhasil dibuat!');
     }
@@ -108,7 +108,7 @@ class UserController extends Controller
         ];
 
         // Log aktivitas update user
-        self::logUpdate($user, 'Pengguna', $oldValues, $newValues);
+        self::logUpdate($user, 'Pengguna', $oldValues, $newValues, 'Pengguna');
 
         return redirect()->route('users.index')->with('success', 'User berhasil diupdate!');
     }
@@ -116,7 +116,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         // Log aktivitas sebelum delete
-        self::logDelete($user, 'Pengguna');
+        self::logDelete($user, 'Pengguna', 'Pengguna');
 
         $user->delete();
 

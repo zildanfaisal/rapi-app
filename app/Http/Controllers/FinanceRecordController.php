@@ -128,6 +128,13 @@ class FinanceRecordController extends Controller
             $filename .= '-' . \Carbon\Carbon::parse($startDate)->format('dMY') . '-' . \Carbon\Carbon::parse($endDate)->format('dMY');
         }
 
+        // ✅ LOG EXPORT dengan kategori
+        self::logExport('Laporan Keuangan PDF', [
+            'periode' => $periode,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ], 'Riwayat Keuangan');
+
         return $pdf->download($filename . '.pdf');
     }
 
@@ -182,7 +189,7 @@ class FinanceRecordController extends Controller
             'kategori' => 'required|string|max:255',
             'jumlah' => 'required|numeric|min:0',
             'deskripsi' => 'nullable|string',
-            'foto_nota'      => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'foto_nota' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ], [
             'tanggal.required' => 'Tanggal harus diisi',
             'tanggal.date' => 'Format tanggal tidak valid',
@@ -198,13 +205,13 @@ class FinanceRecordController extends Controller
         $validated['periode'] = date('Y-m', strtotime($validated['tanggal']));
 
         $fotoPath = $request->file('foto_nota')->store('nota', 'public');
-
         $validated['foto_nota'] = $fotoPath;
 
-        FinanceRecord::create($validated);
+        // ✅ PERBAIKAN: Hapus duplikat create
         $financeRecord = FinanceRecord::create($validated);
 
-        self::logCreate($financeRecord, 'Data Keuangan');
+        // ✅ LOG CREATE dengan kategori
+        self::logCreate($financeRecord, 'Data Keuangan', 'Input Keuangan');
 
         return redirect()->route('finance-records.index', ['periode' => $validated['periode']])->with('success', 'Data keuangan berhasil ditambahkan');
     }
@@ -226,7 +233,7 @@ class FinanceRecordController extends Controller
             'tipe' => 'required|in:income,expense',
             'kategori' => 'required|string|max:255',
             'jumlah' => 'required|numeric|min:0',
-            'foto_nota'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto_nota' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'deskripsi' => 'nullable|string',
         ], [
             'tanggal.required' => 'Tanggal harus diisi',
@@ -239,43 +246,45 @@ class FinanceRecordController extends Controller
             'jumlah.min' => 'Jumlah tidak boleh kurang dari 0',
         ]);
 
+        // Simpan nilai lama
         $oldValues = $financeRecord->only(['tanggal', 'tipe', 'kategori', 'jumlah', 'deskripsi']);
 
         $validated['created_by'] = Auth::id();
         $validated['periode'] = date('Y-m', strtotime($validated['tanggal']));
 
-      // Update SEMUA FIELD KECUALI foto_nota
+        // Update SEMUA FIELD KECUALI foto_nota
         $financeRecord->update(
             collect($validated)->except('foto_nota')->toArray()
         );
 
         // Handle foto jika ada upload baru
         if ($request->hasFile('foto_nota')) {
-
-            if ($financeRecord->foto_nota &&
-                Storage::disk('public')->exists($financeRecord->foto_nota)) {
+            if ($financeRecord->foto_nota && Storage::disk('public')->exists($financeRecord->foto_nota)) {
                 Storage::disk('public')->delete($financeRecord->foto_nota);
             }
 
             $fotoPath = $request->file('foto_nota')->store('nota', 'public');
-
-            $financeRecord->update([
-                'foto_nota' => $fotoPath
-            ]);
+            $financeRecord->update(['foto_nota' => $fotoPath]);
         }
 
+        // Nilai baru
         $newValues = $financeRecord->only(['tanggal', 'tipe', 'kategori', 'jumlah', 'deskripsi']);
-        self::logUpdate($financeRecord, 'Data Keuangan', $oldValues, $newValues);
+
+        // ✅ LOG UPDATE dengan kategori
+        self::logUpdate($financeRecord, 'Data Keuangan', $oldValues, $newValues, 'Input Keuangan');
 
         return redirect()->route('finance-records.index', ['periode' => $validated['periode']])->with('success', 'Data keuangan berhasil diperbarui');
     }
 
     public function destroy(FinanceRecord $financeRecord)
     {
-         if ($financeRecord->foto_nota && Storage::disk('public')->exists($financeRecord->foto_nota)) {
+        // Hapus foto jika ada
+        if ($financeRecord->foto_nota && Storage::disk('public')->exists($financeRecord->foto_nota)) {
             Storage::disk('public')->delete($financeRecord->foto_nota);
         }
-        self::logDelete($financeRecord, 'Data Keuangan');
+
+        // ✅ LOG DELETE dengan kategori
+        self::logDelete($financeRecord, 'Data Keuangan', 'Input Keuangan');
 
         $financeRecord->delete();
 

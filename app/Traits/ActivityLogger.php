@@ -13,16 +13,18 @@ trait ActivityLogger
      *
      * @param string $type (login, logout, create, update, delete, export, dll)
      * @param string $description
+     * @param string $category (Produk, Pelanggan, Invoice, dll) ← PARAMETER BARU
      * @param mixed $model (optional)
      * @param array $properties (optional - untuk menyimpan detail perubahan)
      */
-    public static function logActivity($type, $description, $model = null, $properties = [])
+    public static function logActivity($type, $description, $category, $model = null, $properties = [])
     {
         $user = Auth::user();
 
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => $type,
+            'category' => $category, // ← TAMBAHAN BARU
             'model_type' => $model ? get_class($model) : null,
             'model_id' => $model ? $model->id : null,
             'description' => $description,
@@ -40,6 +42,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user->id,
             'type' => 'login',
+            'category' => 'Pengguna', // ← TAMBAHAN BARU
             'description' => "User '{$user->name}' melakukan login",
             'ip_address' => Request::ip(),
             'user_agent' => Request::userAgent(),
@@ -56,6 +59,7 @@ trait ActivityLogger
             ActivityLog::create([
                 'user_id' => $user->id,
                 'type' => 'logout',
+                'category' => 'Pengguna', // ← TAMBAHAN BARU
                 'description' => "User '{$user->name}' melakukan logout",
                 'ip_address' => Request::ip(),
                 'user_agent' => Request::userAgent(),
@@ -65,15 +69,23 @@ trait ActivityLogger
 
     /**
      * Log create activity
+     *
+     * @param mixed $model
+     * @param string $modelName (Nama model untuk deskripsi: Produk, Pelanggan, dll)
+     * @param string $category (Kategori modul: Produk, Pelanggan, dll) ← PARAMETER BARU
      */
-    public static function logCreate($model, $modelName)
+    public static function logCreate($model, $modelName, $category = null)
     {
         $user = Auth::user();
         $identifier = self::getModelIdentifier($model);
 
+        // Jika category tidak diberikan, gunakan modelName sebagai category
+        $category = $category ?? $modelName;
+
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'create',
+            'category' => $category, // ← TAMBAHAN BARU
             'model_type' => get_class($model),
             'model_id' => $model->id,
             'description' => "User '{$user->name}' membuat {$modelName} baru: {$identifier}",
@@ -85,11 +97,20 @@ trait ActivityLogger
 
     /**
      * Log update activity
+     *
+     * @param mixed $model
+     * @param string $modelName
+     * @param array $oldValues
+     * @param array $newValues
+     * @param string $category ← PARAMETER BARU
      */
-    public static function logUpdate($model, $modelName, $oldValues = [], $newValues = [])
+    public static function logUpdate($model, $modelName, $oldValues = [], $newValues = [], $category = null)
     {
         $user = Auth::user();
         $identifier = self::getModelIdentifier($model);
+
+        // Jika category tidak diberikan, gunakan modelName sebagai category
+        $category = $category ?? $modelName;
 
         $changes = [];
         foreach ($newValues as $key => $newValue) {
@@ -106,6 +127,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'update',
+            'category' => $category, // ← TAMBAHAN BARU
             'model_type' => get_class($model),
             'model_id' => $model->id,
             'description' => "User '{$user->name}' mengubah {$modelName}: {$identifier}. {$changesText}",
@@ -117,15 +139,23 @@ trait ActivityLogger
 
     /**
      * Log delete activity
+     *
+     * @param mixed $model
+     * @param string $modelName
+     * @param string $category ← PARAMETER BARU
      */
-    public static function logDelete($model, $modelName)
+    public static function logDelete($model, $modelName, $category = null)
     {
         $user = Auth::user();
         $identifier = self::getModelIdentifier($model);
 
+        // Jika category tidak diberikan, gunakan modelName sebagai category
+        $category = $category ?? $modelName;
+
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'delete',
+            'category' => $category, // ← TAMBAHAN BARU
             'model_type' => get_class($model),
             'model_id' => $model->id,
             'description' => "User '{$user->name}' menghapus {$modelName}: {$identifier}",
@@ -137,16 +167,35 @@ trait ActivityLogger
 
     /**
      * Log export activity
+     *
+     * @param string $exportType
+     * @param array $filters
+     * @param string $category ← PARAMETER BARU
      */
-    public static function logExport($exportType, $filters = [])
+    public static function logExport($exportType, $filters = [], $category = null)
     {
         $user = Auth::user();
+
+        // Jika category tidak diberikan, coba extract dari exportType
+        if (!$category) {
+            // Contoh: "Invoice PDF" -> "Invoice", "Laporan Keuangan" -> "Riwayat Keuangan"
+            if (str_contains($exportType, 'Invoice')) {
+                $category = 'Invoice';
+            } elseif (str_contains($exportType, 'Keuangan')) {
+                $category = 'Riwayat Keuangan';
+            } elseif (str_contains($exportType, 'Produk')) {
+                $category = 'Produk';
+            } else {
+                $category = $exportType;
+            }
+        }
 
         $filterText = !empty($filters) ? ' dengan filter: ' . json_encode($filters) : '';
 
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'export',
+            'category' => $category, // ← TAMBAHAN BARU
             'description' => "User '{$user->name}' melakukan export data {$exportType}{$filterText}",
             'properties' => ['export_type' => $exportType, 'filters' => $filters],
             'ip_address' => Request::ip(),
@@ -156,15 +205,25 @@ trait ActivityLogger
 
     /**
      * Log status change
+     *
+     * @param mixed $model
+     * @param string $modelName
+     * @param string $oldStatus
+     * @param string $newStatus
+     * @param string $category ← PARAMETER BARU
      */
-    public static function logStatusChange($model, $modelName, $oldStatus, $newStatus)
+    public static function logStatusChange($model, $modelName, $oldStatus, $newStatus, $category = null)
     {
         $user = Auth::user();
         $identifier = self::getModelIdentifier($model);
 
+        // Jika category tidak diberikan, gunakan modelName sebagai category
+        $category = $category ?? $modelName;
+
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'status_change',
+            'category' => $category, // ← TAMBAHAN BARU
             'model_type' => get_class($model),
             'model_id' => $model->id,
             'description' => "User '{$user->name}' mengubah status {$modelName}: {$identifier} dari '{$oldStatus}' menjadi '{$newStatus}'",

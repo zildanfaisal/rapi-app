@@ -81,7 +81,7 @@ class ProductBatchController extends Controller
         $product->refreshAvailability();
 
 
-        self::logCreate($batch, 'Batch Produk');
+        self::logCreate($batch, 'Batch Produk', 'Batch Produk');
 
         return redirect()
             ->route('product-batches.index')
@@ -134,7 +134,7 @@ class ProductBatchController extends Controller
             'product_id', 'batch_number', 'harga_beli', 'tanggal_masuk',
             'tanggal_expired', 'quantity_masuk', 'quantity_sekarang', 'supplier', 'status'
         ]);
-        self::logUpdate($productBatch, 'Batch Produk', $oldValues, $newValues);
+        self::logUpdate($productBatch, 'Batch Produk', $oldValues, $newValues, 'Batch Produk');
 
         return redirect()->route('product-batches.index')
                         ->with('success', 'Batch produk berhasil diperbarui!');
@@ -142,7 +142,7 @@ class ProductBatchController extends Controller
 
     public function destroy(ProductBatch $productBatch)
     {
-        self::logDelete($productBatch, 'Batch Produk');
+        self::logDelete($productBatch, 'Batch Produk', 'Batch Produk');
 
         $productId = $productBatch->product_id;
         $productBatch->delete();

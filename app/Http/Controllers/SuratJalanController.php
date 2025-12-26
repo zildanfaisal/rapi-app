@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\ActivityLogger;
+
 class SuratJalanController extends Controller
 {
     use ActivityLogger;
@@ -20,7 +21,7 @@ class SuratJalanController extends Controller
             if ($ids && count($ids) > 0) {
                 $query->whereIn('id', $ids);
             }
-            $query->chunkById(100, function($chunk){
+            $query->chunkById(100, function ($chunk) {
                 foreach ($chunk as $sj) {
                     $invoiceTotal = (float) ($sj->invoice->grand_total ?? 0);
                     $shipping = (float) ($sj->ongkos_kirim ?? 0);
@@ -87,7 +88,7 @@ class SuratJalanController extends Controller
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
             ]);
 
-            self::logCreate($sj, 'Surat Jalan');
+            self::logCreate($sj, 'Surat Jalan', 'Surat Jalan');
 
             return redirect()->route('surat-jalan.index', $sj)->with('success', 'Surat Jalan created successfully');
         });
@@ -123,8 +124,13 @@ class SuratJalanController extends Controller
 
         return DB::transaction(function () use ($data, $suratJalan) {
             $oldValues = $suratJalan->only([
-                'customer_id', 'invoice_id', 'tanggal', 'ongkos_kirim',
-                'grand_total', 'status_pembayaran', 'alasan_cancel'
+                'customer_id',
+                'invoice_id',
+                'tanggal',
+                'ongkos_kirim',
+                'grand_total',
+                'status_pembayaran',
+                'alasan_cancel'
             ]);
 
             $invoice = Invoice::findOrFail($data['invoice_id']);
@@ -142,10 +148,15 @@ class SuratJalanController extends Controller
             ]);
 
             $newValues = $suratJalan->only([
-                'customer_id', 'invoice_id', 'tanggal', 'ongkos_kirim',
-                'grand_total', 'status_pembayaran', 'alasan_cancel'
+                'customer_id',
+                'invoice_id',
+                'tanggal',
+                'ongkos_kirim',
+                'grand_total',
+                'status_pembayaran',
+                'alasan_cancel'
             ]);
-            self::logUpdate($suratJalan, 'Surat Jalan', $oldValues, $newValues);
+            self::logUpdate($suratJalan, 'Surat Jalan', $oldValues, $newValues, 'Surat Jalan');
 
             return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan updated successfully');
         });
@@ -153,7 +164,7 @@ class SuratJalanController extends Controller
 
     public function destroy(SuratJalan $suratJalan)
     {
-        self::logDelete($suratJalan, 'Surat Jalan');
+        self::logDelete($suratJalan, 'Surat Jalan', 'Surat Jalan');
 
         $suratJalan->delete();
         return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan deleted successfully');
