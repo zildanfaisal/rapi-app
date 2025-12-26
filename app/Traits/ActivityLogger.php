@@ -13,7 +13,7 @@ trait ActivityLogger
      *
      * @param string $type (login, logout, create, update, delete, export, dll)
      * @param string $description
-     * @param string $category (Produk, Pelanggan, Invoice, dll) ← PARAMETER BARU
+     * @param string $category (Produk, Pelanggan, Invoice, dll)
      * @param mixed $model (optional)
      * @param array $properties (optional - untuk menyimpan detail perubahan)
      */
@@ -24,7 +24,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => $type,
-            'category' => $category, // ← TAMBAHAN BARU
+            'category' => $category,
             'model_type' => $model ? get_class($model) : null,
             'model_id' => $model ? $model->id : null,
             'description' => $description,
@@ -42,7 +42,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user->id,
             'type' => 'login',
-            'category' => 'Pengguna', // ← TAMBAHAN BARU
+            'category' => 'Pengguna',
             'description' => "User '{$user->name}' melakukan login",
             'ip_address' => Request::ip(),
             'user_agent' => Request::userAgent(),
@@ -59,7 +59,7 @@ trait ActivityLogger
             ActivityLog::create([
                 'user_id' => $user->id,
                 'type' => 'logout',
-                'category' => 'Pengguna', // ← TAMBAHAN BARU
+                'category' => 'Pengguna',
                 'description' => "User '{$user->name}' melakukan logout",
                 'ip_address' => Request::ip(),
                 'user_agent' => Request::userAgent(),
@@ -72,7 +72,7 @@ trait ActivityLogger
      *
      * @param mixed $model
      * @param string $modelName (Nama model untuk deskripsi: Produk, Pelanggan, dll)
-     * @param string $category (Kategori modul: Produk, Pelanggan, dll) ← PARAMETER BARU
+     * @param string $category (Kategori modul: Produk, Pelanggan, dll)
      */
     public static function logCreate($model, $modelName, $category = null)
     {
@@ -85,7 +85,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'create',
-            'category' => $category, // ← TAMBAHAN BARU
+            'category' => $category,
             'model_type' => get_class($model),
             'model_id' => $model->id,
             'description' => "User '{$user->name}' membuat {$modelName} baru: {$identifier}",
@@ -102,7 +102,7 @@ trait ActivityLogger
      * @param string $modelName
      * @param array $oldValues
      * @param array $newValues
-     * @param string $category ← PARAMETER BARU
+     * @param string $category
      */
     public static function logUpdate($model, $modelName, $oldValues = [], $newValues = [], $category = null)
     {
@@ -127,7 +127,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'update',
-            'category' => $category, // ← TAMBAHAN BARU
+            'category' => $category,
             'model_type' => get_class($model),
             'model_id' => $model->id,
             'description' => "User '{$user->name}' mengubah {$modelName}: {$identifier}. {$changesText}",
@@ -142,7 +142,7 @@ trait ActivityLogger
      *
      * @param mixed $model
      * @param string $modelName
-     * @param string $category ← PARAMETER BARU
+     * @param string $category
      */
     public static function logDelete($model, $modelName, $category = null)
     {
@@ -155,7 +155,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'delete',
-            'category' => $category, // ← TAMBAHAN BARU
+            'category' => $category,
             'model_type' => get_class($model),
             'model_id' => $model->id,
             'description' => "User '{$user->name}' menghapus {$modelName}: {$identifier}",
@@ -170,7 +170,7 @@ trait ActivityLogger
      *
      * @param string $exportType
      * @param array $filters
-     * @param string $category ← PARAMETER BARU
+     * @param string $category
      */
     public static function logExport($exportType, $filters = [], $category = null)
     {
@@ -178,7 +178,6 @@ trait ActivityLogger
 
         // Jika category tidak diberikan, coba extract dari exportType
         if (!$category) {
-            // Contoh: "Invoice PDF" -> "Invoice", "Laporan Keuangan" -> "Riwayat Keuangan"
             if (str_contains($exportType, 'Invoice')) {
                 $category = 'Invoice';
             } elseif (str_contains($exportType, 'Keuangan')) {
@@ -195,7 +194,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'export',
-            'category' => $category, // ← TAMBAHAN BARU
+            'category' => $category,
             'description' => "User '{$user->name}' melakukan export data {$exportType}{$filterText}",
             'properties' => ['export_type' => $exportType, 'filters' => $filters],
             'ip_address' => Request::ip(),
@@ -210,7 +209,7 @@ trait ActivityLogger
      * @param string $modelName
      * @param string $oldStatus
      * @param string $newStatus
-     * @param string $category ← PARAMETER BARU
+     * @param string $category
      */
     public static function logStatusChange($model, $modelName, $oldStatus, $newStatus, $category = null)
     {
@@ -223,7 +222,7 @@ trait ActivityLogger
         ActivityLog::create([
             'user_id' => $user ? $user->id : null,
             'type' => 'status_change',
-            'category' => $category, // ← TAMBAHAN BARU
+            'category' => $category,
             'model_type' => get_class($model),
             'model_id' => $model->id,
             'description' => "User '{$user->name}' mengubah status {$modelName}: {$identifier} dari '{$oldStatus}' menjadi '{$newStatus}'",
@@ -235,24 +234,34 @@ trait ActivityLogger
 
     /**
      * Get model identifier (nama, nomor, dll)
+     * ✅ UPDATED: Tambah support untuk Product dan ProductBatch
      */
     private static function getModelIdentifier($model)
     {
-        // Coba ambil identifier yang paling umum
+        // ✅ PRIORITAS 1: ProductBatch → gunakan batch_number
+        if (isset($model->batch_number)) {
+            return $model->batch_number;
+        }
+
+        // ✅ PRIORITAS 2: Product → gunakan nama_produk
+        if (isset($model->nama_produk)) {
+            return $model->nama_produk;
+        }
+
+        // PRIORITAS 3: Field umum lainnya
         if (isset($model->name)) {
             return $model->name;
         } elseif (isset($model->nama)) {
             return $model->nama;
         } elseif (isset($model->nama_customer)) {
             return $model->nama_customer;
-        } elseif (isset($model->nama_product)) {
-            return $model->nama_product;
         } elseif (isset($model->invoice_number)) {
             return $model->invoice_number;
         } elseif (isset($model->email)) {
             return $model->email;
         }
 
+        // FALLBACK: Jika tidak ada field yang cocok, return ID
         return "ID: {$model->id}";
     }
 

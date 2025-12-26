@@ -39,7 +39,7 @@ class ProductBatchController extends Controller
         $request->validate([
             'barcode' => 'nullable|string|exists:products,barcode',
             'produk'  => 'nullable|exists:products,id',
-            'batch_number' => 'required|digits:5',
+            'batch_number' => 'required|string|max:50',
             'harga_beli' => 'required|numeric',
             'tanggal_masuk' => 'required|date',
             'tanggal_expired' => 'required|date|after_or_equal:tanggal_masuk',
@@ -80,7 +80,6 @@ class ProductBatchController extends Controller
         $batch->refreshStatus();
         $product->refreshAvailability();
 
-
         self::logCreate($batch, 'Batch Produk', 'Batch Produk');
 
         return redirect()
@@ -98,8 +97,8 @@ class ProductBatchController extends Controller
     {
         $request->validate([
             'barcode'           => 'required|string|exists:products,barcode',
-            'batch_number'      => 'required|digits:5',
-            'harga_beli'        => 'required|',
+            'batch_number'      => 'required|string|max:50',
+            'harga_beli'        => 'required|numeric',
             'tanggal_masuk'     => 'required|date',
             'tanggal_expired'   => 'required|date',
             'quantity_masuk'    => 'required|integer|min:1',
@@ -109,8 +108,15 @@ class ProductBatchController extends Controller
         ]);
 
         $oldValues = $productBatch->only([
-            'product_id', 'batch_number', 'harga_beli', 'tanggal_masuk',
-            'tanggal_expired', 'quantity_masuk', 'quantity_sekarang', 'supplier', 'status'
+            'product_id',
+            'batch_number',
+            'harga_beli',
+            'tanggal_masuk',
+            'tanggal_expired',
+            'quantity_masuk',
+            'quantity_sekarang',
+            'supplier',
+            'status'
         ]);
 
         $product = Product::where('barcode', $request->barcode)->first();
@@ -131,13 +137,20 @@ class ProductBatchController extends Controller
         $product->refreshAvailability();
 
         $newValues = $productBatch->only([
-            'product_id', 'batch_number', 'harga_beli', 'tanggal_masuk',
-            'tanggal_expired', 'quantity_masuk', 'quantity_sekarang', 'supplier', 'status'
+            'product_id',
+            'batch_number',
+            'harga_beli',
+            'tanggal_masuk',
+            'tanggal_expired',
+            'quantity_masuk',
+            'quantity_sekarang',
+            'supplier',
+            'status'
         ]);
         self::logUpdate($productBatch, 'Batch Produk', $oldValues, $newValues, 'Batch Produk');
 
         return redirect()->route('product-batches.index')
-                        ->with('success', 'Batch produk berhasil diperbarui!');
+            ->with('success', 'Batch produk berhasil diperbarui!');
     }
 
     public function destroy(ProductBatch $productBatch)
