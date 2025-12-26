@@ -3,7 +3,7 @@
 @section('title', __('Buat Surat Jalan'))
 
 @section('header')
-    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Buat Surat Jalan') }}</h2>
+<h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Buat Surat Jalan') }}</h2>
 @endsection
 
 @section('content')
@@ -13,23 +13,23 @@
 			<div class="max-w-auto">
 				<h3 class="mb-4">{{ __('Buat Surat Jalan') }}</h3>
 				@if ($errors->any())
-					<div class="mb-4 p-3 rounded bg-red-50 text-red-700">
-						<ul class="list-disc list-inside text-sm">
-							@foreach ($errors->all() as $error)
-								<li>{{ $error }}</li>
-							@endforeach
-						</ul>
-					</div>
+				<div class="mb-4 p-3 rounded bg-red-50 text-red-700">
+					<ul class="list-disc list-inside text-sm">
+						@foreach ($errors->all() as $error)
+						<li>{{ $error }}</li>
+						@endforeach
+					</ul>
+				</div>
 				@endif
 
-				<form method="POST" action="{{ route('surat-jalan.store') }}">
+				<form method="POST" action="{{ route('surat-jalan.store') }}" enctype="multipart/form-data">
 					@csrf
 					<div class="mb-4">
 						<label for="invoice_id" class="block text-sm font-medium text-gray-700">{{ __('Invoice') }}</label>
 						<select name="invoice_id" id="invoice_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
 							<option value="" disabled selected>{{ __('Pilih Invoice') }}</option>
 							@foreach($invoices as $inv)
-								<option value="{{ $inv->id }}" data-grand="{{ $inv->grand_total }}" data-customer="{{ $inv->customer_id }}" data-date="{{ $inv->tanggal_invoice }}">{{ $inv->invoice_number }} — {{ $inv->customer->nama_customer ?? '-' }}</option>
+							<option value="{{ $inv->id }}" data-grand="{{ $inv->grand_total }}" data-customer="{{ $inv->customer_id }}" data-date="{{ $inv->tanggal_invoice }}">{{ $inv->invoice_number }} — {{ $inv->customer->nama_customer ?? '-' }}</option>
 							@endforeach
 						</select>
 						<p id="invoice-grand" class="mt-1 text-xs text-gray-600"></p>
@@ -50,29 +50,38 @@
 						</div>
 					</div>
 
-					<div class="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-						<div>
-							<label for="ongkos_kirim_display" class="block text-sm font-medium text-gray-700">{{ __('Ongkos Kirim') }}</label>
-							<div class="mt-1 flex items-center">
-								<span class="px-2 py-2 bg-gray-100 border border-gray-300 rounded-l">Rp</span>
-								<input type="text" id="ongkos_kirim_display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" />
-								<input type="hidden" name="ongkos_kirim" id="ongkos_kirim" value="{{ old('ongkos_kirim', 0) }}">
-							</div>
-						</div>
-						<div class="sm:col-span-2">
-							<label class="block text-sm font-medium text-gray-700">{{ __('Grand Total') }}</label>
-							<div class="mt-1 text-lg font-semibold" id="grand_total_display">Rp 0</div>
-							<input type="hidden" name="grand_total" id="grand_total_hidden" value="0">
-						</div>
-					</div>
+
+
+					<input type="hidden" id="ongkos_kirim_display" class="w-full border-gray-300 rounded-r-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="0" />
+
 
 					<div class="mb-4">
-						<label for="status_pembayaran" class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
-						<select name="status_pembayaran" id="status_pembayaran" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-							<option value="pending">Belum Lunas</option>
-							<option value="lunas">Lunas</option>
+						<label for="status" class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
+						<select name="status" id="status" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+							<option value="belum dikirim">Belum Dikirim</option>
+							<option value="sudah dikirim">Sudah Dikirim</option>
 							<option value="cancel">Dibatalkan</option>
 						</select>
+					</div>
+					{{-- Foto Produk --}}
+					<div class="mb-4">
+
+						{{-- Preview Foto --}}
+						<div class="mt-3">
+							<img id="previewImage"
+								src=""
+								class="hidden w-32 h-32 object-cover rounded-md border" />
+						</div>
+
+						<label for="bukti_pengiriman" class="block text-sm font-medium text-gray-700">
+							{{ __('Bukti Pengiriman') }}
+						</label>
+
+						<input type="file" name="bukti_pengiriman" id="bukti_pengiriman" accept="image/*"
+							class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
+                                          focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+							required>
+
 					</div>
 
 					<div class="mb-4">
@@ -93,79 +102,69 @@
 
 @push('scripts')
 <script>
-	(function(){
+	(function() {
 		const sel = document.getElementById('invoice_id');
 		const grandText = document.getElementById('invoice-grand');
-		const ongkirEl = document.getElementById('ongkos_kirim');
-		const ongkirDisp = document.getElementById('ongkos_kirim_display');
-		const grandDisp = document.getElementById('grand_total_display');
-		const grandHidden = document.getElementById('grand_total_hidden');
 		const custHidden = document.getElementById('customer_id');
 		const genBtn = document.getElementById('gen-no');
 		const noInput = document.getElementById('nomor_surat_jalan');
 		const tanggalInput = document.getElementById('tanggal');
+		const statusEl = document.getElementById('status_pembayaran');
+		const alasanEl = document.getElementById('alasan_cancel');
 
-		function formatIDR(n){ return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(n || 0)); }
-		function formatRupiahRaw(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n || 0)); }
-		function unformatRupiah(str){ return (str || '').toString().replace(/[^0-9]/g,''); }
-
-		function recalc(){
-			const opt = sel.options[sel.selectedIndex];
-			const invGrand = parseFloat(opt?.getAttribute('data-grand') || 0);
-			const ongkir = parseFloat(ongkirEl.value || 0);
-			const total = invGrand + ongkir;
-			grandDisp.textContent = formatIDR(total);
-			grandHidden.value = total;
+		function formatIDR(n) {
+			return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(n || 0));
 		}
 
-		sel.addEventListener('change', function(){
+		// Invoice change handler
+		sel.addEventListener('change', function() {
 			const opt = sel.options[sel.selectedIndex];
 			const invGrand = parseFloat(opt?.getAttribute('data-grand') || 0);
 			const custId = opt?.getAttribute('data-customer') || '';
 			grandText.textContent = invGrand ? ('Grand Total Invoice: ' + formatIDR(invGrand)) : '';
 			custHidden.value = custId;
-			// Set min date for SJ based on invoice date if available
+
+			// Set min date for SJ based on invoice date
 			const invDate = opt?.getAttribute('data-date') || '';
 			if (tanggalInput && invDate) {
 				tanggalInput.min = invDate;
-				// If current value is earlier, bump to min
 				if (tanggalInput.value && tanggalInput.value < invDate) {
 					tanggalInput.value = invDate;
 				}
 			}
-			recalc();
 		});
 
-		ongkirDisp.addEventListener('input', function(e){
-			const raw = unformatRupiah(e.target.value);
-			ongkirEl.value = raw || 0;
-			e.target.value = raw ? formatRupiahRaw(raw) : '';
-			recalc();
-		});
+		// Generate nomor surat jalan
+		genBtn.addEventListener('click', function() {
+			const now = new Date();
+			const yy = String(now.getFullYear()).slice(-2);
+			const mm = String(now.getMonth() + 1).padStart(2, '0');
+			const dd = String(now.getDate()).padStart(2, '0');
+			const datePart = yy + mm + dd;
+			const randomPart = Math.random()
+				.toString(36)
+				.substring(2, 7)
+				.toUpperCase();
 
-		genBtn.addEventListener('click', function(){
-			const rand = Math.random().toString(36).substring(2, 10).toUpperCase();
-			noInput.value = rand;
+			noInput.value = `SJ-${datePart}-${randomPart}`;
 		});
 
 		// Require alasan_cancel when status is cancel
-		const statusEl = document.getElementById('status_pembayaran');
-		const alasanEl = document.getElementById('alasan_cancel');
-		function toggleAlasanRequiredCreate(){
+		function toggleAlasanRequired() {
 			if (!statusEl || !alasanEl) return;
 			const isCancelled = statusEl.value === 'cancel';
-			if (isCancelled) alasanEl.setAttribute('required','required');
-			else alasanEl.removeAttribute('required');
+			if (isCancelled) {
+				alasanEl.setAttribute('required', 'required');
+			} else {
+				alasanEl.removeAttribute('required');
+			}
 		}
-		statusEl.addEventListener('change', toggleAlasanRequiredCreate);
 
-		// init on load
-		// set display from hidden initial value
-		if (ongkirDisp && ongkirEl) {
-			const raw = ongkirEl.value || '0';
-			ongkirDisp.value = formatRupiahRaw(raw);
+		if (statusEl) {
+			statusEl.addEventListener('change', toggleAlasanRequired);
 		}
-		// Initialize min date if an invoice is preselected (post-validation back)
+
+		// Initialize min date if invoice preselected
 		if (tanggalInput && sel && sel.selectedIndex > 0) {
 			const opt = sel.options[sel.selectedIndex];
 			const invDate = opt?.getAttribute('data-date') || '';
@@ -176,8 +175,27 @@
 				}
 			}
 		}
-		recalc();
-		toggleAlasanRequiredCreate();
+
+		// Preview Foto Upload
+		const fotoInput = document.getElementById('bukti_pengiriman');
+		const previewImage = document.getElementById('previewImage');
+
+		if (fotoInput && previewImage) {
+			fotoInput.addEventListener('change', function(event) {
+				const file = event.target.files[0];
+
+				if (file) {
+					previewImage.src = URL.createObjectURL(file);
+					previewImage.classList.remove('hidden');
+				} else {
+					previewImage.classList.add('hidden');
+					previewImage.src = "";
+				}
+			});
+		}
+
+		// Init on load
+		toggleAlasanRequired();
 	})();
 </script>
 @endpush

@@ -17,9 +17,8 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
             $table->foreignId('invoice_id')->constrained('invoices')->onDelete('cascade');
             $table->date('tanggal');
-            $table->decimal('ongkos_kirim', 15, 2);
-            $table->decimal('grand_total', 15, 2);
-            $table->enum('status_pembayaran', ['pending', 'lunas', 'cancel']);
+            $table->enum('status', ['belum dikirim', 'sudah dikirim', 'cancel']);
+            $table->text('bukti_pengiriman')->nullable();
             $table->string('alasan_cancel')->nullable();
             $table->timestamps();
         });

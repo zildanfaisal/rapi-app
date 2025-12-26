@@ -15,13 +15,13 @@ class StoreSuratJalanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'invoice_id' => ['required', 'exists:invoices,id'],
-            'customer_id' => ['required', 'exists:customers,id'],
-            'tanggal' => ['required', 'date'],
-            'ongkos_kirim' => ['required', 'numeric', 'min:0'],
-            'grand_total' => ['nullable', 'numeric', 'min:0'],
-            'status_pembayaran' => ['nullable', 'in:pending,lunas,cancel'],
-            'alasan_cancel' => ['nullable', 'string'],
+            'nomor_surat_jalan'  => 'required|string',
+            'customer_id'        => 'required|exists:customers,id',
+            'invoice_id'         => 'required|exists:invoices,id',
+            'tanggal'            => 'required|date',
+            'status'             => 'required|in:belum dikirim,sudah dikirim,cancel',
+            'bukti_pengiriman'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'alasan_cancel'      => 'nullable|string',
         ];
     }
 

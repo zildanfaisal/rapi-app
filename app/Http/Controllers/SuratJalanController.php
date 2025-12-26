@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\ActivityLogger;
+use Illuminate\Support\Facades\Storage;
+
 class SuratJalanController extends Controller
 {
     use ActivityLogger;
@@ -20,7 +22,7 @@ class SuratJalanController extends Controller
             if ($ids && count($ids) > 0) {
                 $query->whereIn('id', $ids);
             }
-            $query->chunkById(100, function($chunk){
+            $query->chunkById(100, function ($chunk) {
                 foreach ($chunk as $sj) {
                     $invoiceTotal = (float) ($sj->invoice->grand_total ?? 0);
                     $shipping = (float) ($sj->ongkos_kirim ?? 0);
@@ -51,7 +53,7 @@ class SuratJalanController extends Controller
             ->appends($request->only('date_from', 'date_to'));
 
         $totalCount = (clone $base)->count();
-        $paidCount = (clone $base)->where('status_pembayaran', 'lunas')->count();
+        $paidCount = (clone $base)->where('status', 'sudah dikirim')->count();
 
         return view('penjualan.surat_jalan.index', compact('suratJalans', 'totalCount', 'paidCount', 'dateFrom', 'dateTo'));
     }
@@ -71,27 +73,39 @@ class SuratJalanController extends Controller
     {
         $data = $request->validated();
 
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($request, $data) {
             $invoice = Invoice::findOrFail($data['invoice_id']);
 
-            $grandTotal = $data['grand_total'] ?? ($invoice->grand_total + ($data['ongkos_kirim'] ?? 0));
+            $buktiPath = null;
+
+            // 🔥 HANDLE UPLOAD
+            if ($request->hasFile('bukti_pengiriman')) {
+                $buktiPath = $request->file('bukti_pengiriman')
+                    ->store('bukti-pengiriman', 'public');
+            }
 
             $sj = SuratJalan::create([
-                'nomor_surat_jalan' => $data['nomor_surat_jalan'] ?? strtoupper(Str::random(8)),
-                'customer_id' => $data['customer_id'],
-                'invoice_id' => $invoice->id,
-                'tanggal' => $data['tanggal'],
-                'ongkos_kirim' => $data['ongkos_kirim'],
-                'grand_total' => $grandTotal,
-                'status_pembayaran' => $data['status_pembayaran'] ?? $invoice->status_pembayaran,
-                'alasan_cancel' => $data['alasan_cancel'] ?? null,
+                'nomor_surat_jalan' => $data['nomor_surat_jalan']
+                    ?? 'SJ-' . now()->format('ymd') . '-' . Str::upper(Str::random(5)),
+
+                'customer_id'       => $invoice->customer_id,
+                'invoice_id'        => $invoice->id,
+                'tanggal'           => $data['tanggal'],
+                'status'            => $data['status'],
+                'alasan_cancel'     => $data['alasan_cancel'] ?? null,
+
+                // 🔥 SIMPAN PATH FILE
+                'bukti_pengiriman'  => $buktiPath,
             ]);
 
             self::logCreate($sj, 'Surat Jalan');
 
-            return redirect()->route('surat-jalan.index', $sj)->with('success', 'Surat Jalan created successfully');
+            return redirect()
+                ->route('surat-jalan.index')
+                ->with('success', 'Surat Jalan berhasil dibuat');
         });
     }
+
 
     public function show(SuratJalan $suratJalan)
     {
@@ -121,40 +135,66 @@ class SuratJalanController extends Controller
     {
         $data = $request->validated();
 
-        return DB::transaction(function () use ($data, $suratJalan) {
+        return DB::transaction(function () use ($request, $data, $suratJalan) {
             $oldValues = $suratJalan->only([
-                'customer_id', 'invoice_id', 'tanggal', 'ongkos_kirim',
-                'grand_total', 'status_pembayaran', 'alasan_cancel'
+                'customer_id',
+                'invoice_id',
+                'tanggal',
+                'bukti_pengiriman',
+                'status',
+                'alasan_cancel'
             ]);
 
-            $invoice = Invoice::findOrFail($data['invoice_id']);
-            $grandTotal = $data['grand_total'] ?? ($invoice->grand_total + ($data['ongkos_kirim'] ?? 0));
+            if ($request->hasFile('bukti_pengiriman')) {
+
+                if (
+                    $suratJalan->bukti_pengiriman &&
+                    Storage::disk('public')->exists($suratJalan->bukti_pengiriman)
+                ) {
+                    Storage::disk('public')->delete($suratJalan->bukti_pengiriman);
+                }
+
+
+                $buktiPath = $request->file('bukti_pengiriman')
+                    ->store('bukti-pengiriman', 'public');
+
+                $suratJalan->bukti_pengiriman = $buktiPath;
+            }
 
             $suratJalan->update([
-                'nomor_surat_jalan' => $data['nomor_surat_jalan'] ?? $suratJalan->nomor_surat_jalan,
-                'customer_id' => $data['customer_id'],
-                'invoice_id' => $invoice->id,
-                'tanggal' => $data['tanggal'],
-                'ongkos_kirim' => $data['ongkos_kirim'],
-                'grand_total' => $grandTotal,
-                'status_pembayaran' => $data['status_pembayaran'] ?? $invoice->status_pembayaran,
-                'alasan_cancel' => $data['alasan_cancel'] ?? null,
+                'nomor_surat_jalan' => $data['nomor_surat_jalan'],
+                'customer_id'       => $data['customer_id'],
+                'invoice_id'        => $data['invoice_id'],
+                'tanggal'           => $data['tanggal'],
+                'status'            => $data['status'],
+                'alasan_cancel'     => $data['status'] === 'cancel'
+                    ? ($data['alasan_cancel'] ?? null)
+                    : null,
             ]);
 
             $newValues = $suratJalan->only([
-                'customer_id', 'invoice_id', 'tanggal', 'ongkos_kirim',
-                'grand_total', 'status_pembayaran', 'alasan_cancel'
+                'customer_id',
+                'invoice_id',
+                'tanggal',
+                'bukti_pengiriman',
+                'status',
+                'alasan_cancel'
             ]);
+
             self::logUpdate($suratJalan, 'Surat Jalan', $oldValues, $newValues);
 
-            return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan updated successfully');
+            return redirect()
+                ->route('surat-jalan.index')
+                ->with('success', 'Surat Jalan berhasil diperbarui');
         });
     }
 
     public function destroy(SuratJalan $suratJalan)
     {
         self::logDelete($suratJalan, 'Surat Jalan');
-
+        if ($product->foto_produk && Storage::disk('public')->exists($product->foto_produk)) {
+            Storage::disk('public')->delete($product->foto_produk);
+        }
         $suratJalan->delete();
         return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan deleted successfully');
     }

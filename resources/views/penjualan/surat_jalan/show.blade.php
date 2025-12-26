@@ -3,7 +3,7 @@
 @section('title', __('Detail Surat Jalan'))
 
 @section('header')
-    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Detail Surat Jalan') }}</h2>
+<h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Detail Surat Jalan') }}</h2>
 @endsection
 
 @section('content')
@@ -38,17 +38,15 @@
                         </div>
                         <div>
                             <div class="text-gray-600">Status Pembayaran</div>
-                            @php $status = $suratJalan->status_pembayaran; @endphp
-                            @if ($status === 'lunas')
-                                <span class="inline-block px-2 py-1 rounded text-xs bg-green-100 text-green-800">Lunas</span>
-                            @elseif ($status === 'unpaid')
-                                <span class="inline-block px-2 py-1 rounded text-xs bg-red-100 text-red-800">Belum Lunas</span>
-                            @elseif ($status === 'pending')
-                                <span class="inline-block px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">Terlambat</span>
+                            @php $status = $suratJalan->status; @endphp
+                            @if ($status === 'sudah dikirim')
+                            <span class="inline-block px-2 py-1 rounded text-xs bg-green-100 text-green-800">Sudah Dikirim</span>
+                            @elseif ($status === 'belum dikirim')
+                            <span class="inline-block px-2 py-1 rounded text-xs bg-red-100 text-red-800">Belum Dikirim</span>
                             @elseif ($status === 'cancel')
-                                <span class="inline-block px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">Dibatalkan</span>
+                            <span class="inline-block px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">Dibatalkan</span>
                             @else
-                                <span class="inline-block px-2 py-1 rounded text-xs bg-gray-200 text-gray-700">{{ ucfirst($status ?? '-') }}</span>
+                            <span class="inline-block px-2 py-1 rounded text-xs bg-gray-200 text-gray-700">{{ ucfirst($status ?? '-') }}</span>
                             @endif
                         </div>
                     </div>
@@ -64,7 +62,7 @@
                             </thead>
                             <tbody>
                                 <tr class="text-center hover:bg-gray-50">
-                                    <td class="px-4 py-2 border">Rp {{ number_format($suratJalan->ongkos_kirim ?? 0, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-2 border">Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}</td>
                                     <td class="px-4 py-2 border">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</td>
                                     <td class="px-4 py-2 border">Rp {{ number_format($suratJalan->grand_total ?? 0, 0, ',', '.') }}</td>
                                 </tr>
