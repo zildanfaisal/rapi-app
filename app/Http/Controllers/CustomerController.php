@@ -26,9 +26,9 @@ class CustomerController extends Controller
     {
         $request->validate([
             'nama_customer' => 'required|string|max:255',
-            'no_hp' => 'required|string|max:255',
+            'no_hp' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
-            'alamat' => 'required|string|max:255',
+            'alamat' => 'nullable|string|max:255',
             'point' => 'nullable|integer',
             'kategori_pelanggan' => 'required|in:Toko,Konsumen,Aplikator/Tukang',
         ]);
