@@ -31,9 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Scan Product by Barcode (Dashboard)
-    Route::get('/scan/product', [DashboardController::class, 'scanProduct'])
-        ->middleware('permission:products.view')
-        ->name('scan.product');
+    Route::get('/scan/product', [DashboardController::class, 'scanProduct'])->name('scan.product');
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

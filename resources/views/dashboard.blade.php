@@ -35,14 +35,14 @@
                     <div class="min-w-0">
                         <input type="month" name="month" value="{{ $filterMonth ?? now()->format('Y-m') }}" class="px-3 py-2.5 border rounded-lg text-sm sm:text-base w-full max-w-full" id="monthFilterInput">
                     </div>
-                    @can('products.view')
+                    
                     <div class="flex items-center gap-2 ml-auto">
                         <button type="button" id="scanModeToggle" class="px-3 py-2.5 rounded-lg text-sm border transition-colors bg-white hover:bg-gray-50 flex items-center gap-2">
                             <span class="inline-block w-2 h-2 rounded-full" id="scanModeIndicator"></span>
                             <span id="scanModeText">Scan Mode: OFF</span>
                         </button>
                     </div>
-                    @endcan
+                    
                 </form>
                 <script>
                     document.addEventListener('DOMContentLoaded', function(){
