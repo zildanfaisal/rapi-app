@@ -21,7 +21,7 @@
                         <div class="mb-4">
                             <label for="barcode" class="block text-sm font-medium text-gray-700">Barcode Produk</label>
 
-                            <input type="text" name="barcode" id="barcode"
+                            <input type="text" name="barcode" id="barcode" value="{{ request('barcode') }}"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                     focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                 placeholder="Masukkan Barcode Produk">
@@ -271,6 +271,24 @@
         // Barcode Input Logic
         const barcodeInput = document.getElementById('barcode');
         const produkSelect = document.getElementById('produk');
+
+        // Prefill selection if barcode comes from query
+        document.addEventListener('DOMContentLoaded', function(){
+            const bc = (barcodeInput?.value || '').trim();
+            if (bc) {
+                let found = false;
+                for (let option of produkSelect.options) {
+                    if (option.dataset.barcode === bc) {
+                        option.selected = true;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    // keep barcode, product stays unselected
+                }
+            }
+        });
 
         // ===== 1. BARCODE → PRODUK =====
         barcodeInput.addEventListener('keydown', function(e) {

@@ -40,7 +40,7 @@ class RiwayatPenjualanController extends Controller
             $sjQ = SuratJalan::with(['customer', 'invoice'])
                 ->when($dateFrom, fn($q) => $q->whereDate('tanggal', '>=', $dateFrom))
                 ->when($dateTo, fn($q) => $q->whereDate('tanggal', '<=', $dateTo))
-                ->where('status_pembayaran', 'lunas'); // sudah lunas surat jalan
+                ->where('status', 'sudah dikirim'); // hanya surat jalan yang sudah dikirim
             $suratJalans = $sjQ->orderByDesc('tanggal')->get()->map(function ($sj) {
                 return [
                     'type' => 'surat_jalan',
@@ -48,7 +48,7 @@ class RiwayatPenjualanController extends Controller
                     'customer' => $sj->customer->nama_customer ?? '-',
                     'tanggal' => $sj->tanggal,
                     'grand_total' => (float) ($sj->grand_total ?? 0),
-                    'status' => $sj->status_pembayaran,
+                    'status' => $sj->status,
                     'link' => route('surat-jalan.show', $sj),
                 ];
             });
@@ -90,7 +90,10 @@ class RiwayatPenjualanController extends Controller
                 $mapStatus = function ($status) {
                     return match ($status) {
                         'paid' => 'Lunas',
-                        default => 'Unknown',
+                        'unpaid' => 'Belum Lunas',
+                        'overdue' => 'Terlambat',
+                        'cancelled' => 'Dibatalkan',
+                        default => ucfirst((string) $status),
                     };
                 };
                 return [
@@ -109,12 +112,14 @@ class RiwayatPenjualanController extends Controller
             $sjQ = SuratJalan::with(['customer', 'invoice'])
                 ->when($dateFrom, fn($q) => $q->whereDate('tanggal', '>=', $dateFrom))
                 ->when($dateTo, fn($q) => $q->whereDate('tanggal', '<=', $dateTo))
-                ->where('status_pembayaran', 'lunas');
+                ->where('status', 'sudah dikirim');
             $suratJalans = $sjQ->orderByDesc('tanggal')->get()->map(function ($sj) {
                 $mapStatus = function ($status) {
                     return match ($status) {
-                        'lunas' => 'Lunas',
-                        default => 'Unknown',
+                        'sudah dikirim' => 'Sudah Dikirim',
+                        'pending' => 'Belum Dikirim',
+                        'cancel' => 'Dibatalkan',
+                        default => ucfirst((string) $status),
                     };
                 };
                 return [
@@ -123,7 +128,7 @@ class RiwayatPenjualanController extends Controller
                     'customer' => $sj->customer->nama_customer ?? '-',
                     'tanggal' => $sj->tanggal,
                     'grand_total' => (float) ($sj->grand_total ?? 0),
-                    'status' => $mapStatus($sj->status_pembayaran),
+                    'status' => $mapStatus($sj->status),
                 ];
             });
             $items = $items->merge($suratJalans);

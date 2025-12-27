@@ -279,6 +279,7 @@
             const grandEl = document.getElementById('grand-total');
             const scanInput = document.getElementById('scan-barcode');
             const scanClear = document.getElementById('scan-clear');
+            const initialBarcode = @json(request('barcode'));
 
             const radios = document.querySelectorAll('input[name="customer_type"]');
             const existing = document.getElementById('existing-customer');
@@ -612,6 +613,11 @@
 
             // Also recalc on initial load (in case defaults present)
             recalc();
+
+            // If barcode is passed via query, auto-add the product row
+            if (initialBarcode) {
+                handleScan(initialBarcode);
+            }
         })();
     </script>
 @endpush

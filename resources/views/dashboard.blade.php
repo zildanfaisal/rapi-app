@@ -358,8 +358,8 @@
                     <div class="text-center text-gray-500">Memuat data produk...</div>
                 </div>
                 <div class="p-4 border-t border-gray-100 flex justify-end gap-2">
-                    <a id="scanModalViewProduct" href="#" class="px-3 py-2 rounded-lg text-sm bg-indigo-600 text-white hover:bg-indigo-700">Lihat Detail</a>
-                    <button id="scanModalDismiss" class="px-3 py-2 rounded-lg text-sm border bg-white hover:bg-gray-50">Tutup</button>
+                    <a id="scanModalAddStock" href="#" class="px-3 py-2 rounded-lg text-sm bg-indigo-600 text-white hover:bg-indigo-700">Tambah Stok</a>
+                    <a id="scanModalGoToSales" href="#" class="px-3 py-2 rounded-lg text-sm bg-green-600 text-white hover:bg-green-700">Penjualan</a>
                 </div>
             </div>
         </div>
@@ -694,7 +694,8 @@
         const modalBody = document.getElementById('scanModalBody');
         const modalClose = document.getElementById('scanModalClose');
         const modalDismiss = document.getElementById('scanModalDismiss');
-        const viewProductBtn = document.getElementById('scanModalViewProduct');
+        const addStockBtn = document.getElementById('scanModalAddStock');
+        const goToSalesBtn = document.getElementById('scanModalGoToSales');
 
         let scanMode = false;
         let buffer = '';
@@ -742,27 +743,60 @@
                 const p = data.data;
                 const detailHtml = `
                     <div class="flex items-start gap-4">
-                        <div class="w-20 h-20 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">${p.foto_url ? `<img src="${p.foto_url}" alt="${p.nama_produk}" class="w-full h-full object-cover">` : ''}</div>
-                        <div class="flex-1 min-w-0">
-                            <div class="text-lg font-semibold text-gray-800 truncate">${p.nama_produk ?? 'Produk'}</div>
-                            <div class="text-sm text-gray-600 truncate">Barcode: ${p.barcode ?? '-'}</div>
-                            <div class="text-sm text-gray-600 truncate">Kategori: ${p.kategori ?? '-'}</div>
-                            <div class="text-sm text-gray-600 truncate">Satuan: ${p.satuan ?? '-'}</div>
-                            <div class="mt-2 text-gray-800"><span class="font-medium">Harga:</span> Rp ${new Intl.NumberFormat('id-ID').format(p.harga ?? 0)}</div>
-                            <div class="text-gray-800"><span class="font-medium">Stok:</span> ${p.stok ?? 0}</div>
-                            ${p.batch_terbaru ? `<div class="text-gray-600 text-sm">Batch Terbaru: ${p.batch_terbaru.kode_batch ?? '-'} • Exp: ${p.batch_terbaru.expired_at ?? '-'}</div>` : ''}
+                        <!-- FOTO -->
+                        <div class="w-20 h-20 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                            ${p.foto_url 
+                                ? `<img src="${p.foto_url}" alt="${p.nama_produk}" class="w-full h-full object-cover">` 
+                                : ''
+                            }
+                        </div>
+
+                        <!-- INFO -->
+                        <div class="flex-1 grid grid-cols-2 gap-x-6 gap-y-1 min-w-0">
+                            <!-- KIRI -->
+                            <div class="col-span-2 text-lg font-semibold text-gray-800 truncate">
+                                ${p.nama_produk ?? 'Produk'}
+                            </div>
+
+                            <div class="text-sm text-gray-600 truncate">
+                                <span class="font-medium">Kategori:</span> ${p.kategori ?? '-'}
+                            </div>
+
+                            <div class="text-sm text-gray-600 truncate">
+                                <span class="font-medium">Satuan:</span> ${p.satuan ?? '-'}
+                            </div>
+
+                            <!-- KANAN -->
+                            <div class="text-sm text-gray-800">
+                                <span class="font-medium">Harga:</span>
+                                Rp ${new Intl.NumberFormat('id-ID').format(p.harga ?? 0)}
+                            </div>
+
+                            <div class="text-sm text-gray-800">
+                                <span class="font-medium">Stok:</span> ${p.stok ?? 0}
+                            </div>
                         </div>
                     </div>
+
                 `;
                 if (modalBody) modalBody.innerHTML = detailHtml;
-                if (viewProductBtn) {
-                    viewProductBtn.href = "{{ url('/products') }}" + '/' + p.id;
-                    viewProductBtn.classList.remove('hidden');
+                const batchCreateUrl = "{{ route('product-batches.create') }}";
+                const invoiceCreateUrl = "{{ route('invoices.create') }}";
+                if (addStockBtn) {
+                    const qs = new URLSearchParams({ barcode: (p.barcode || '') }).toString();
+                    addStockBtn.href = batchCreateUrl + '?' + qs;
+                    addStockBtn.classList.remove('hidden');
+                }
+                if (goToSalesBtn) {
+                    const qs2 = new URLSearchParams({ barcode: (p.barcode || '') }).toString();
+                    goToSalesBtn.href = invoiceCreateUrl + '?' + qs2;
+                    goToSalesBtn.classList.remove('hidden');
                 }
             })
             .catch(() => {
                 if (modalBody) modalBody.innerHTML = '<div class="text-center text-red-600">Terjadi kesalahan jaringan</div>';
-                viewProductBtn && (viewProductBtn.classList.add('hidden'));
+                addStockBtn && (addStockBtn.classList.add('hidden'));
+                goToSalesBtn && (goToSalesBtn.classList.add('hidden'));
             });
         }
 

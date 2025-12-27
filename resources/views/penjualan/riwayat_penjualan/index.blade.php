@@ -22,7 +22,7 @@
                 @endphp
                 <div class="mt-2 text-xs text-gray-600 space-y-0.5">
                     <div>Invoice: <span class="font-semibold">{{ number_format($countInv, 0, ',', '.') }}</span></div>
-                    <div>Surat Jalan (Lunas): <span class="font-semibold">{{ number_format($countSJ, 0, ',', '.') }}</span></div>
+                    <div>Surat Jalan: <span class="font-semibold">{{ number_format($countSJ, 0, ',', '.') }}</span></div>
                     @if(($dateFrom ?? null) || ($dateTo ?? null))
                         <div class="text-[11px] text-gray-500">Rentang: {{ $dateFrom ?? '—' }} s/d {{ $dateTo ?? '—' }}</div>
                     @endif
@@ -38,7 +38,7 @@
         <select name="filter" class="w-full px-3 py-2.5 border rounded-lg h-10 box-border">
             <option value="" {{ ($filter ?? '')=='' ? 'selected' : '' }}>Semua</option>
             <option value="invoice" {{ ($filter ?? '')=='invoice' ? 'selected' : '' }}>Invoice</option>
-            <option value="surat_jalan" {{ ($filter ?? '')=='surat_jalan' ? 'selected' : '' }}>Surat Jalan (Lunas)</option>
+            <option value="surat_jalan" {{ ($filter ?? '')=='surat_jalan' ? 'selected' : '' }}>Surat Jalan</option>
         </select>
     </div>
     <div class="flex flex-col">
@@ -119,10 +119,10 @@
                                             <span class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs">{{ ucfirst($status ?? '-') }}</span>
                                         @endif
                                     @else
-                                        @if ($status === 'lunas')
-                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Lunas</span>
+                                        @if ($status === 'sudah dikirim')
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Sudah Dikirim</span>
                                         @elseif ($status === 'pending')
-                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Lunas</span>
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Dikirim</span>
                                         @elseif ($status === 'cancel')
                                             <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Dibatalkan</span>
                                         @else
@@ -201,10 +201,10 @@
                                             <span class="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs">{{ ucfirst($status ?? '-') }}</span>
                                         @endif
                                     @else
-                                        @if ($status === 'lunas')
-                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Lunas</span>
+                                        @if ($status === 'sudah dikirim')
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Sudah Dikirim</span>
                                         @elseif ($status === 'pending')
-                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Lunas</span>
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Dikirim</span>
                                         @elseif ($status === 'cancel')
                                             <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Dibatalkan</span>
                                         @else

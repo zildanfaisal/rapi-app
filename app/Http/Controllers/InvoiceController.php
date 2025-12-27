@@ -16,7 +16,7 @@ use App\Models\Product;
 use App\Traits\ActivityLogger;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SuratJalan;
-use App\Http\Controllers\Log;
+use Illuminate\Support\Facades\Log;
 
 
 class InvoiceController extends Controller
@@ -364,7 +364,7 @@ class InvoiceController extends Controller
 
                 foreach ($suratJalans as $sj) {
                     if ($isCancelled) {
-                        \Log::info('Before update', ['status' => $sj->status]);
+                        Log::info('Before update', ['status' => $sj->status]);
 
                         $sj->update([
                             'status'        => 'cancel', // langsung string aja, gak perlu variable
@@ -372,7 +372,7 @@ class InvoiceController extends Controller
                         ]);
 
                         $sj->refresh(); // reload dari database
-                        \Log::info('After update', ['status' => $sj->status]);
+                        Log::info('After update', ['status' => $sj->status]);
                     }
                 }
             } catch (\Throwable $e) {

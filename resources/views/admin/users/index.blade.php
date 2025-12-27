@@ -180,8 +180,20 @@
                         {{-- HEADER --}}
                         <div class="flex items-center justify-between mb-6">
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-900">📋 Activity Logs</h3>
+                                <h3 class="text-lg font-semibold text-gray-900">Activity Logs</h3>
                                 <p class="text-sm text-gray-500 mt-1">Riwayat aktivitas semua user di sistem</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label for="activityCategoryFilter" class="text-sm text-gray-700">Kategori:</label>
+                                <select id="activityCategoryFilter" class="border-gray-300 rounded-md text-sm">
+                                    <option value="">Semua</option>
+                                    @php
+                                        $logCategories = collect($activityLogs)->pluck('category')->filter()->unique();
+                                    @endphp
+                                    @foreach ($logCategories as $cat)
+                                        <option value="{{ $cat }}">{{ $cat }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
@@ -453,9 +465,13 @@
             handleResponsive();
             window.addEventListener('resize', handleResponsive);
 
+            // Shared category filter element for Logs (desktop + mobile)
+            const categoryFilter = document.getElementById('activityCategoryFilter');
+
             // ============= ACTIVITY LOGS TABLE (DESKTOP) =============
+            let activityLogsTable = null;
             if (document.getElementById('activityLogsTable')) {
-                new DataTable('#activityLogsTable', {
+                activityLogsTable = new DataTable('#activityLogsTable', {
                     responsive: true,
                     autoWidth: false,
                     pageLength: 25,
@@ -487,6 +503,17 @@
                         zeroRecords: "Tidak ada data yang cocok"
                     }
                 });
+
+                // Apply category filter to DataTable (substring, case-insensitive)
+                if (categoryFilter) {
+                    categoryFilter.addEventListener('change', () => {
+                        const val = categoryFilter.value;
+                        activityLogsTable.column(2).search(val, false, true).draw();
+                        // Also refresh mobile view state when visible
+                        logCurrentPage = 1;
+                        renderMobileLogs();
+                    });
+                }
             }
 
             // ============= ACTIVITY LOGS MOBILE =============
@@ -502,17 +529,30 @@
             function renderMobileLogs() {
                 if (!logCards.length) return;
 
-                const total = logCards.length;
-                const totalPages = Math.ceil(total / logPerPage);
+                // Filter by selected category (if any)
+                const selectedCat = categoryFilter?.value || '';
+                const filtered = selectedCat
+                    ? logCards.filter(card => {
+                        const catText = (card.querySelector('h4')?.textContent || '').trim();
+                        return catText === selectedCat;
+                    })
+                    : logCards.slice();
+
+                const total = filtered.length;
+                const totalPages = Math.max(1, Math.ceil(total / logPerPage));
                 const start = (logCurrentPage - 1) * logPerPage;
                 const end = start + logPerPage;
 
-                logCards.forEach((card, index) => {
+                // Hide all first, then show only the filtered page
+                logCards.forEach(card => { card.style.display = 'none'; });
+                filtered.forEach((card, index) => {
                     card.style.display = index >= start && index < end ? 'block' : 'none';
                 });
 
                 if (logInfo) {
-                    logInfo.textContent = `Showing ${start + 1} to ${Math.min(end, total)} of ${total} logs`;
+                    logInfo.textContent = total
+                        ? `Showing ${start + 1} to ${Math.min(end, total)} of ${total} logs`
+                        : 'Showing 0 to 0 of 0 logs';
                 }
 
                 renderLogsPagination(totalPages);
@@ -567,6 +607,13 @@
             if (logPerPageSelect) {
                 logPerPageSelect.addEventListener('change', () => {
                     logPerPage = parseInt(logPerPageSelect.value);
+                    logCurrentPage = 1;
+                    renderMobileLogs();
+                });
+            }
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', () => {
                     logCurrentPage = 1;
                     renderMobileLogs();
                 });
