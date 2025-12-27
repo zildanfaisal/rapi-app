@@ -79,13 +79,13 @@ class InvoiceController extends Controller
         $diskon = (int) preg_replace('/\D/', '', (string) ($request->input('diskon') ?? 0));
         $metodePembayaran = $request->input('metode_pembayaran');
 
-        // Handle upload bukti_setor (jika ada) — gunakan path yang sama dengan updateSetor
-        $buktiPath = null;
+        // Handle upload bukti_setor (bukti pembayaran dari customer)
+        $buktiSetorPath = null;
         if ($request->hasFile('bukti_setor')) {
-            $buktiPath = $request->file('bukti_setor')->store('setor', 'public');
+            $buktiSetorPath = $request->file('bukti_setor')->store('setor', 'public');
         }
 
-        return DB::transaction(function () use ($data, $ongkir, $diskon, $metodePembayaran, $buktiPath) {
+        return DB::transaction(function () use ($data, $ongkir, $diskon, $metodePembayaran, $buktiSetorPath) {
             // Tentukan customer_id: jika customer_type = new, buat pelanggan baru
             $customerId = null;
             if (($data['customer_type'] ?? 'existing') === 'new') {
@@ -97,12 +97,14 @@ class InvoiceController extends Controller
             } else {
                 $customerId = $data['customer_id'];
             }
-            // Tentukan status setor berdasarkan metode pembayaran
-            $statusSetor = ($metodePembayaran && $metodePembayaran !== 'tunai') ? 'sudah' : ($data['status_setor'] ?? 'belum');
-            $tanggalSetor = $statusSetor === 'sudah' ? now()->toDateString() : null;
+
+            // LOGIKA: bukti_setor di sini adalah bukti pembayaran dari customer
+            // Berbeda dengan bukti setor penjualan yang akan diupload di halaman setor
+            $statusSetor = 'belum';  // Status setor selalu belum di awal
+            $tanggalSetor = null;
 
             $invoice = Invoice::create([
-                'invoice_number' => $data['invoice_number'] ?? Str::upper(Str::random(8)),
+                'invoice_number' => $data['invoice_number'] ?? $this->generateInvoiceNumber(),
                 'customer_id' => $customerId,
                 'user_id' => $data['user_id'],
                 'tanggal_invoice' => $data['tanggal_invoice'],
@@ -110,7 +112,7 @@ class InvoiceController extends Controller
                 'tanggal_setor' => $tanggalSetor,
                 'status_pembayaran' => $data['status_pembayaran'] ?? 'unpaid',
                 'status_setor' => $statusSetor,
-                'bukti_setor' => $buktiPath,
+                'bukti_setor' => $buktiSetorPath, // bukti pembayaran dari customer
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
                 'grand_total' => 0,
             ]);
@@ -199,27 +201,16 @@ class InvoiceController extends Controller
     {
         $customers = \App\Models\Customer::all();
         $products = \App\Models\Product::all();
-        $invoice->load(['items']);
-
-        $selectedBatchIds = $invoice->items->pluck('batch_id')->filter()->unique()->values()->all();
-
-        $batchQuery = \App\Models\ProductBatch::query()
+        $batches = \App\Models\ProductBatch::query()
             ->where(function ($q) {
                 $q->whereNull('tanggal_expired')
                     ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
-            });
+            })
+            ->where('quantity_sekarang', '>', 0)
+            ->orderByDesc('created_at')
+            ->get();
 
-        if (!empty($selectedBatchIds)) {
-            $batchQuery->where(function ($q) use ($selectedBatchIds) {
-                $q->where('quantity_sekarang', '>', 0)
-                    ->orWhereIn('id', $selectedBatchIds);
-            });
-        } else {
-            $batchQuery->where('quantity_sekarang', '>', 0);
-        }
-
-        $batches = $batchQuery->orderByDesc('created_at')->get();
-
+        $invoice->load(['items.product', 'items.batch']);
         return view('penjualan.invoices.edit', compact('invoice', 'customers', 'products', 'batches'));
     }
 
@@ -227,120 +218,114 @@ class InvoiceController extends Controller
     {
         $data = $request->validated();
 
-        // Normalisasi input tambahan dari form update
+        $oldCustomerId = $invoice->customer_id;
+        $oldGrandTotal = $invoice->grand_total;
+        $wasPaid = $invoice->status_pembayaran === 'paid';
+
+        $oldValues = $invoice->only([
+            'customer_id',
+            'user_id',
+            'tanggal_invoice',
+            'tanggal_jatuh_tempo',
+            'status_pembayaran',
+            'grand_total',
+            'alasan_cancel'
+        ]);
+
         $ongkir = (int) preg_replace('/\D/', '', (string) ($request->input('ongkos_kirim') ?? 0));
         $diskon = (int) preg_replace('/\D/', '', (string) ($request->input('diskon') ?? 0));
         $metodePembayaran = $request->input('metode_pembayaran');
 
-        // Handle upload bukti_setor (jika ada) — gunakan path 'setor' dan hapus lama
-        $buktiPath = null;
+        // Handle upload bukti_setor (bukti pembayaran dari customer)
+        $buktiSetorPath = $invoice->bukti_setor;
         if ($request->hasFile('bukti_setor')) {
             if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
                 Storage::disk('public')->delete($invoice->bukti_setor);
             }
-            $buktiPath = $request->file('bukti_setor')->store('setor', 'public');
+            $buktiSetorPath = $request->file('bukti_setor')->store('setor', 'public');
         }
 
-        return DB::transaction(function () use ($data, $invoice, $ongkir, $diskon, $metodePembayaran, $buktiPath) {
-            $oldValues = $invoice->only([
-                'customer_id',
-                'user_id',
-                'tanggal_invoice',
-                'tanggal_jatuh_tempo',
-                'status_pembayaran',
-                'grand_total',
-                'alasan_cancel'
-            ]);
+        return DB::transaction(function () use ($request, $invoice, $data, $ongkir, $diskon, $metodePembayaran, $buktiSetorPath, $wasPaid, $oldCustomerId, $oldGrandTotal, $oldValues) {
 
-            $oldCustomerId = $invoice->customer_id;
-            $oldGrandTotal = (float) ($invoice->grand_total ?? 0);
-            $wasPaid = $invoice->status_pembayaran === 'paid';
-
-            $invoice->load(['items']);
-            $oldByBatch = [];
-            foreach ($invoice->items as $oldItem) {
-                if (!empty($oldItem->batch_id)) {
-                    $oldByBatch[$oldItem->batch_id] = ($oldByBatch[$oldItem->batch_id] ?? 0) + (int) $oldItem->quantity;
-                }
+            $customerId = null;
+            if (($data['customer_type'] ?? 'existing') === 'new') {
+                $newCustomer = Customer::create([
+                    'nama_customer' => $data['customer_name'],
+                    'kategori_pelanggan' => $data['kategori_pelanggan'] ?? 'Konsumen',
+                ]);
+                $customerId = $newCustomer->id;
+            } else {
+                $customerId = $data['customer_id'];
             }
 
-            $newByBatch = [];
-            foreach ($data['items'] as $item) {
-                if (!empty($item['batch_id'])) {
-                    $newByBatch[$item['batch_id']] = ($newByBatch[$item['batch_id']] ?? 0) + (int) $item['quantity'];
-                }
-            }
+            $isCancelled = isset($data['status_pembayaran']) && $data['status_pembayaran'] === 'cancelled';
 
-            $isCancelled = ($data['status_pembayaran'] ?? null) === 'cancelled';
-            if ($isCancelled) {
-                $newByBatch = [];
-            }
-
-            $allBatchIds = array_unique(array_merge(array_keys($oldByBatch), array_keys($newByBatch)));
-            foreach ($allBatchIds as $batchId) {
-                $oldQty = $oldByBatch[$batchId] ?? 0;
-                $newQty = $newByBatch[$batchId] ?? 0;
-                $delta = $newQty - $oldQty;
-                $batch = ProductBatch::find($batchId);
-                if (!$batch) {
-                    continue;
-                }
-
-                if ($delta > 0) {
-                    if ((int) $batch->quantity_sekarang < $delta) {
-                        throw new \Exception("Stok batch #{$batch->id} tidak cukup.");
+            $existingItems = $invoice->items()->get();
+            foreach ($existingItems as $item) {
+                $batch = ProductBatch::find($item->batch_id);
+                if ($batch) {
+                    $batch->increment('quantity_sekarang', $item->quantity);
+                    $batch->refresh();
+                    $batch->refreshStatus();
+                    if ($batch->product) {
+                        $batch->product->refreshAvailability();
+                    } else {
+                        if ($p = Product::find($batch->product_id)) {
+                            $p->refreshAvailability();
+                        }
                     }
-                    $batch->decrement('quantity_sekarang', $delta);
-                } elseif ($delta < 0) {
-                    $batch->increment('quantity_sekarang', abs($delta));
-                }
-
-                $batch->refresh();
-                $batch->refreshStatus();
-                if ($batch->product) {
-                    $batch->product->refreshAvailability();
-                } else if ($p = Product::find($batch->product_id)) {
-                    $p->refreshAvailability();
                 }
             }
+            $invoice->items()->delete();
 
-            // Tentukan status_setor berdasarkan metode pembayaran (jika non tunai, set 'sudah')
-            $statusSetor = $invoice->status_setor;
+            // LOGIKA: Status setor tidak berubah di update invoice
+            // Status setor hanya diubah di halaman "Setor Penjualan"
+            // bukti_setor di sini adalah bukti pembayaran dari customer
+            $statusSetor = $invoice->status_setor ?? 'belum';
             $tanggalSetor = $invoice->tanggal_setor;
-            if ($metodePembayaran && $metodePembayaran !== 'tunai') {
-                $statusSetor = 'sudah';
-                $tanggalSetor = now()->toDateString();
-            }
 
             $invoice->update([
-                'customer_id' => $data['customer_id'],
+                'customer_id' => $customerId,
                 'user_id' => $data['user_id'],
                 'tanggal_invoice' => $data['tanggal_invoice'],
                 'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],
-                'status_pembayaran' => $data['status_pembayaran'],
-                'alasan_cancel' => $data['alasan_cancel'] ?? null,
+                'status_pembayaran' => $data['status_pembayaran'] ?? 'unpaid',
                 'status_setor' => $statusSetor,
                 'tanggal_setor' => $tanggalSetor,
+                'bukti_setor' => $buktiSetorPath,
+                'alasan_cancel' => $data['alasan_cancel'] ?? null,
             ]);
 
-            // Set kolom tambahan jika tersedia
             if (!is_null($metodePembayaran)) {
                 $invoice->metode_pembayaran = $metodePembayaran;
             }
             $invoice->ongkos_kirim = $ongkir;
             $invoice->diskon = $diskon;
-            if (!is_null($buktiPath)) {
-                $invoice->bukti_setor = $buktiPath;
-            }
             $invoice->save();
-
-            $invoice->items()->delete();
 
             $grandTotal = 0;
             if (!$isCancelled) {
                 foreach ($data['items'] as $item) {
                     $qty = (int) $item['quantity'];
                     $harga = (float) $item['harga'];
+
+                    $batch = ProductBatch::find($item['batch_id']);
+                    if ($batch) {
+                        if ($batch->quantity_sekarang < $qty) {
+                            throw new \Exception("Stok batch #{$batch->id} tidak cukup.");
+                        }
+                        $batch->decrement('quantity_sekarang', $qty);
+                        $batch->refresh();
+                        $batch->refreshStatus();
+                        if ($batch->product) {
+                            $batch->product->refreshAvailability();
+                        } else {
+                            if ($p = Product::find($batch->product_id)) {
+                                $p->refreshAvailability();
+                            }
+                        }
+                    }
+
                     $subTotal = $qty * $harga;
                     $grandTotal += $subTotal;
 
@@ -473,6 +458,7 @@ class InvoiceController extends Controller
     {
         self::logDelete($invoice, 'Invoice', 'Penjualan');
 
+        // Hapus bukti setor jika ada (ini adalah bukti pembayaran dari customer)
         if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
             Storage::disk('public')->delete($invoice->bukti_setor);
         }
@@ -511,24 +497,88 @@ class InvoiceController extends Controller
         return view('penjualan.invoices.setor_edit', compact('invoice'));
     }
 
-    public function updateSetor(SetorInvoiceRequest $request, Invoice $invoice)
+    public function updateSetor(Request $request, Invoice $invoice)
     {
-        $data = $request->validated();
+        // VALIDASI BARU: Status "sudah" wajib ada bukti setor
+        $request->validate([
+            'status_setor' => 'required|in:belum,sudah',
+            'bukti_setor' => [
+                function ($attribute, $value, $fail) use ($request, $invoice) {
+                    $statusSetor = $request->input('status_setor');
 
+                    // Jika status "sudah", wajib ada bukti (baik upload baru atau sudah ada)
+                    if ($statusSetor === 'sudah') {
+                        $hasNewFile = $request->hasFile('bukti_setor');
+                        $hasExistingFile = !empty($invoice->bukti_setor);
+
+                        if (!$hasNewFile && !$hasExistingFile) {
+                            $fail('Bukti setor wajib diisi jika status setor adalah "Sudah".');
+                        }
+                    }
+                },
+                'nullable',
+                'image',
+                'max:2048'
+            ]
+        ], [
+            'status_setor.required' => 'Status setor wajib dipilih.',
+            'status_setor.in' => 'Status setor tidak valid.',
+            'bukti_setor.image' => 'Bukti setor harus berupa gambar.',
+            'bukti_setor.max' => 'Ukuran bukti setor maksimal 2MB.',
+        ]);
+
+        $statusSetor = $request->input('status_setor');
+        $buktiSetorPath = $invoice->bukti_setor;
+
+        // Upload file baru jika ada
         if ($request->hasFile('bukti_setor')) {
+            // Hapus file lama jika ada
             if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
                 Storage::disk('public')->delete($invoice->bukti_setor);
             }
-            $path = $request->file('bukti_setor')->store('setor', 'public');
-            $data['bukti_setor'] = $path;
+            $buktiSetorPath = $request->file('bukti_setor')->store('setor', 'public');
         }
 
-        $invoice->update([
-            'status_setor' => $data['status_setor'],
-            'bukti_setor' => $data['bukti_setor'] ?? $invoice->bukti_setor,
-            'tanggal_setor' => ($data['status_setor'] === 'sudah') ? now()->toDateString() : null,
-        ]);
+        // LOGIKA BARU: Status setor "sudah" HANYA jika ada bukti setor
+        if ($statusSetor === 'sudah' && !empty($buktiSetorPath)) {
+            $invoice->update([
+                'status_setor' => 'sudah',
+                'bukti_setor' => $buktiSetorPath,
+                'tanggal_setor' => now()->toDateString(),
+            ]);
+        } elseif ($statusSetor === 'belum') {
+            // Jika diubah ke "belum", tetap simpan bukti setor jika ada (untuk history)
+            $invoice->update([
+                'status_setor' => 'belum',
+                'bukti_setor' => $buktiSetorPath,
+                'tanggal_setor' => null,
+            ]);
+        }
 
-        return redirect()->route('invoices.setor')->with('success', 'Setor updated successfully');
+        return redirect()->route('invoices.setor')->with('success', 'Setor berhasil diperbarui.');
+    }
+
+    /**
+     * Generate invoice number dengan format: INV-DDMMYY-XXXX#
+     *
+     * @return string
+     */
+    private function generateInvoiceNumber(): string
+    {
+        $now = now();
+        $datePart = $now->format('dmy'); // DDMMYY
+
+        // Generate 4 huruf random
+        $letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $randomLetters = '';
+        for ($i = 0; $i < 4; $i++) {
+            $randomLetters .= $letters[random_int(0, 25)];
+        }
+
+        // Generate 1 angka random
+        $randomNumber = random_int(0, 9);
+
+        // Format: INV-DDMMYY-XXXX#
+        return "INV-{$datePart}-{$randomLetters}{$randomNumber}";
     }
 }

@@ -56,7 +56,7 @@
 
 
 					<div class="mb-4">
-						<label for="status" class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
+						<label for="status" class="block text-sm font-medium text-gray-700">{{ __('Status Pengiriman') }}</label>
 						<select name="status" id="status" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
 							<option value="belum dikirim">Belum Dikirim</option>
 							<option value="sudah dikirim">Sudah Dikirim</option>
@@ -65,23 +65,27 @@
 					</div>
 					{{-- Foto Produk --}}
 					<div class="mb-4">
-
-						{{-- Preview Foto --}}
-						<div class="mt-3">
-							<img id="previewImage"
-								src=""
-								class="hidden w-32 h-32 object-cover rounded-md border" />
-						</div>
-
 						<label for="bukti_pengiriman" class="block text-sm font-medium text-gray-700">
 							{{ __('Bukti Pengiriman') }}
+							<span id="bukti-required-indicator" class="text-red-500 hidden">*</span>
 						</label>
 
 						<input type="file" name="bukti_pengiriman" id="bukti_pengiriman" accept="image/*"
 							class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
-                                          focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-							required>
+                                          focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+						<p class="mt-1 text-xs text-gray-500">Format: JPG, PNG, JPEG (Max: 2MB). <span class="font-semibold text-red-600">Wajib jika status "Sudah Dikirim"</span></p>
 
+						{{-- Preview Foto --}}
+						<div class="mt-3 hidden" id="preview-container">
+							<p class="text-xs text-gray-600 mb-1">Preview:</p>
+							<div class="relative inline-block">
+								<img id="previewImage" src="" class="w-32 h-32 object-cover rounded-md border" />
+								<button type="button" onclick="cancelPreviewBukti()"
+									class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-sm">
+									×
+								</button>
+							</div>
+						</div>
 					</div>
 
 					<div class="mb-4">
@@ -101,6 +105,9 @@
 @endsection
 
 @push('scripts')
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 	(function() {
 		const sel = document.getElementById('invoice_id');
@@ -109,12 +116,33 @@
 		const genBtn = document.getElementById('gen-no');
 		const noInput = document.getElementById('nomor_surat_jalan');
 		const tanggalInput = document.getElementById('tanggal');
-		const statusEl = document.getElementById('status_pembayaran');
+		const statusEl = document.getElementById('status');
 		const alasanEl = document.getElementById('alasan_cancel');
+		const buktiInput = document.getElementById('bukti_pengiriman');
+		const buktiIndicator = document.getElementById('bukti-required-indicator');
+		const formEl = document.querySelector('form');
 
 		function formatIDR(n) {
 			return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(n || 0));
 		}
+
+		// Show errors with SweetAlert
+		@if ($errors->any())
+			Swal.fire({
+				icon: 'error',
+				title: 'Terjadi Kesalahan',
+				html: `
+					<div class="text-left">
+						<ul class="list-disc list-inside space-y-1">
+							@foreach ($errors->all() as $error)
+								<li class="text-sm">{{ $error }}</li>
+							@endforeach
+						</ul>
+					</div>
+				`,
+				confirmButtonColor: '#2563eb'
+			});
+		@endif
 
 		// Invoice change handler
 		sel.addEventListener('change', function() {
@@ -147,21 +175,141 @@
 				.toUpperCase();
 
 			noInput.value = `SJ-${datePart}-${randomPart}`;
+
+			Swal.fire({
+				toast: true,
+				position: 'top-end',
+				icon: 'success',
+				title: 'Nomor surat jalan berhasil digenerate',
+				showConfirmButton: false,
+				timer: 2000,
+				timerProgressBar: true
+			});
 		});
 
-		// Require alasan_cancel when status is cancel
-		function toggleAlasanRequired() {
-			if (!statusEl || !alasanEl) return;
-			const isCancelled = statusEl.value === 'cancel';
+		// Toggle required indicators based on status
+		function toggleRequiredFields() {
+			const status = statusEl.value;
+			const isCancelled = status === 'cancel';
+			const isSudahDikirim = status === 'sudah dikirim';
+
+			// Alasan cancel required if cancelled
 			if (isCancelled) {
 				alasanEl.setAttribute('required', 'required');
 			} else {
 				alasanEl.removeAttribute('required');
 			}
+
+			// Bukti pengiriman indicator (visual only, validation in form submit)
+			if (isSudahDikirim) {
+				buktiIndicator.classList.remove('hidden');
+			} else {
+				buktiIndicator.classList.add('hidden');
+			}
 		}
 
 		if (statusEl) {
-			statusEl.addEventListener('change', toggleAlasanRequired);
+			statusEl.addEventListener('change', function() {
+				toggleRequiredFields();
+
+				// Show info toast
+				if (this.value === 'sudah dikirim') {
+					Swal.fire({
+						toast: true,
+						position: 'top-end',
+						icon: 'info',
+						title: 'Status "Sudah Dikirim"',
+						text: 'Bukti pengiriman wajib diisi',
+						showConfirmButton: false,
+						timer: 3000,
+						timerProgressBar: true
+					});
+				}
+			});
+		}
+
+		// Handle file input for bukti pengiriman
+		const previewContainer = document.getElementById('preview-container');
+		const previewImage = document.getElementById('previewImage');
+
+		if (buktiInput && previewImage) {
+			buktiInput.addEventListener('change', function(event) {
+				const file = event.target.files[0];
+
+				if (file) {
+					// Validate file type
+					if (!file.type.startsWith('image/')) {
+						Swal.fire({
+							icon: 'error',
+							title: 'File Tidak Valid',
+							text: 'Harap pilih file gambar (JPG, PNG, JPEG).',
+							confirmButtonColor: '#2563eb'
+						});
+						this.value = '';
+						return;
+					}
+
+					// Validate file size (max 2MB)
+					if (file.size > 2 * 1024 * 1024) {
+						Swal.fire({
+							icon: 'error',
+							title: 'File Terlalu Besar',
+							text: 'Ukuran file maksimal 2MB.',
+							confirmButtonColor: '#2563eb'
+						});
+						this.value = '';
+						return;
+					}
+
+					previewImage.src = URL.createObjectURL(file);
+					previewContainer.classList.remove('hidden');
+
+					Swal.fire({
+						toast: true,
+						position: 'top-end',
+						icon: 'success',
+						title: 'Bukti pengiriman berhasil dipilih',
+						showConfirmButton: false,
+						timer: 2000,
+						timerProgressBar: true
+					});
+				} else {
+					previewContainer.classList.add('hidden');
+					previewImage.src = "";
+				}
+			});
+		}
+
+		// Form validation before submit
+		if (formEl) {
+			formEl.addEventListener('submit', function(e) {
+				const status = statusEl.value;
+				const hasFile = buktiInput.files.length > 0;
+
+				// Validate: status "sudah dikirim" wajib ada bukti
+				if (status === 'sudah dikirim' && !hasFile) {
+					e.preventDefault();
+					Swal.fire({
+						icon: 'error',
+						title: 'Bukti Pengiriman Diperlukan',
+						text: 'Bukti pengiriman wajib diisi jika status "Sudah Dikirim".',
+						confirmButtonColor: '#2563eb'
+					});
+					buktiInput.focus();
+					return false;
+				}
+
+				// Show loading
+				Swal.fire({
+					title: 'Menyimpan...',
+					html: 'Mohon tunggu sebentar',
+					allowOutsideClick: false,
+					allowEscapeKey: false,
+					didOpen: () => {
+						Swal.showLoading();
+					}
+				});
+			});
 		}
 
 		// Initialize min date if invoice preselected
@@ -176,26 +324,24 @@
 			}
 		}
 
-		// Preview Foto Upload
-		const fotoInput = document.getElementById('bukti_pengiriman');
-		const previewImage = document.getElementById('previewImage');
-
-		if (fotoInput && previewImage) {
-			fotoInput.addEventListener('change', function(event) {
-				const file = event.target.files[0];
-
-				if (file) {
-					previewImage.src = URL.createObjectURL(file);
-					previewImage.classList.remove('hidden');
-				} else {
-					previewImage.classList.add('hidden');
-					previewImage.src = "";
-				}
-			});
-		}
-
 		// Init on load
-		toggleAlasanRequired();
+		toggleRequiredFields();
 	})();
+
+	// Function to cancel preview (outside closure)
+	function cancelPreviewBukti() {
+		document.getElementById('bukti_pengiriman').value = '';
+		document.getElementById('preview-container').classList.add('hidden');
+
+		Swal.fire({
+			toast: true,
+			position: 'top-end',
+			icon: 'info',
+			title: 'Bukti pengiriman dibatalkan',
+			showConfirmButton: false,
+			timer: 2000,
+			timerProgressBar: true
+		});
+	}
 </script>
 @endpush

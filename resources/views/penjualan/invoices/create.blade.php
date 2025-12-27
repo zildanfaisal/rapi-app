@@ -234,11 +234,27 @@
                                 <span class="text-sm text-gray-700">QRIS</span>
                             </label>
                         </div>
-                        <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:none;">
+                        <div class="mb-4" id="bukti-pembayaran-wrapper">
                             <label for="bukti_setor"
-                                class="block text-sm font-medium text-gray-700">{{ __('Bukti Pembayaran') }}</label>
+                                class="block text-sm font-medium text-gray-700">
+                                {{ __('Bukti Pembayaran') }}
+                                <span class="text-xs text-gray-500">(dari Customer - Opsional)</span>
+                            </label>
                             <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*"
                                 class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                            <p class="mt-1 text-xs text-gray-500">Format: JPG, PNG, JPEG (Max: 2MB). Bisa diisi untuk semua metode pembayaran termasuk Tunai.</p>
+
+                            <!-- Preview Image -->
+                            <div class="mt-2 hidden" id="preview-bukti-pembayaran">
+                                <p class="text-xs text-gray-600 mb-1">Preview:</p>
+                                <div class="relative inline-block">
+                                    <img id="preview-img-pembayaran" src="" alt="Preview" class="h-32 rounded border">
+                                    <button type="button" onclick="cancelPreviewPembayaran()"
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-sm">
+                                        ×
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-4">
                             <label for="status_pembayaran"
@@ -271,6 +287,9 @@
 @endsection
 
 @push('scripts')
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         (function() {
             let index = 1;
@@ -460,10 +479,38 @@
 
             // Generate invoice number on button click
             document.getElementById('generate-invoice').addEventListener('click', function() {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                let out = '';
-                for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
-                document.getElementById('invoice_number').value = out;
+                const now = new Date();
+                const dd = String(now.getDate()).padStart(2, '0');
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const yy = String(now.getFullYear()).slice(-2);
+                const datePart = dd + mm + yy;  // DDMMYY format
+
+                // Generate random 4 huruf + 1 angka
+                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const numbers = '0123456789';
+
+                let randomPart = '';
+                // 4 huruf
+                for (let i = 0; i < 4; i++) {
+                    randomPart += letters[Math.floor(Math.random() * letters.length)];
+                }
+                // 1 angka
+                randomPart += numbers[Math.floor(Math.random() * numbers.length)];
+
+                // Format: INV-DDMMYY-XXXX# (total 16 karakter)
+                const invoiceNumber = `INV-${datePart}-${randomPart}`;
+                document.getElementById('invoice_number').value = invoiceNumber;
+
+                // Show success toast
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Nomor invoice berhasil digenerate',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
             });
 
             // Auto-fill harga when product selected
@@ -591,25 +638,76 @@
                 });
             }
 
-            // JIKA METODE PEMBAYARAN BUKAN TUNAI, TAMPILKAN INPUT FILE BUKTI PEMBAYARAN
-            function toggleBuktiPembayaran() {
-                const radios = document.querySelectorAll('.metode-pembayaran-radio');
-                let selected = null;
-                radios.forEach(r => {
-                    if (r.checked) selected = r.value;
+            // Handle file input for bukti pembayaran
+            const buktiFileInput = document.getElementById('bukti_setor');
+            if (buktiFileInput) {
+                buktiFileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'File Tidak Valid',
+                            text: 'Harap pilih file gambar (JPG, PNG, JPEG).',
+                            confirmButtonColor: '#2563eb'
+                        });
+                        this.value = '';
+                        return;
+                    }
+
+                    // Validate file size (max 2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'File Terlalu Besar',
+                            text: 'Ukuran file maksimal 2MB.',
+                            confirmButtonColor: '#2563eb'
+                        });
+                        this.value = '';
+                        return;
+                    }
+
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('preview-img-pembayaran').src = e.target.result;
+                        document.getElementById('preview-bukti-pembayaran').classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+
+                    // Show success toast
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Bukti pembayaran berhasil dipilih',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
                 });
-                const wrapper = document.getElementById('bukti-pembayaran-wrapper');
-                if (selected && selected !== 'tunai') {
-                    wrapper.style.display = '';
-                } else {
-                    wrapper.style.display = 'none';
-                }
             }
-            document.querySelectorAll('.metode-pembayaran-radio').forEach(radio => {
-                radio.addEventListener('change', toggleBuktiPembayaran);
-            });
-            // Jalankan saat load jika ada value lama
-            toggleBuktiPembayaran();
+
+            // Show error messages with SweetAlert if exists
+            @if ($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan',
+                    html: `
+                        <div class="text-left">
+                            <ul class="list-disc list-inside space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li class="text-sm">{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    `,
+                    confirmButtonColor: '#2563eb'
+                });
+            @endif
+
 
             // Also recalc on initial load (in case defaults present)
             recalc();
@@ -619,5 +717,21 @@
                 handleScan(initialBarcode);
             }
         })();
+
+        // Function to cancel preview (outside closure so onclick can access it)
+        function cancelPreviewPembayaran() {
+            document.getElementById('bukti_setor').value = '';
+            document.getElementById('preview-bukti-pembayaran').classList.add('hidden');
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: 'Bukti pembayaran dibatalkan',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+        }
     </script>
 @endpush

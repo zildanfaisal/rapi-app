@@ -64,20 +64,44 @@
 
 					{{-- bukti --}}
 					<div class="mb-4">
-						<label class="block text-sm font-medium text-gray-700">Bukti Pengiriman</label>
+						<label class="block text-sm font-medium text-gray-700">
+							Bukti Pengiriman
+							<span id="bukti-required-indicator" class="text-red-500 hidden">*</span>
+						</label>
 
-						{{-- Bukti Lama --}}
-						<div class="mb-3">
-							<img id="previewImage" src="{{ asset('storage/' . $suratJalan->bukti_pengiriman) }}"
-								class="w-32 h-32 object-cover rounded-md border" alt="Bukti Pengiriman">
-						</div>
+						@if($suratJalan->bukti_pengiriman)
+							{{-- Bukti Lama --}}
+							<div class="mb-3" id="current-bukti">
+								<p class="text-xs text-gray-600 mb-1">Bukti pengiriman saat ini:</p>
+								<div class="relative inline-block">
+									<img id="currentImage" src="{{ asset('storage/' . $suratJalan->bukti_pengiriman) }}"
+										class="w-32 h-32 object-cover rounded-md border cursor-pointer hover:opacity-80 transition"
+										onclick="previewFullImageBukti('{{ asset('storage/' . $suratJalan->bukti_pengiriman) }}')"
+										alt="Bukti Pengiriman">
+									<div class="absolute top-1 right-1">
+										<span class="bg-green-500 text-white text-xs px-2 py-0.5 rounded">✓ Ada</span>
+									</div>
+								</div>
+							</div>
+						@endif
 
 						{{-- Input File --}}
 						<input type="file" name="bukti_pengiriman" id="bukti_pengiriman" accept="image/*"
 							class="mt-1 block w-full border-gray-300 rounded-md shadow-sm
                                           focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+						<p class="mt-1 text-xs text-gray-500">Format: JPG, PNG, JPEG (Max: 2MB). <span class="font-semibold text-red-600">Wajib jika status "Sudah Dikirim"</span></p>
 
-						<small class="text-gray-600">Pilih foto baru untuk mengganti foto saat ini.</small>
+						{{-- Preview New Image --}}
+						<div class="mt-3 hidden" id="preview-container">
+							<p class="text-xs text-gray-600 mb-1">Preview gambar baru:</p>
+							<div class="relative inline-block">
+								<img id="previewImage" src="" class="w-32 h-32 object-cover rounded-md border" />
+								<button type="button" onclick="cancelPreviewBuktiEdit()"
+									class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-sm">
+									×
+								</button>
+							</div>
+						</div>
 					</div>
 
 
@@ -93,38 +117,42 @@
 @endsection
 
 @push('scripts')
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 	(function() {
 		const sel = document.getElementById('invoice_id');
 		const grandText = document.getElementById('invoice-grand');
-		const ongkirEl = document.getElementById('ongkos_kirim');
-		const ongkirDisp = document.getElementById('ongkos_kirim_display');
-		const grandDisp = document.getElementById('grand_total_display');
-		const grandHidden = document.getElementById('grand_total_hidden');
 		const custHidden = document.getElementById('customer_id');
-		const statusEl = document.getElementById('status_pembayaran');
+		const statusEl = document.getElementById('status');
 		const alasanEl = document.getElementById('alasan_cancel');
+		const buktiInput = document.getElementById('bukti_pengiriman');
+		const buktiIndicator = document.getElementById('bukti-required-indicator');
+		const formEl = document.querySelector('form');
+		const hasExistingBukti = {{ $suratJalan->bukti_pengiriman ? 'true' : 'false' }};
 
 		function formatIDR(n) {
 			return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(n || 0));
 		}
 
-		function formatRupiahRaw(n) {
-			return new Intl.NumberFormat('id-ID').format(Math.round(n || 0));
-		}
-
-		function unformatRupiah(str) {
-			return (str || '').toString().replace(/[^0-9]/g, '');
-		}
-
-		function recalc() {
-			const opt = sel.options[sel.selectedIndex];
-			const invGrand = parseFloat(opt?.getAttribute('data-grand') || 0);
-			const ongkir = parseFloat(ongkirEl.value || 0);
-			const total = invGrand + ongkir;
-			grandDisp.textContent = formatIDR(total);
-			grandHidden.value = total;
-		}
+		// Show errors with SweetAlert
+		@if ($errors->any())
+			Swal.fire({
+				icon: 'error',
+				title: 'Terjadi Kesalahan',
+				html: `
+					<div class="text-left">
+						<ul class="list-disc list-inside space-y-1">
+							@foreach ($errors->all() as $error)
+								<li class="text-sm">{{ $error }}</li>
+							@endforeach
+						</ul>
+					</div>
+				`,
+				confirmButtonColor: '#2563eb'
+			});
+		@endif
 
 		sel.addEventListener('change', function() {
 			const opt = sel.options[sel.selectedIndex];
@@ -132,54 +160,173 @@
 			const custId = opt?.getAttribute('data-customer') || '';
 			grandText.textContent = invGrand ? ('Grand Total Invoice: ' + formatIDR(invGrand)) : '';
 			custHidden.value = custId;
-			recalc();
 		});
 
-		ongkirDisp.addEventListener('input', function(e) {
-			const raw = unformatRupiah(e.target.value);
-			ongkirEl.value = raw || 0;
-			e.target.value = raw ? formatRupiahRaw(raw) : '';
-			recalc();
-		});
+		function toggleRequiredFieldsEdit() {
+			const status = statusEl.value;
+			const isCancelled = status === 'cancel';
+			const isSudahDikirim = status === 'sudah dikirim';
 
-		function toggleAlasanRequiredEdit() {
-			if (!statusEl || !alasanEl) return;
-			const isCancelled = statusEl.value === 'cancel';
-			if (isCancelled) alasanEl.setAttribute('required', 'required');
-			else alasanEl.removeAttribute('required');
+			// Alasan cancel
+			if (isCancelled) {
+				alasanEl.setAttribute('required', 'required');
+			} else {
+				alasanEl.removeAttribute('required');
+			}
+
+			// Bukti pengiriman indicator
+			if (isSudahDikirim) {
+				buktiIndicator.classList.remove('hidden');
+			} else {
+				buktiIndicator.classList.add('hidden');
+			}
 		}
-		statusEl.addEventListener('change', toggleAlasanRequiredEdit);
+
+		statusEl.addEventListener('change', function() {
+			toggleRequiredFieldsEdit();
+
+			// Show info toast
+			if (this.value === 'sudah dikirim') {
+				Swal.fire({
+					toast: true,
+					position: 'top-end',
+					icon: 'info',
+					title: 'Status "Sudah Dikirim"',
+					text: 'Bukti pengiriman wajib ada',
+					showConfirmButton: false,
+					timer: 3000,
+					timerProgressBar: true
+				});
+			}
+		});
+
+		// Handle file input
+		const previewContainer = document.getElementById('preview-container');
+		const previewImage = document.getElementById('previewImage');
+		const currentBukti = document.getElementById('current-bukti');
+
+		if (buktiInput && previewImage) {
+			buktiInput.addEventListener('change', function(event) {
+				const file = event.target.files[0];
+
+				if (file) {
+					// Validate file type
+					if (!file.type.startsWith('image/')) {
+						Swal.fire({
+							icon: 'error',
+							title: 'File Tidak Valid',
+							text: 'Harap pilih file gambar (JPG, PNG, JPEG).',
+							confirmButtonColor: '#2563eb'
+						});
+						this.value = '';
+						return;
+					}
+
+					// Validate file size (max 2MB)
+					if (file.size > 2 * 1024 * 1024) {
+						Swal.fire({
+							icon: 'error',
+							title: 'File Terlalu Besar',
+							text: 'Ukuran file maksimal 2MB.',
+							confirmButtonColor: '#2563eb'
+						});
+						this.value = '';
+						return;
+					}
+
+					previewImage.src = URL.createObjectURL(file);
+					previewContainer.classList.remove('hidden');
+					if (currentBukti) currentBukti.classList.add('opacity-50');
+
+					Swal.fire({
+						toast: true,
+						position: 'top-end',
+						icon: 'success',
+						title: 'Bukti pengiriman baru dipilih',
+						showConfirmButton: false,
+						timer: 2000,
+						timerProgressBar: true
+					});
+				} else {
+					previewContainer.classList.add('hidden');
+					if (currentBukti) currentBukti.classList.remove('opacity-50');
+					previewImage.src = "";
+				}
+			});
+		}
+
+		// Form validation before submit
+		if (formEl) {
+			formEl.addEventListener('submit', function(e) {
+				const status = statusEl.value;
+				const hasNewFile = buktiInput.files.length > 0;
+
+				// Validate: status "sudah dikirim" wajib ada bukti (new atau existing)
+				if (status === 'sudah dikirim') {
+					if (!hasNewFile && !hasExistingBukti) {
+						e.preventDefault();
+						Swal.fire({
+							icon: 'error',
+							title: 'Bukti Pengiriman Diperlukan',
+							text: 'Bukti pengiriman wajib ada jika status "Sudah Dikirim".',
+							confirmButtonColor: '#2563eb'
+						});
+						buktiInput.focus();
+						return false;
+					}
+				}
+
+				// Show loading
+				Swal.fire({
+					title: 'Menyimpan...',
+					html: 'Mohon tunggu sebentar',
+					allowOutsideClick: false,
+					allowEscapeKey: false,
+					didOpen: () => {
+						Swal.showLoading();
+					}
+				});
+			});
+		}
 
 		// init display using current selected invoice
 		(function init() {
 			const opt = sel.options[sel.selectedIndex];
 			const invGrand = parseFloat(opt?.getAttribute('data-grand') || 0);
 			grandText.textContent = invGrand ? ('Grand Total Invoice: ' + formatIDR(invGrand)) : '';
-			if (ongkirDisp && ongkirEl) {
-				ongkirDisp.value = formatRupiahRaw(ongkirEl.value || '0');
-			}
-			recalc();
-			toggleAlasanRequiredEdit();
+			toggleRequiredFieldsEdit();
 		})();
-		const fotoInput = document.getElementById('bukti_pengiriman');
-		const previewImage = document.getElementById('previewImage');
-
-		if (fotoInput && previewImage) {
-			fotoInput.addEventListener('change', function(event) {
-				const file = event.target.files[0];
-
-				if (file) {
-					previewImage.src = URL.createObjectURL(file);
-					previewImage.classList.remove('hidden');
-				} else {
-					previewImage.classList.add('hidden');
-					previewImage.src = "";
-				}
-			});
-		}
-
 	})();
 
-	// Preview Foto Upload
+	// Helper functions (outside closure)
+	function previewFullImageBukti(imageUrl) {
+		Swal.fire({
+			imageUrl: imageUrl,
+			imageAlt: 'Bukti Pengiriman',
+			showConfirmButton: false,
+			showCloseButton: true,
+			width: 'auto',
+			customClass: {
+				image: 'max-h-96'
+			}
+		});
+	}
+
+	function cancelPreviewBuktiEdit() {
+		document.getElementById('bukti_pengiriman').value = '';
+		document.getElementById('preview-container').classList.add('hidden');
+		const currentBukti = document.getElementById('current-bukti');
+		if (currentBukti) currentBukti.classList.remove('opacity-50');
+
+		Swal.fire({
+			toast: true,
+			position: 'top-end',
+			icon: 'info',
+			title: 'Bukti pengiriman baru dibatalkan',
+			showConfirmButton: false,
+			timer: 2000,
+			timerProgressBar: true
+		});
+	}
 </script>
 @endpush

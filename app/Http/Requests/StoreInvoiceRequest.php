@@ -18,7 +18,15 @@ class StoreInvoiceRequest extends FormRequest
             // Pilihan jenis pelanggan: existing atau new
             'customer_type' => ['required', 'in:existing,new'],
 
-            'invoice_number' => ['nullable', 'string', 'size:8', 'regex:/^[A-Z0-9]+$/', 'unique:invoices,invoice_number'],
+            // ✅ Format invoice number - INV-DDMMYY-XXXX# (16 karakter)
+            'invoice_number' => [
+                'nullable',
+                'string',
+                'size:16',  // 16 karakter
+                'regex:/^INV-\d{6}-[A-Z]{4}\d{1}$/',  // Format: INV-271225-ABCD1 (Tanggal-Bulan-Tahun)
+                'unique:invoices,invoice_number'
+            ],
+
             // Jika memilih pelanggan terdaftar, wajib isi customer_id
             'customer_id' => ['nullable', 'required_if:customer_type,existing', 'exists:customers,id'],
             // Jika memilih pelanggan baru, wajib isi nama & kategori
@@ -43,6 +51,15 @@ class StoreInvoiceRequest extends FormRequest
             'items.*.batch_id' => ['required', 'exists:product_batches,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.harga' => ['required', 'numeric', 'min:0'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'invoice_number.size' => 'Nomor invoice harus 16 karakter (Format: INV-DDMMYY-XXXX#).',
+            'invoice_number.regex' => 'Format nomor invoice tidak valid. Harus: INV-tanggal-4huruf1angka (Contoh: INV-271225-ABCD1)',
+            'invoice_number.unique' => 'Nomor invoice sudah digunakan.',
         ];
     }
 

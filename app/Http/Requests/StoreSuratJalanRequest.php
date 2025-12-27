@@ -15,13 +15,38 @@ class StoreSuratJalanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nomor_surat_jalan'  => 'required|string',
+            'nomor_surat_jalan'  => 'required|string|unique:surat_jalans,nomor_surat_jalan',
             'customer_id'        => 'required|exists:customers,id',
             'invoice_id'         => 'required|exists:invoices,id',
             'tanggal'            => 'required|date',
             'status'             => 'required|in:belum dikirim,sudah dikirim,cancel',
-            'bukti_pengiriman'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'alasan_cancel'      => 'nullable|string',
+
+            // ✅ Validasi conditional: wajib jika status "sudah dikirim"
+            'bukti_pengiriman' => [
+                function ($attribute, $value, $fail) {
+                    if ($this->input('status') === 'sudah dikirim' && !$this->hasFile('bukti_pengiriman')) {
+                        $fail('Bukti pengiriman wajib diisi jika status "Sudah Dikirim".');
+                    }
+                },
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png',
+                'max:2048'
+            ],
+
+            'alasan_cancel' => 'nullable|required_if:status,cancel|string',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nomor_surat_jalan.required' => 'Nomor surat jalan wajib diisi.',
+            'nomor_surat_jalan.unique' => 'Nomor surat jalan sudah digunakan.',
+            'status.required' => 'Status pengiriman wajib dipilih.',
+            'bukti_pengiriman.image' => 'Bukti pengiriman harus berupa gambar.',
+            'bukti_pengiriman.max' => 'Ukuran bukti pengiriman maksimal 2MB.',
+            'alasan_cancel.required_if' => 'Alasan pembatalan wajib diisi jika status dibatalkan.',
         ];
     }
 
