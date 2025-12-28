@@ -53,13 +53,10 @@
             <div class="p-4 sm:p-6 lg:p-8">
                 {{-- HEADER TABLE --}}
                 <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
-                    <h3 class="text-lg font-semibold">Surat Jalan</h3>
-                    <a href="{{ route('surat-jalan.create') }}"
-                        class="inline-flex items-center justify-center
-                              px-4 py-2.5 bg-blue-600 text-white
-                              rounded-lg hover:bg-blue-700">
-                        + Tambah Surat Jalan
-                    </a>
+                    <div>
+                        <h3 class="text-lg font-semibold">Surat Jalan</h3>
+                        <p class="text-xs text-gray-500 mt-1">Surat jalan otomatis dibuat saat invoice dibuat. Silakan edit untuk mengubah status pengiriman.</p>
+                    </div>
                 </div>
 
                 {{-- ================= DESKTOP TABLE ================= --}}

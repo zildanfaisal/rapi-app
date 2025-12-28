@@ -79,7 +79,7 @@ class InvoiceController extends Controller
         $diskon = (int) preg_replace('/\D/', '', (string) ($request->input('diskon') ?? 0));
         $metodePembayaran = $request->input('metode_pembayaran');
 
-        // Handle upload bukti_setor (bukti pembayaran dari customer)
+        // Handle upload bukti_setor (bukti dari customer untuk TF/QRIS)
         $buktiSetorPath = null;
         if ($request->hasFile('bukti_setor')) {
             $buktiSetorPath = $request->file('bukti_setor')->store('setor', 'public');
@@ -98,21 +98,34 @@ class InvoiceController extends Controller
                 $customerId = $data['customer_id'];
             }
 
-            // LOGIKA: bukti_setor di sini adalah bukti pembayaran dari customer
-            // Berbeda dengan bukti setor penjualan yang akan diupload di halaman setor
-            $statusSetor = 'belum';  // Status setor selalu belum di awal
+            // LOGIKA BENAR:
+            // 1. Jika ada bukti_setor → status_pembayaran = 'paid' (auto lunas)
+            // 2. Jika metode TF/QRIS DAN ada bukti → status_setor = 'sudah'
+            $statusPembayaran = $data['status_pembayaran'] ?? 'unpaid';
+            $statusSetor = 'belum';
             $tanggalSetor = null;
 
+            // Auto-set paid jika ada bukti pembayaran
+            if ($buktiSetorPath) {
+                $statusPembayaran = 'paid';
+            }
+
+            // Auto-set status setor sudah jika TF/QRIS + ada bukti
+            if ($metodePembayaran && $metodePembayaran !== 'tunai' && $buktiSetorPath) {
+                $statusSetor = 'sudah';
+                $tanggalSetor = now()->toDateString();
+            }
+
             $invoice = Invoice::create([
-                'invoice_number' => $data['invoice_number'] ?? $this->generateInvoiceNumber(),
+                'invoice_number' => $data['invoice_number'] ?? Str::upper(Str::random(8)),
                 'customer_id' => $customerId,
                 'user_id' => $data['user_id'],
                 'tanggal_invoice' => $data['tanggal_invoice'],
                 'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],
                 'tanggal_setor' => $tanggalSetor,
-                'status_pembayaran' => $data['status_pembayaran'] ?? 'unpaid',
+                'status_pembayaran' => $statusPembayaran,
                 'status_setor' => $statusSetor,
-                'bukti_setor' => $buktiSetorPath, // bukti pembayaran dari customer
+                'bukti_setor' => $buktiSetorPath,
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
                 'grand_total' => 0,
             ]);
@@ -278,18 +291,30 @@ class InvoiceController extends Controller
             }
             $invoice->items()->delete();
 
-            // LOGIKA: Status setor tidak berubah di update invoice
-            // Status setor hanya diubah di halaman "Setor Penjualan"
-            // bukti_setor di sini adalah bukti pembayaran dari customer
+            // LOGIKA BENAR:
+            // 1. Jika ada bukti_setor (baru atau existing) → status_pembayaran = 'paid'
+            // 2. Jika metode TF/QRIS DAN ada bukti → status_setor = 'sudah'
+            $statusPembayaran = $data['status_pembayaran'] ?? 'unpaid';
             $statusSetor = $invoice->status_setor ?? 'belum';
             $tanggalSetor = $invoice->tanggal_setor;
+
+            // Auto-set paid jika ada bukti (baru upload atau sudah ada sebelumnya)
+            if ($buktiSetorPath) {
+                $statusPembayaran = 'paid';
+            }
+
+            // Update status setor jika metode TF/QRIS dan ada bukti
+            if ($metodePembayaran && $metodePembayaran !== 'tunai' && $buktiSetorPath) {
+                $statusSetor = 'sudah';
+                $tanggalSetor = $tanggalSetor ?? now()->toDateString();
+            }
 
             $invoice->update([
                 'customer_id' => $customerId,
                 'user_id' => $data['user_id'],
                 'tanggal_invoice' => $data['tanggal_invoice'],
                 'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],
-                'status_pembayaran' => $data['status_pembayaran'] ?? 'unpaid',
+                'status_pembayaran' => $statusPembayaran,
                 'status_setor' => $statusSetor,
                 'tanggal_setor' => $tanggalSetor,
                 'bukti_setor' => $buktiSetorPath,
@@ -472,23 +497,38 @@ class InvoiceController extends Controller
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
 
+        // 🔥 HAPUS filter where status_pembayaran = 'paid'
+        // Sekarang tampilkan SEMUA invoice yang lunas (paid), tidak peduli status setor
         $base = Invoice::with(['customer', 'user'])
-            ->where('status_pembayaran', 'paid')
+            ->where('status_pembayaran', 'paid') // Tetap filter hanya yang paid
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo));
 
+        // Total yang belum disetor
         $notDepositedTotal = (clone $base)
             ->where(function ($q) {
                 $q->whereNull('status_setor')->orWhere('status_setor', '!=', 'sudah');
             })
             ->sum('grand_total');
 
+        // Total yang sudah disetor
+        $depositedTotal = (clone $base)
+            ->where('status_setor', 'sudah')
+            ->sum('grand_total');
+
+        // 🔥 Tampilkan SEMUA invoice (baik sudah maupun belum disetor)
         $invoices = (clone $base)
             ->orderByDesc('created_at')
             ->paginate(20)
             ->appends($request->only('date_from', 'date_to'));
 
-        return view('penjualan.invoices.setor_index', compact('invoices', 'notDepositedTotal', 'dateFrom', 'dateTo'));
+        return view('penjualan.invoices.setor_index', compact(
+            'invoices',
+            'notDepositedTotal',
+            'depositedTotal', // 🔥 Tambahkan variable baru
+            'dateFrom',
+            'dateTo'
+        ));
     }
 
     public function editSetor(Invoice $invoice)
@@ -556,29 +596,5 @@ class InvoiceController extends Controller
         }
 
         return redirect()->route('invoices.setor')->with('success', 'Setor berhasil diperbarui.');
-    }
-
-    /**
-     * Generate invoice number dengan format: INV-DDMMYY-XXXX#
-     *
-     * @return string
-     */
-    private function generateInvoiceNumber(): string
-    {
-        $now = now();
-        $datePart = $now->format('dmy'); // DDMMYY
-
-        // Generate 4 huruf random
-        $letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $randomLetters = '';
-        for ($i = 0; $i < 4; $i++) {
-            $randomLetters .= $letters[random_int(0, 25)];
-        }
-
-        // Generate 1 angka random
-        $randomNumber = random_int(0, 9);
-
-        // Format: INV-DDMMYY-XXXX#
-        return "INV-{$datePart}-{$randomLetters}{$randomNumber}";
     }
 }

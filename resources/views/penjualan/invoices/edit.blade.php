@@ -160,10 +160,10 @@
                                 <span class="text-sm text-gray-700">QRIS</span>
                             </label>
                         </div>
-                        <div class="mb-4" id="bukti-pembayaran-wrapper">
+                        <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:{{ ($metode && $metode !== 'tunai') ? '' : 'none' }};">
                             <label for="bukti_setor" class="block text-sm font-medium text-gray-700">
                                 {{ __('Bukti Pembayaran') }}
-                                <span class="text-xs text-gray-500">(dari Customer - Opsional)</span>
+                                <span class="text-xs text-gray-500">(dari Customer)</span>
                             </label>
                             <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*"
                                 class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
@@ -204,10 +204,10 @@
                                 <option value="cancelled" @selected(old('status_pembayaran', $invoice->status_pembayaran)=='cancelled')>Dibatalkan</option>
                             </select>
                         </div>
-                        <div class="mb-4">
-                            <label for="alasan_cancel" class="block text-sm font-medium text-gray-700">{{ __('Alasan Batal') }}</label>
+                        <div class="mb-4" id="alasan-cancel-wrapper" style="display:{{ old('status_pembayaran', $invoice->status_pembayaran) == 'cancelled' ? '' : 'none' }};">
+                            <label for="alasan_cancel" class="block text-sm font-medium text-gray-700">{{ __('Alasan Batal') }} <span class="text-red-500">*</span></label>
                             <div class="mt-1 flex gap-2">
-                                <input type="text" name="alasan_cancel" id="alasan_cancel" value="{{ old('alasan_cancel', $invoice->alasan_cancel) }}" class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                <input type="text" name="alasan_cancel" id="alasan_cancel" value="{{ old('alasan_cancel', $invoice->alasan_cancel) }}" class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="Masukkan alasan pembatalan...">
                             </div>
                         </div>
                         <div class="mb-4">
@@ -242,11 +242,18 @@
 
         function toggleAlasanCancelRequired() {
             const isCancelled = statusPembayaranEl && statusPembayaranEl.value === 'cancelled';
-            if (alasanCancelEl) {
-                if (isCancelled) {
-                    alasanCancelEl.setAttribute('required', 'required');
-                } else {
+            const wrapper = document.getElementById('alasan-cancel-wrapper');
+
+            if (isCancelled) {
+                // Show wrapper dan set required
+                if (wrapper) wrapper.style.display = '';
+                if (alasanCancelEl) alasanCancelEl.setAttribute('required', 'required');
+            } else {
+                // Hide wrapper dan remove required
+                if (wrapper) wrapper.style.display = 'none';
+                if (alasanCancelEl) {
                     alasanCancelEl.removeAttribute('required');
+                    alasanCancelEl.value = ''; // Clear value
                 }
             }
         }
@@ -396,14 +403,21 @@
                 };
                 reader.readAsDataURL(file);
 
+                // AUTO-SELECT STATUS PEMBAYARAN = 'PAID' (LUNAS)
+                const statusPembayaranSelect = document.getElementById('status_pembayaran');
+                if (statusPembayaranSelect) {
+                    statusPembayaranSelect.value = 'paid';
+                }
+
                 // Show success toast
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
                     icon: 'success',
                     title: 'Bukti pembayaran baru dipilih',
+                    text: 'Status pembayaran otomatis diset "Lunas"',
                     showConfirmButton: false,
-                    timer: 2000,
+                    timer: 3000,
                     timerProgressBar: true
                 });
             });
@@ -591,6 +605,38 @@
             statusPembayaranEl.addEventListener('change', toggleAlasanCancelRequired);
             toggleAlasanCancelRequired();
         }
+
+        // Function to toggle bukti pembayaran visibility based on payment method
+        function toggleBuktiPembayaran() {
+            const radios = document.querySelectorAll('.metode-pembayaran-radio');
+            let selected = null;
+            radios.forEach(r => { if (r.checked) selected = r.value; });
+            const wrapper = document.getElementById('bukti-pembayaran-wrapper');
+
+            if (selected && selected !== 'tunai') {
+                // Show form for transfer/qris
+                wrapper.style.display = '';
+            } else {
+                // Hide form for tunai
+                wrapper.style.display = 'none';
+                // Clear file input only if no existing bukti
+                const hasExisting = {{ $invoice->bukti_setor ? 'true' : 'false' }};
+                if (!hasExisting) {
+                    const fileInput = document.getElementById('bukti_setor');
+                    if (fileInput) fileInput.value = '';
+                    const preview = document.getElementById('preview-bukti-pembayaran');
+                    if (preview) preview.classList.add('hidden');
+                }
+            }
+        }
+
+        // Add event listeners to all metode pembayaran radio buttons
+        document.querySelectorAll('.metode-pembayaran-radio').forEach(radio => {
+            radio.addEventListener('change', toggleBuktiPembayaran);
+        });
+
+        // Run on initial load
+        toggleBuktiPembayaran();
     })();
 
     // Helper functions (outside closure so onclick can access)
@@ -613,11 +659,22 @@
         const currentDiv = document.getElementById('current-bukti-pembayaran');
         if (currentDiv) currentDiv.classList.remove('opacity-50');
 
+        // Cek apakah ada bukti lama
+        const hasExistingBukti = {{ $invoice->bukti_setor ? 'true' : 'false' }};
+        const statusPembayaranSelect = document.getElementById('status_pembayaran');
+
+        if (!hasExistingBukti && statusPembayaranSelect) {
+            // Jika TIDAK ada bukti lama, reset ke unpaid
+            statusPembayaranSelect.value = 'unpaid';
+        }
+        // Jika ada bukti lama, status tetap paid (tidak reset)
+
         Swal.fire({
             toast: true,
             position: 'top-end',
             icon: 'info',
             title: 'Bukti pembayaran baru dibatalkan',
+            text: hasExistingBukti ? 'Bukti lama akan tetap digunakan' : 'Status pembayaran direset ke "Belum Lunas"',
             showConfirmButton: false,
             timer: 2000,
             timerProgressBar: true

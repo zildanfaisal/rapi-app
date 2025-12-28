@@ -234,21 +234,22 @@
                                 <span class="text-sm text-gray-700">QRIS</span>
                             </label>
                         </div>
-                        <div class="mb-4" id="bukti-pembayaran-wrapper">
-                            <label for="bukti_setor"
-                                class="block text-sm font-medium text-gray-700">
+                        <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:none;">
+                            <label for="bukti_setor" class="block text-sm font-medium text-gray-700">
                                 {{ __('Bukti Pembayaran') }}
-                                <span class="text-xs text-gray-500">(dari Customer - Opsional)</span>
+                                <span class="text-xs text-gray-500">(dari Customer)</span>
                             </label>
                             <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*"
                                 class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                            <p class="mt-1 text-xs text-gray-500">Format: JPG, PNG, JPEG (Max: 2MB). Bisa diisi untuk semua metode pembayaran termasuk Tunai.</p>
+                            <p class="mt-1 text-xs text-gray-500">Format: JPG, PNG, JPEG (Max: 2MB). Bisa diisi untuk semua
+                                metode pembayaran termasuk Tunai.</p>
 
                             <!-- Preview Image -->
                             <div class="mt-2 hidden" id="preview-bukti-pembayaran">
                                 <p class="text-xs text-gray-600 mb-1">Preview:</p>
                                 <div class="relative inline-block">
-                                    <img id="preview-img-pembayaran" src="" alt="Preview" class="h-32 rounded border">
+                                    <img id="preview-img-pembayaran" src="" alt="Preview"
+                                        class="h-32 rounded border">
                                     <button type="button" onclick="cancelPreviewPembayaran()"
                                         class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-sm">
                                         ×
@@ -480,10 +481,10 @@
             // Generate invoice number on button click
             document.getElementById('generate-invoice').addEventListener('click', function() {
                 const now = new Date();
-                const dd = String(now.getDate()).padStart(2, '0');
-                const mm = String(now.getMonth() + 1).padStart(2, '0');
                 const yy = String(now.getFullYear()).slice(-2);
-                const datePart = dd + mm + yy;  // DDMMYY format
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                const datePart = yy + mm + dd;
 
                 // Generate random 4 huruf + 1 angka
                 const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -497,7 +498,7 @@
                 // 1 angka
                 randomPart += numbers[Math.floor(Math.random() * numbers.length)];
 
-                // Format: INV-DDMMYY-XXXX# (total 16 karakter)
+                // Format: INV-YYMMDD-XXXX#
                 const invoiceNumber = `INV-${datePart}-${randomPart}`;
                 document.getElementById('invoice_number').value = invoiceNumber;
 
@@ -512,7 +513,6 @@
                     timerProgressBar: true
                 });
             });
-
             // Auto-fill harga when product selected
             wrapper.addEventListener('change', function(e) {
                 if (e.target.matches('select[name^="items"][name$="[product_id]"]')) {
@@ -677,14 +677,21 @@
                     };
                     reader.readAsDataURL(file);
 
+                    // AUTO-SELECT STATUS PEMBAYARAN = 'PAID' (LUNAS)
+                    const statusPembayaranSelect = document.getElementById('status_pembayaran');
+                    if (statusPembayaranSelect) {
+                        statusPembayaranSelect.value = 'paid';
+                    }
+
                     // Show success toast
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
                         icon: 'success',
                         title: 'Bukti pembayaran berhasil dipilih',
+                        text: 'Status pembayaran otomatis diset "Lunas"',
                         showConfirmButton: false,
-                        timer: 2000,
+                        timer: 3000,
                         timerProgressBar: true
                     });
                 });
@@ -709,6 +716,61 @@
             @endif
 
 
+            // Function to toggle bukti pembayaran visibility based on payment method
+            function toggleBuktiPembayaran() {
+                const radios = document.querySelectorAll('.metode-pembayaran-radio');
+                let selected = null;
+                radios.forEach(r => { if (r.checked) selected = r.value; });
+                const wrapper = document.getElementById('bukti-pembayaran-wrapper');
+
+                if (selected && selected !== 'tunai') {
+                    // Show form for transfer/qris
+                    wrapper.style.display = '';
+
+                    // Show toast notification
+                    if (selected === 'transfer') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'info',
+                            title: 'Metode Transfer dipilih',
+                            text: 'Jika ada bukti dari customer, upload untuk auto-set status setor "Sudah"',
+                            showConfirmButton: false,
+                            timer: 4000,
+                            timerProgressBar: true
+                        });
+                    } else if (selected === 'qris') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'info',
+                            title: 'Metode QRIS dipilih',
+                            text: 'Jika ada bukti dari customer, upload untuk auto-set status setor "Sudah"',
+                            showConfirmButton: false,
+                            timer: 4000,
+                            timerProgressBar: true
+                        });
+                    }
+                } else {
+                    // Hide form for tunai
+                    wrapper.style.display = 'none';
+                    // Clear file input
+                    const fileInput = document.getElementById('bukti_setor');
+                    if (fileInput) fileInput.value = '';
+                    // Hide preview if shown
+                    const preview = document.getElementById('preview-bukti-pembayaran');
+                    if (preview) preview.classList.add('hidden');
+                }
+            }
+
+            // Add event listeners to all metode pembayaran radio buttons
+            document.querySelectorAll('.metode-pembayaran-radio').forEach(radio => {
+                radio.addEventListener('change', toggleBuktiPembayaran);
+            });
+
+            // Run on initial load
+            toggleBuktiPembayaran();
+
             // Also recalc on initial load (in case defaults present)
             recalc();
 
@@ -723,13 +785,20 @@
             document.getElementById('bukti_setor').value = '';
             document.getElementById('preview-bukti-pembayaran').classList.add('hidden');
 
+            // RESET STATUS PEMBAYARAN KE 'UNPAID'
+            const statusPembayaranSelect = document.getElementById('status_pembayaran');
+            if (statusPembayaranSelect) {
+                statusPembayaranSelect.value = 'unpaid';
+            }
+
             Swal.fire({
                 toast: true,
                 position: 'top-end',
                 icon: 'info',
                 title: 'Bukti pembayaran dibatalkan',
+                text: 'Status pembayaran direset ke "Belum Lunas"',
                 showConfirmButton: false,
-                timer: 2000,
+                timer: 2500,
                 timerProgressBar: true
             });
         }

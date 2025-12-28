@@ -25,41 +25,63 @@
 				<form method="POST" action="{{ route('surat-jalan.update', $suratJalan->id) }}" enctype="multipart/form-data">
 					@csrf
 					@method('PUT')
-					<div class=" mb-4">
-						<label for="invoice_id" class="block text-sm font-medium text-gray-700">{{ __('Invoice') }}</label>
-						<select name="invoice_id" id="invoice_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
-							@foreach($invoices as $inv)
-							<option value="{{ $inv->id }}" data-grand="{{ $inv->grand_total }}" data-customer="{{ $inv->customer_id }}" @selected(old('invoice_id', $suratJalan->invoice_id) == $inv->id)>{{ $inv->invoice_number }} — {{ $inv->customer->nama_customer ?? '-' }}</option>
-							@endforeach
-						</select>
-						<p id="invoice-grand" class="mt-1 text-xs text-gray-600"></p>
-						<input type="hidden" name="customer_id" id="customer_id" value="{{ old('customer_id', $suratJalan->customer_id) }}">
+
+					{{-- Info: Field readonly karena auto-generate dari invoice --}}
+					<div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+						<p class="text-sm text-blue-700">
+							<strong>Info:</strong> Surat jalan ini otomatis dibuat dari invoice.
+							Anda hanya perlu mengubah <strong>Status Pengiriman</strong> dan upload <strong>Bukti Pengiriman</strong>.
+						</p>
+					</div>
+
+					<div class="mb-4">
+						<label for="invoice_display" class="block text-sm font-medium text-gray-700">{{ __('Invoice') }}</label>
+						<input type="text" id="invoice_display"
+							value="{{ $suratJalan->invoice->invoice_number ?? '-' }} — {{ $suratJalan->customer->nama_customer ?? '-' }}"
+							class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-600 sm:text-sm"
+							readonly disabled>
+						<input type="hidden" name="invoice_id" value="{{ $suratJalan->invoice_id }}">
+						<input type="hidden" name="customer_id" value="{{ $suratJalan->customer_id }}">
+						<p class="mt-1 text-xs text-gray-500">Grand Total: Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</p>
 					</div>
 
 					<div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
 						<div>
 							<label for="tanggal" class="block text-sm font-medium text-gray-700">{{ __('Tanggal') }}</label>
-							<input type="date" name="tanggal" id="tanggal" value="{{ old('tanggal', $suratJalan->tanggal) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+							<input type="date" name="tanggal" id="tanggal"
+								value="{{ old('tanggal', $suratJalan->tanggal) }}"
+								class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-600 sm:text-sm"
+								readonly>
 						</div>
 						<div>
 							<label for="nomor_surat_jalan" class="block text-sm font-medium text-gray-700">{{ __('Nomor Surat Jalan') }}</label>
-							<input type="text" name="nomor_surat_jalan" id="nomor_surat_jalan" value="{{ old('nomor_surat_jalan', $suratJalan->nomor_surat_jalan) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" readonly>
+							<input type="text" name="nomor_surat_jalan" id="nomor_surat_jalan"
+								value="{{ old('nomor_surat_jalan', $suratJalan->nomor_surat_jalan) }}"
+								class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-600 sm:text-sm"
+								readonly>
 						</div>
 					</div>
 
 
 					<div class="mb-4">
-						<label for="status" class="block text-sm font-medium text-gray-700">{{ __('Status') }}</label>
-						<select name="status" id="status" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+						<label for="status" class="block text-sm font-medium text-gray-700">
+							{{ __('Status Pengiriman') }} <span class="text-red-500">*</span>
+						</label>
+						<select name="status" id="status" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
 							<option value="belum dikirim" @selected(old('status', $suratJalan->status)=='belum dikirim')>Belum Dikirim</option>
 							<option value="sudah dikirim" @selected(old('status', $suratJalan->status)=='sudah dikirim')>Sudah Dikirim</option>
 							<option value="cancel" @selected(old('status', $suratJalan->status)=='cancel')>Dibatalkan</option>
 						</select>
 					</div>
 
-					<div class="mb-4">
-						<label for="alasan_cancel" class="block text-sm font-medium text-gray-700">{{ __('Alasan Batal') }}</label>
-						<input type="text" name="alasan_cancel" id="alasan_cancel" value="{{ old('alasan_cancel', $suratJalan->alasan_cancel) }}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+					<div class="mb-4" id="alasan-cancel-wrapper" style="display:{{ old('status', $suratJalan->status) == 'cancel' ? '' : 'none' }};">
+						<label for="alasan_cancel" class="block text-sm font-medium text-gray-700">
+							{{ __('Alasan Batal') }} <span class="text-red-500">*</span>
+						</label>
+						<input type="text" name="alasan_cancel" id="alasan_cancel"
+							value="{{ old('alasan_cancel', $suratJalan->alasan_cancel) }}"
+							class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+							placeholder="Masukkan alasan pembatalan...">
 					</div>
 
 					{{-- bukti --}}
@@ -122,19 +144,12 @@
 
 <script>
 	(function() {
-		const sel = document.getElementById('invoice_id');
-		const grandText = document.getElementById('invoice-grand');
-		const custHidden = document.getElementById('customer_id');
 		const statusEl = document.getElementById('status');
 		const alasanEl = document.getElementById('alasan_cancel');
 		const buktiInput = document.getElementById('bukti_pengiriman');
 		const buktiIndicator = document.getElementById('bukti-required-indicator');
 		const formEl = document.querySelector('form');
 		const hasExistingBukti = {{ $suratJalan->bukti_pengiriman ? 'true' : 'false' }};
-
-		function formatIDR(n) {
-			return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(n || 0));
-		}
 
 		// Show errors with SweetAlert
 		@if ($errors->any())
@@ -154,24 +169,22 @@
 			});
 		@endif
 
-		sel.addEventListener('change', function() {
-			const opt = sel.options[sel.selectedIndex];
-			const invGrand = parseFloat(opt?.getAttribute('data-grand') || 0);
-			const custId = opt?.getAttribute('data-customer') || '';
-			grandText.textContent = invGrand ? ('Grand Total Invoice: ' + formatIDR(invGrand)) : '';
-			custHidden.value = custId;
-		});
-
 		function toggleRequiredFieldsEdit() {
 			const status = statusEl.value;
 			const isCancelled = status === 'cancel';
 			const isSudahDikirim = status === 'sudah dikirim';
+			const alasanWrapper = document.getElementById('alasan-cancel-wrapper');
 
-			// Alasan cancel
+			// Alasan cancel - show/hide wrapper
 			if (isCancelled) {
-				alasanEl.setAttribute('required', 'required');
+				if (alasanWrapper) alasanWrapper.style.display = '';
+				if (alasanEl) alasanEl.setAttribute('required', 'required');
 			} else {
-				alasanEl.removeAttribute('required');
+				if (alasanWrapper) alasanWrapper.style.display = 'none';
+				if (alasanEl) {
+					alasanEl.removeAttribute('required');
+					alasanEl.value = ''; // Clear value
+				}
 			}
 
 			// Bukti pengiriman indicator
@@ -289,13 +302,8 @@
 			});
 		}
 
-		// init display using current selected invoice
-		(function init() {
-			const opt = sel.options[sel.selectedIndex];
-			const invGrand = parseFloat(opt?.getAttribute('data-grand') || 0);
-			grandText.textContent = invGrand ? ('Grand Total Invoice: ' + formatIDR(invGrand)) : '';
-			toggleRequiredFieldsEdit();
-		})();
+		// Initialize toggle on page load
+		toggleRequiredFieldsEdit();
 	})();
 
 	// Helper functions (outside closure)

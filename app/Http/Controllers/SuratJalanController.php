@@ -137,6 +137,19 @@ class SuratJalanController extends Controller
     {
         $data = $request->validated();
 
+        // VALIDASI: Status "sudah dikirim" wajib ada bukti (baru atau existing)
+        if ($data['status'] === 'sudah dikirim') {
+            $hasNewFile = $request->hasFile('bukti_pengiriman');
+            $hasExistingFile = !empty($suratJalan->bukti_pengiriman);
+
+            if (!$hasNewFile && !$hasExistingFile) {
+                return redirect()
+                    ->back()
+                    ->withErrors(['bukti_pengiriman' => 'Bukti pengiriman wajib ada jika status "Sudah Dikirim".'])
+                    ->withInput();
+            }
+        }
+
         return DB::transaction(function () use ($request, $data, $suratJalan) {
             $oldValues = $suratJalan->only([
                 'customer_id',
@@ -150,8 +163,9 @@ class SuratJalanController extends Controller
                 'alasan_cancel'
             ]);
 
+            // 🔥 Handle upload bukti baru
             if ($request->hasFile('bukti_pengiriman')) {
-
+                // Hapus file lama jika ada
                 if (
                     $suratJalan->bukti_pengiriman &&
                     Storage::disk('public')->exists($suratJalan->bukti_pengiriman)
@@ -159,18 +173,19 @@ class SuratJalanController extends Controller
                     Storage::disk('public')->delete($suratJalan->bukti_pengiriman);
                 }
 
-
                 $buktiPath = $request->file('bukti_pengiriman')
                     ->store('bukti-pengiriman', 'public');
 
                 $suratJalan->bukti_pengiriman = $buktiPath;
             }
 
+            // 🔥 UPDATE - HAPUS nomor_surat_jalan, customer_id, invoice_id, tanggal
+            // Karena field ini readonly dan tidak boleh diubah
             $suratJalan->update([
-                'nomor_surat_jalan' => $data['nomor_surat_jalan'],
-                'customer_id'       => $data['customer_id'],
-                'invoice_id'        => $data['invoice_id'],
-                'tanggal'           => $data['tanggal'],
+                // 'nomor_surat_jalan' => $data['nomor_surat_jalan'], // ❌ HAPUS
+                // 'customer_id'       => $data['customer_id'],        // ❌ HAPUS
+                // 'invoice_id'        => $data['invoice_id'],         // ❌ HAPUS
+                // 'tanggal'           => $data['tanggal'],            // ❌ HAPUS
                 'status'            => $data['status'],
                 'alasan_cancel'     => $data['status'] === 'cancel'
                     ? ($data['alasan_cancel'] ?? null)
@@ -187,8 +202,8 @@ class SuratJalanController extends Controller
                 'ongkos_kirim',
                 'grand_total',
                 'status_pembayaran',
-                'alasan_cancel'
             ]);
+
             self::logUpdate($suratJalan, 'Surat Jalan', $oldValues, $newValues, 'Surat Jalan');
 
             return redirect()
@@ -196,7 +211,6 @@ class SuratJalanController extends Controller
                 ->with('success', 'Surat Jalan berhasil diperbarui');
         });
     }
-
     public function destroy(SuratJalan $suratJalan)
     {
         self::logDelete($suratJalan, 'Surat Jalan', 'Surat Jalan');
