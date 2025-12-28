@@ -406,7 +406,7 @@
                 @endcan
 
                 <!-- Master Products -->
-                @can('products.view')
+                @canany(['products.view', 'product-batches.view'])
                 <li x-data="{ open: {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') ? 'true' : 'false' }} }" class="relative">
                     <button @click.prevent="open = !open"
                         :aria-expanded="open.toString()"

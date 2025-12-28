@@ -139,15 +139,8 @@
                     {{-- CARDS --}}
                     <div id="mobileCards" class="space-y-3">
                         @foreach($suratJalans as $sj)
-                        <div class="mobile-card border rounded-lg bg-white shadow" data-href="{{ route('surat-jalan.show', $sj) }}">
+                        <div class="mobile-card border rounded-lg bg-white shadow">
                             {{-- BARCODE --}}
-                            <div class="flex flex-col items-center justify-center">
-                                <img
-                                    src="{{ asset('storage/' . $sj->bukti_pengiriman) }}"
-                                    class="mt-2 w-40 h-40 object-cover rounded-md border"
-                                    alt="Bukti Pengiriman">
-
-                            </div>
                             <div class="px-4 py-3 bg-gray-50 border-b">
                                 <div class="font-semibold">{{ $sj->nomor_surat_jalan ?? '-' }}</div>
                                 <div class="text-xs text-gray-500">{{ $sj->tanggal }}</div>
@@ -169,6 +162,9 @@
                                         {{ ucfirst($sj->status ?? '-') }}
                                     </b>
                                 </div>
+                                <div>Bukti Pengiriman: {!! $sj->bukti_pengiriman
+                                    ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$sj->bukti_pengiriman).'">Lihat</a>'
+                                    : '-' !!}</div>
                             </div>
 
                             <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">

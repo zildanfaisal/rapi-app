@@ -364,7 +364,7 @@
             <tbody>
                 <tr>
                     <td>{{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}</td>
-                    <td class="right">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</td>
+                    <td class="right">Rp {{ number_format(($suratJalan->invoice && $suratJalan->invoice->items) ? $suratJalan->invoice->items->sum('sub_total') : 0, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
 
@@ -388,7 +388,7 @@
         <div class="summary">
             <div class="summary-row">
                 <span class="summary-label">Sub Total :</span>
-                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->grand_total ?? 0, 0, ',', '.') }}</span>
+                <span class="summary-value">Rp {{ number_format(($suratJalan->invoice && $suratJalan->invoice->items) ? $suratJalan->invoice->items->sum('sub_total') : 0, 0, ',', '.') }}</span>
             </div>
             <div class="summary-row">
                 <span class="summary-label">Ongkos Kirim:</span>
@@ -400,7 +400,7 @@
             </div>
             <div class="summary-row summary-total">
                 <span class="summary-label">GRAND TOTAL:</span>
-                <span class="summary-value">Rp {{ number_format($suratJalan->invoice->grand_total - $suratJalan->invoice->diskon + $suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
+                <span class="summary-value">Rp {{ number_format((($suratJalan->invoice && $suratJalan->invoice->items) ? $suratJalan->invoice->items->sum('sub_total') : 0) - ($suratJalan->invoice->diskon ?? 0) + ($suratJalan->invoice->ongkos_kirim ?? 0), 0, ',', '.') }}</span>
             </div>
         </div>
 

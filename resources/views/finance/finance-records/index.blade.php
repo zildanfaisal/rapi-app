@@ -124,16 +124,10 @@
                                         Rp {{ number_format($fr->jumlah, 0, ',', '.') }}
                                     </span>
                                <td class="border px-3 py-2 text-center">
-    @if($fr->foto_nota)
-        <img 
-            src="{{ asset('storage/' . $fr->foto_nota) }}"
-            alt="Foto Nota"
-            class="w-16 h-16 object-cover rounded cursor-pointer mx-auto"
-        >
-    @else
-        -
-    @endif
-</td>
+                                    {!! $fr->foto_nota
+                                        ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$fr->foto_nota).'">Lihat</a>'
+                                        : '-' !!}
+                                </td>
 
                                 
                                 <td class="border px-3 py-2">{{ $fr->deskripsi ?? '-' }}</td>
@@ -194,18 +188,11 @@
 
                             {{-- CONTENT --}}
                             <div class="px-4 py-3 text-sm space-y-1.5">
-                                    @if($fr->foto_nota) 
-    <div class="mb-2">
-        <span class="text-gray-600 block mb-1">Foto Nota:</span>
-        <img
-            src="{{ asset('storage/' . $fr->foto_nota) }}"
-            alt="Foto Nota"
-            class="w-24 h-24 object-cover rounded border cursor-pointer"
-            onclick="showImage('{{ asset('storage/' . $fr->foto_nota) }}')"
-        >
-    </div>
-@endif
-
+                                <div class="mb-2">
+                                    <span class="text-gray-600 block mb-1">Foto Nota: {!! $fr->foto_nota
+                                        ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$fr->foto_nota).'">Lihat</a>'
+                                        : '-' !!}</span>
+                                </div>
 
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Jumlah:</span>

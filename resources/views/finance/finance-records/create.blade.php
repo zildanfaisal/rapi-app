@@ -43,7 +43,7 @@
                         </div>
                         @error('jumlah')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
                     </div>
-                    {{-- Foto Produk --}}
+                    {{-- Nota --}}
                         <div class="mb-4">
 
                             {{-- Preview Foto --}}
@@ -53,8 +53,8 @@
                                      class="hidden w-32 h-32 object-cover rounded-md border" />
                             </div>
 
-                            <label for="foto_produk" class="block text-sm font-medium text-gray-700">
-                                {{ __('Foto Produk') }}
+                            <label for="foto_nota" class="block text-sm font-medium text-gray-700">
+                                {{ __('Nota') }}
                             </label>
 
                             <input type="file" name="foto_nota" id="foto_nota" accept="image/*"

@@ -228,7 +228,8 @@
                            class="flex-1 border border-indigo-600 text-indigo-600 rounded text-center py-2">
                             Edit
                         </a>
-                        <form action="{{ route('invoices.destroy',$i) }}" method="POST" class="flex-1">
+                        <form action="{{ route('invoices.destroy',$i) }}" method="POST" class="flex-1"
+                            data-confirm-delete>
                             @csrf @method('DELETE')
                             <button class="w-full border border-red-600 text-red-600 rounded py-2">
                                 Hapus

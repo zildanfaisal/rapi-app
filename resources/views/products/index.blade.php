@@ -186,7 +186,7 @@
                                     <div class="px-4 py-3 border-t flex gap-2">
 
                                         <button
-                                            onclick="openBarcodeModal({{ $p->id }}, @json($p->nama_produk))"
+                                            onclick="openBarcodeModal({{ $p->id }}, '{{ $p->nama_produk }}')"
                                             class="flex-1 min-h-[44px] inline-flex items-center justify-center
                                         px-3 py-2 border border-green-600 rounded text-green-600">
                                             Unduh
@@ -205,7 +205,8 @@
                                         </a>
 
                                         <form action="{{ route('products.destroy', $p->id) }}" method="POST"
-                                            class="flex-1">
+                                            class="flex-1"
+                                            data-confirm-delete>
                                             @csrf
                                             @method('DELETE')
 

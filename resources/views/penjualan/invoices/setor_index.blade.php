@@ -165,6 +165,11 @@
                                                 {{ $isSetor ? 'Sudah' : 'Belum' }}
                                             </span>
                                         </div>
+                                        <div>Bukti: {!! $inv->bukti_setor
+                                                ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="' .
+                                                    asset('storage/' . $inv->bukti_setor) .
+                                                    '">Lihat</a>'
+                                                : '-' !!}</div>
                                     </div>
 
                                     <div class="px-4 py-3 bg-gray-50 border-t">
