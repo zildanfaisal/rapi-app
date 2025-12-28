@@ -151,6 +151,9 @@ class SuratJalanController extends Controller
         }
 
         return DB::transaction(function () use ($request, $data, $suratJalan) {
+            $suratJalan->load(['invoice.items.batch']);
+            $wasDispatched = ($suratJalan->status === 'sudah dikirim');
+            $willDispatch = ($data['status'] === 'sudah dikirim');
             $oldValues = $suratJalan->only([
                 'customer_id',
                 'invoice_id',
@@ -179,18 +182,47 @@ class SuratJalanController extends Controller
                 $suratJalan->bukti_pengiriman = $buktiPath;
             }
 
-            // 🔥 UPDATE - HAPUS nomor_surat_jalan, customer_id, invoice_id, tanggal
-            // Karena field ini readonly dan tidak boleh diubah
+            // 🔥 UPDATE - HAPUS nomor_surat_jalan, customer_id, invoice_id
+            // Field tanggal sekarang bisa diubah
             $suratJalan->update([
-                // 'nomor_surat_jalan' => $data['nomor_surat_jalan'], // ❌ HAPUS
-                // 'customer_id'       => $data['customer_id'],        // ❌ HAPUS
-                // 'invoice_id'        => $data['invoice_id'],         // ❌ HAPUS
-                // 'tanggal'           => $data['tanggal'],            // ❌ HAPUS
+                // 'nomor_surat_jalan' => $data['nomor_surat_jalan'], // ❌ Tetap tidak bisa diubah
+                // 'customer_id'       => $data['customer_id'],        // ❌ Tetap tidak bisa diubah
+                // 'invoice_id'        => $data['invoice_id'],         // ❌ Tetap tidak bisa diubah
+                'tanggal'           => $data['tanggal'],
                 'status'            => $data['status'],
                 'alasan_cancel'     => $data['status'] === 'cancel'
                     ? ($data['alasan_cancel'] ?? null)
                     : null,
             ]);
+
+            // Jika baru berubah ke "sudah dikirim", kurangi stok batch dari items invoice
+            if (!$wasDispatched && $willDispatch) {
+                $items = $suratJalan->invoice ? $suratJalan->invoice->items : collect();
+                foreach ($items as $item) {
+                    $batchId = $item->batch_id;
+                    $qty = (int) $item->quantity;
+                    if (!$batchId || $qty <= 0) continue;
+                    $batch = \App\Models\ProductBatch::find($batchId);
+                    if (!$batch) continue;
+
+                    $stok = (int) ($batch->quantity_sekarang ?? 0);
+                    if ($qty > $stok) {
+                        // Batalkan update dan beri pesan error jika stok tidak cukup saat pengiriman
+                        throw new \Exception("Stok batch #{$batch->id} tidak cukup untuk pengiriman. Tersedia: ${stok}, butuh: ${qty}.");
+                    }
+
+                    $batch->decrement('quantity_sekarang', $qty);
+                    $batch->refresh();
+                    $batch->refreshStatus();
+                    if ($batch->product) {
+                        $batch->product->refreshAvailability();
+                    } else {
+                        if ($p = \App\Models\Product::find($batch->product_id)) {
+                            $p->refreshAvailability();
+                        }
+                    }
+                }
+            }
 
             $newValues = $suratJalan->only([
                 'customer_id',

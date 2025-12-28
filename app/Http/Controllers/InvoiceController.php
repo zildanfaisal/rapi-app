@@ -147,26 +147,6 @@ class InvoiceController extends Controller
                     'harga' => $item['harga'],
                     'sub_total' => $subTotal,
                 ]);
-
-                $batch = ProductBatch::find($item['batch_id']);
-
-                if ($batch) {
-                    if ($batch->quantity_sekarang < $item['quantity']) {
-                        throw new \Exception("Stok batch #{$batch->id} tidak cukup.");
-                    }
-
-                    $batch->decrement('quantity_sekarang', $item['quantity']);
-                    $batch->refresh();
-                    $batch->refreshStatus();
-
-                    if ($batch->product) {
-                        $batch->product->refreshAvailability();
-                    } else {
-                        if ($p = Product::find($batch->product_id)) {
-                            $p->refreshAvailability();
-                        }
-                    }
-                }
             }
 
             // Terapkan ongkos kirim (+) dan diskon (-) ke grand total
@@ -269,23 +249,7 @@ class InvoiceController extends Controller
 
             $isCancelled = isset($data['status_pembayaran']) && $data['status_pembayaran'] === 'cancelled';
 
-            // Kembalikan stok dari items lama
-            $existingItems = $invoice->items()->get();
-            foreach ($existingItems as $item) {
-                $batch = ProductBatch::find($item->batch_id);
-                if ($batch) {
-                    $batch->increment('quantity_sekarang', $item->quantity);
-                    $batch->refresh();
-                    $batch->refreshStatus();
-                    if ($batch->product) {
-                        $batch->product->refreshAvailability();
-                    } else {
-                        if ($p = Product::find($batch->product_id)) {
-                            $p->refreshAvailability();
-                        }
-                    }
-                }
-            }
+            // Hapus items lama (stok tidak diubah pada tahap invoice)
             $invoice->items()->delete();
 
             // 🔥 LOGIKA BARU:
@@ -331,22 +295,7 @@ class InvoiceController extends Controller
                     $qty = (int) $item['quantity'];
                     $harga = (float) $item['harga'];
 
-                    $batch = ProductBatch::find($item['batch_id']);
-                    if ($batch) {
-                        if ($batch->quantity_sekarang < $qty) {
-                            throw new \Exception("Stok batch #{$batch->id} tidak cukup.");
-                        }
-                        $batch->decrement('quantity_sekarang', $qty);
-                        $batch->refresh();
-                        $batch->refreshStatus();
-                        if ($batch->product) {
-                            $batch->product->refreshAvailability();
-                        } else {
-                            if ($p = Product::find($batch->product_id)) {
-                                $p->refreshAvailability();
-                            }
-                        }
-                    }
+                    // Stok tidak berubah saat edit invoice; akan dikurangi saat Surat Jalan dikirim
 
                     $subTotal = $qty * $harga;
                     $grandTotal += $subTotal;

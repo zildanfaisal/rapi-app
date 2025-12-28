@@ -21,8 +21,9 @@ class StoreSuratJalanRequest extends FormRequest
 
         // 🔥 Rules berbeda untuk CREATE dan UPDATE
         if ($isUpdate) {
-            // SAAT UPDATE: hanya validasi field yang bisa diubah
+            // SAAT UPDATE: validasi field yang bisa diubah termasuk tanggal
             return [
+                'tanggal' => 'required|date',
                 'status' => 'required|in:belum dikirim,sudah dikirim,cancel',
                 'bukti_pengiriman' => [
                     'nullable',

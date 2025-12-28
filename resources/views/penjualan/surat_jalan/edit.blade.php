@@ -50,7 +50,7 @@
 							<label for="tanggal" class="block text-sm font-medium text-gray-700">{{ __('Tanggal') }}</label>
 							<input type="date" name="tanggal" id="tanggal"
 								value="{{ old('tanggal', $suratJalan->tanggal) }}"
-								class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-600 sm:text-sm">
+								class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm">
 						</div>
 						<div>
 							<label for="nomor_surat_jalan" class="block text-sm font-medium text-gray-700">{{ __('Nomor Surat Jalan') }}</label>
