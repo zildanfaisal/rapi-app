@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - RAPI PVC</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         @keyframes gradient {
@@ -33,6 +35,18 @@
 </head>
 
 <body class="animated-gradient min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-6">
+        @if ($errors->has('email'))
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Login Gagal',
+                        text: 'Email atau Password salah',
+                        confirmButtonColor: '#6366f1',
+                    });
+                });
+            </script>
+        @endif
     <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
         
         <!-- Left Side - Branding (Desktop Only) -->
