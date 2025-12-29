@@ -77,7 +77,7 @@ class RolePermissionSeeder extends Seeder
             'finance.input.view', 'finance.input.create', 'finance.input.update', 'finance.input.delete',
             'finance.history',
             // Customer
-            'customers.view', 'customers.create', 'customers.update', 'customers.delete',
+            'customers.view',
         ];
         $admin->syncPermissions($adminPermissions);
     }

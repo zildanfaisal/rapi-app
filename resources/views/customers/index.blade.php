@@ -15,12 +15,12 @@
                 <div class="p-4 sm:p-6 lg:p-8">
                     <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
                         <h3 class="text-lg font-semibold">{{ __('Data Customer') }}</h3>
-                        <a href="{{ route('customers.create') }}"
+                        {{-- <a href="{{ route('customers.create') }}"
                             class="inline-flex items-center justify-center
                               px-4 py-2.5 bg-blue-600 text-white
                               rounded-lg hover:bg-blue-700">
                             + Tambah Customer
-                        </a>
+                        </a> --}}
                     </div>
 
                     {{-- ================= DESKTOP TABLE ================= --}}
@@ -55,12 +55,15 @@
                                                     class="text-green-600 hover:underline">
                                                     Detail
                                                 </a>
-
+                                                
+                                                @can('customers.update')
                                                 <a href="{{ route('customers.edit', $customer->id) }}"
                                                     class="text-blue-600 hover:underline">
                                                     Edit
                                                 </a>
+                                                @endcan
 
+                                                @can('customers.delete')
                                                 <form action="{{ route('customers.destroy', $customer->id) }}"
                                                     method="POST" data-confirm-delete>
                                                     @csrf @method('DELETE')
@@ -68,6 +71,7 @@
                                                         Hapus
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </div>
                                         </td>
 
@@ -135,10 +139,13 @@
                                             class="flex-1 border border-green-600 text-green-600 rounded text-center py-2 hover:bg-blue-50">
                                             Detail
                                         </a>
+                                        @can('customers.update')
                                         <a href="{{ route('customers.edit', $customer->id) }}"
                                             class="flex-1 border border-blue-600 text-blue-600 rounded text-center py-2 hover:bg-blue-50">
                                             Edit
                                         </a>
+                                        @endcan
+                                        @can('customers.delete')
                                         <form action="{{ route('customers.destroy', $customer->id) }}" method="POST"
                                             class="flex-1" data-confirm-delete-mobile>
                                             @csrf @method('DELETE')
@@ -147,6 +154,7 @@
                                                 Hapus
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
 
                                 </div>
