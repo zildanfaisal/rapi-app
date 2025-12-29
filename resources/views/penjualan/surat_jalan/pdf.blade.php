@@ -28,7 +28,7 @@
         .header {
             display: table;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             padding-bottom: 15px;
             border-bottom: 2px solid #2c3e50;
         }
@@ -102,7 +102,7 @@
         .info-section {
             display: table;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .info-box {
