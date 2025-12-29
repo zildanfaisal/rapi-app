@@ -15,12 +15,12 @@
         body {
             font-family: 'Arial', sans-serif;
             color: #333;
-            line-height: 1.6;
-            padding: 20px;
+            line-height: 1.4;
+            padding: 15px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
@@ -28,9 +28,9 @@
         .header {
             display: table;
             width: 100%;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2c3e50;
         }
 
         .header-left {
@@ -46,14 +46,14 @@
 
         .logo-cell {
             display: table-cell;
-            width: 150px;
+            width: 100px;
             vertical-align: middle;
         }
 
         .company-cell {
             display: table-cell;
             vertical-align: middle;
-            padding-left: 15px;
+            padding-left: 10px;
         }
 
         .header-right {
@@ -64,33 +64,33 @@
         }
 
         .logo {
-            width: 150px;
+            width: 100px;
             height: auto;
-            margin-bottom: 10px;
-        }
-
-        .company-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
             margin-bottom: 5px;
         }
 
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
         .company-info {
-            font-size: 11px;
+            font-size: 9px;
             color: #666;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         .document-title {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: bold;
             color: #2c3e50;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .invoice-meta {
-            font-size: 12px;
+            font-size: 10px;
             color: #666;
         }
 
@@ -102,15 +102,15 @@
         .info-section {
             display: table;
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
 
         .info-box {
             display: table-cell;
             width: 48%;
-            padding: 15px;
+            padding: 10px;
             background: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 4px;
         }
 
         .info-box:first-child {
@@ -118,30 +118,30 @@
         }
 
         .info-title {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
             color: #2c3e50;
             text-transform: uppercase;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border-bottom: 2px solid #2c3e50;
-            padding-bottom: 5px;
+            padding-bottom: 4px;
         }
 
         .info-content {
-            font-size: 12px;
-            line-height: 1.8;
+            font-size: 10px;
+            line-height: 1.6;
         }
 
         .info-content strong {
             display: inline-block;
-            width: 100px;
+            width: 80px;
         }
 
         /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 0px;
         }
 
         thead {
@@ -150,8 +150,8 @@
         }
 
         th {
-            padding: 12px 8px;
-            font-size: 12px;
+            padding: 8px 6px;
+            font-size: 10px;
             font-weight: bold;
             text-align: left;
         }
@@ -165,8 +165,8 @@
         }
 
         td {
-            padding: 10px 8px;
-            font-size: 12px;
+            padding: 7px 6px;
+            font-size: 10px;
             border-bottom: 1px solid #ddd;
         }
 
@@ -185,21 +185,21 @@
         /* Summary Section */
         .summary {
             float: right;
-            width: 300px;
-            margin-top: 20px;
+            width: 250px;
+            margin-top: 15px;
         }
 
         .summary-row {
             display: table;
             width: 100%;
-            padding: 8px 0;
-            font-size: 12px;
+            /* padding: 0px 0; */
+            font-size: 10px;
         }
 
         .summary-label {
             display: table-cell;
             text-align: left;
-            padding-right: 20px;
+            padding-right: 15px;
         }
 
         .summary-value {
@@ -210,21 +210,21 @@
 
         .summary-total {
             border-top: 2px solid #2c3e50;
-            padding-top: 12px;
-            margin-top: 10px;
-            font-size: 14px;
+            padding-top: 10px;
+            margin-top: 8px;
+            font-size: 11px;
             color: #2c3e50;
         }
 
         .summary-total .summary-value {
-            font-size: 16px;
+            font-size: 13px;
         }
 
         /* Signature Section */
         .signature-section {
             clear: both;
-            margin-top: 60px;
-            padding-top: 30px;
+            margin-top: 40px;
+            padding-top: 20px;
         }
 
         .signature-box {
@@ -239,44 +239,44 @@
         }
 
         .signature-title {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
         }
 
         .signature-line {
             border-top: 1px solid #333;
             margin: 0 auto;
-            width: 200px;
-            padding-top: 5px;
+            width: 150px;
+            padding-top: 4px;
         }
 
         .signature-name {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
         }
 
         .signature-position {
-            font-size: 11px;
+            font-size: 9px;
             color: #666;
         }
 
         /* Footer */
         .footer {
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: 30px;
+            padding-top: 15px;
             border-top: 2px solid #ddd;
             text-align: center;
-            font-size: 10px;
+            font-size: 8px;
             color: #999;
         }
 
         /* Status Badge */
         .status-badge {
             display: inline-block;
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 3px;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -325,7 +325,10 @@
                     Jl. Jend. Soeharto No.124, Naikolan, Kec. Maulafa<br>
                     Kota Kupang, Provinsi Nusa Tenggara Timur 85142<br>
                     Telp: 08881930769<br>
-                    Email: <a href="#">rapipvcinterior@gmail.com</a><br>
+                    Email: <a href="#">rapipvcinterior@gmail.com</a> |
+                    <img src="{{ public_path('images/facebook.svg') }}" alt="Facebook" style="height:10px;vertical-align:middle;"> Facebook: Rapipvc interiors<br>
+                    <img src="{{ public_path('images/instagram.svg') }}" alt="Instagram" style="height:10px;vertical-align:middle;"> Instagram: Rapipvcinterior | 
+                    <img src="{{ public_path('images/tiktok.svg') }}" alt="TikTok" style="height:10px;vertical-align:middle;"> TikTok: Rapipvcinterior
                 </div>
             </div>
             <div class="header-right">
@@ -384,7 +387,7 @@
                 <tr>
                     <th style="width: 5%;">No</th>
                     <th style="width: 45%;">Nama Produk</th>
-                    <th class="center" style="width: 10%;">Qty</th>
+                    <th class="center" style="width: 10%;">Kuantitas</th>
                     <th class="right" style="width: 20%;">Harga Satuan</th>
                     <th class="right" style="width: 20%;">Sub Total</th>
                 </tr>
@@ -400,33 +403,11 @@
                         <td class="right">Rp {{ number_format($item->sub_total, 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
-                <tr>
-                    <td class="right" colspan="4">
-                        Ongkos Kirim
-                    </td>
-                    <td class="right">
-                        Rp {{ number_format($invoice->ongkos_kirim ?? 0, 0, ',', '.') }}
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="right" colspan="4">
-                        Diskon
-                    </td>
-                    <td class="right">
-                        Rp {{ number_format($invoice->diskon ?? 0, 0, ',', '.') }}
-                    </td>
-                </tr>
             </tbody>
         </table>
 
         <!-- Summary -->
         <div class="summary">
-            <div class="summary-row">
-                <span class="summary-label">Sub Total:</span>
-                <span class="summary-value">Rp
-                    {{ number_format($invoice->items->sum('sub_total'), 0, ',', '.') }}</span>
-            </div>
             <div class="summary-row">
                 <span class="summary-label">Ongkos Kirim:</span>
                 <span class="summary-value">Rp
@@ -468,4 +449,9 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p>Terima kasih atas kepercayaan Anda. Dokumen ini dicetak secara otomatis
+            <p>Terima kasih atas kepercayaan Anda. Dokumen ini dicetak secara otomatis</p>
+        </div>
+    </div>
+</body>
+
+</html>

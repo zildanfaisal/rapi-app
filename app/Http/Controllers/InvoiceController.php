@@ -92,6 +92,8 @@ class InvoiceController extends Controller
                 $newCustomer = Customer::create([
                     'nama_customer' => $data['customer_name'],
                     'kategori_pelanggan' => $data['kategori_pelanggan'] ?? 'Konsumen',
+                    'no_hp' => $data['no_hp'] ?? null,
+                    'alamat' => $data['alamat'] ?? null,
                 ]);
                 $customerId = $newCustomer->id;
             } else {

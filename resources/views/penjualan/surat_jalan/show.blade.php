@@ -55,47 +55,28 @@
                         <table class="min-w-full border border-gray-300 text-sm">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-4 py-2 border">No Invoice</th>
-                                    <th class="px-4 py-2 border">Sub Total Invoice</th>
+                                    <th class="px-4 py-2 border">No</th>
+                                    <th class="px-4 py-2 border">Nama Produk</th>
+                                    <th class="px-4 py-2 border">Kuantitas</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="text-center hover:bg-gray-50">
-                                    <td class="px-4 py-2 border">{{ $suratJalan->invoice->invoice_number ?? $suratJalan->invoice_id }}</td>
-                                    <td class="px-4 py-2 border">
-                                        Rp {{ number_format(($suratJalan->invoice && $suratJalan->invoice->items) ? $suratJalan->invoice->items->sum('sub_total') : 0, 0, ',', '.') }}
-                                    </td>
-                                </tr>
+                                @php $no = 1; @endphp
+                                @if($suratJalan->invoice && $suratJalan->invoice->items)
+                                    @foreach($suratJalan->invoice->items as $item)
+                                        <tr class="text-center hover:bg-gray-50">
+                                            <td class="px-4 py-2 border">{{ $no++ }}</td>
+                                            <td class="px-4 py-2 border">{{ $item->product->nama_produk ?? $item->product->nama ?? '-' }}</td>
+                                            <td class="px-4 py-2 border">{{ $item->quantity }}</td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="3" class="px-4 py-2 border text-center">Tidak ada data produk</td>
+                                    </tr>
+                                @endif
                             </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="1" class="px-4 py-2 border text-right font-semibold">
-                                        Ongkos Kirim <span class="text-xs text-gray-500">(+)</span>
-                                    </td>
-                                    <td class="px-4 py-2 border font-semibold text-green-600">
-                                        + Rp {{ number_format($suratJalan->invoice->ongkos_kirim ?? 0, 0, ',', '.') }}
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td colspan="1" class="px-4 py-2 border text-right font-semibold">
-                                        Diskon <span class="text-xs text-gray-500">(−)</span>
-                                    </td>
-                                    <td class="px-4 py-2 border font-semibold text-red-600 right">
-                                        − Rp {{ number_format($suratJalan->invoice->diskon ?? 0, 0, ',', '.') }}
-                                    </td>
-                                </tr>
-
-                                <tr class="bg-gray-50">
-                                    <td colspan="1" class="px-4 py-2 border text-right font-bold">
-                                        Grand Total
-                                    </td>
-                                    <td class="px-4 py-2 border font-bold">
-                                        Rp {{ number_format((($suratJalan->invoice && $suratJalan->invoice->items) ? $suratJalan->invoice->items->sum('sub_total') : 0) - ($suratJalan->invoice->diskon ?? 0) + ($suratJalan->invoice->ongkos_kirim ?? 0), 0, ',', '.') }}
-                                    </td>
-                                </tr>
-
-                            </tfoot>
+                            
                         </table>
                     </div>
 

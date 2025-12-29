@@ -29,9 +29,11 @@ class StoreInvoiceRequest extends FormRequest
 
             // Jika memilih pelanggan terdaftar, wajib isi customer_id
             'customer_id' => ['nullable', 'required_if:customer_type,existing', 'exists:customers,id'],
-            // Jika memilih pelanggan baru, wajib isi nama & kategori
+            // Jika memilih pelanggan baru, wajib isi nama, kategori, no_hp, alamat
             'customer_name' => ['nullable', 'required_if:customer_type,new', 'string', 'max:255'],
             'kategori_pelanggan' => ['nullable', 'required_if:customer_type,new', 'in:Toko,Konsumen,Aplikator/Tukang'],
+            'no_hp' => ['nullable', 'required_if:customer_type,new', 'string', 'max:255'],
+            'alamat' => ['nullable', 'required_if:customer_type,new', 'string', 'max:255'],
             'user_id' => ['required', 'exists:users,id'],
             'tanggal_invoice' => ['required', 'date'],
             'tanggal_jatuh_tempo' => ['required', 'date', 'after_or_equal:tanggal_invoice'],

@@ -78,6 +78,22 @@
                                         <option value="Aplikator/Tukang">{{ __('Aplikator/Tukang') }}</option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label for="no_hp" class="block text-sm font-medium text-gray-700">
+                                        No. HP
+                                    </label>
+                                    <input type="text" name="no_hp" id="no_hp"
+                                        placeholder="Masukkan nomer handphone..."
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="alamat" class="block text-sm font-medium text-gray-700">
+                                        Alamat
+                                    </label>
+                                    <input type="text" name="alamat" id="alamat"
+                                        placeholder="Masukkan alamat pelanggan..."
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                </div>
                             </div>
                         </div>
 
