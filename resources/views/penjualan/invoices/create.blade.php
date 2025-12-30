@@ -102,7 +102,8 @@
                                 <label for="tanggal_invoice"
                                     class="block text-sm font-medium text-gray-700">{{ __('Tanggal Invoice') }}</label>
                                 <input type="date" name="tanggal_invoice" id="tanggal_invoice"
-                                    value="{{ old('tanggal_invoice') }}"
+                                    value="{{ old('tanggal_invoice', date('Y-m-d')) }}"
+                                    min="{{ date('Y-m-d') }}"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                     required>
                             </div>
