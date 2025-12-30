@@ -26,7 +26,7 @@
                     </div>
                     <div>
                         <label class="block mb-1">Tanggal</label>
-                        <input type="date" name="tanggal" value="{{ old('tanggal', $financeRecord->tanggal) }}" class="w-full px-3 py-2 border rounded" required />
+                        <input type="date" name="tanggal" value="{{ old('tanggal', $financeRecord->tanggal) }}" min="{{ date('Y-m-d') }}" class="w-full px-3 py-2 border rounded" required />
                         @error('tanggal')<p class="text-red-600 text-sm">{{ $message }}</p>@enderror
                     </div>
 

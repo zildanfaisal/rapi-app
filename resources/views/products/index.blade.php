@@ -31,9 +31,10 @@
                                     <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Barcode</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium uppercase border">Nama</th>
                                     <th class="px-3 py-3 text-left text-xs font-medium uppercase border">Kategori</th>
-                                    <th class="px-3 py-3 text-right text-xs font-medium uppercase border">Harga Jual</th>
                                     <th class="px-3 py-3 text-right text-xs font-medium uppercase border">Harga Beli</th>
+                                    <th class="px-3 py-3 text-right text-xs font-medium uppercase border">Harga Jual</th>
                                     <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Stok</th>
+                                    <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Satuan</th>
                                     <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Status</th>
                                     <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Aksi</th>
                                 </tr>
@@ -59,10 +60,6 @@
                                         <td class="px-3 py-2 border">{{ $p->kategori }}</td>
 
                                         <td class="px-3 py-2 border text-right">
-                                            Rp {{ number_format($p->harga, 0, ',', '.') }}
-                                        </td>
-
-                                        <td class="px-3 py-2 border text-right">
                                             @if ($p->latestBatch)
                                                 Rp {{ number_format($p->latestBatch->harga_beli, 0, ',', '.') }}
                                             @else
@@ -70,10 +67,14 @@
                                             @endif
                                         </td>
 
+                                        <td class="px-3 py-2 border text-right">
+                                            Rp {{ number_format($p->harga, 0, ',', '.') }}
+                                        </td>
+
                                         <td class="px-3 py-2 border text-center">
                                             {{ $p->batches->sum('quantity_sekarang') }}
                                         </td>
-
+                                        <td class="px-3 py-2 border">{{ $p->satuan }}</td>
                                         <td class="px-3 py-2 border text-center">
                                             @php
                                                 $statusLabel =
@@ -159,7 +160,6 @@
                                     </div>
 
                                     <div class="px-4 py-3 space-y-1 text-sm">
-                                        <div>Harga Jual: <b>Rp {{ number_format($p->harga, 0, ',', '.') }}</b></div>
                                         <div>Harga Beli:
                                             @if ($p->latestBatch)
                                                 Rp {{ number_format($p->latestBatch->harga_beli, 0, ',', '.') }}
@@ -167,10 +167,15 @@
                                                 <span class="italic text-gray-400">Belum ada</span>
                                             @endif
                                         </div>
+
+                                        <div>Harga Jual: <b>Rp {{ number_format($p->harga, 0, ',', '.') }}</b></div>
+
                                         <div>Stok: {{ $p->batches->sum('quantity_sekarang') }}</div>
                                         @php
                                             $statusLabel = $p->status === 'available' ? 'Tersedia' : 'Tidak Tersedia';
                                         @endphp
+                                        <div>Satuan: {{ $p->satuan }}</div>
+
                                         <div>Status: @if ($p->batches->sum('quantity_sekarang') >= $p->min_stok_alert)
                                                 <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
                                                     {{ $statusLabel }}
@@ -185,8 +190,7 @@
 
                                     <div class="px-4 py-3 border-t flex gap-2">
 
-                                        <button
-                                            onclick="openBarcodeModal({{ $p->id }}, '{{ $p->nama_produk }}')"
+                                        <button onclick="openBarcodeModal({{ $p->id }}, '{{ $p->nama_produk }}')"
                                             class="flex-1 min-h-[44px] inline-flex items-center justify-center
                                         px-3 py-2 border border-green-600 rounded text-green-600">
                                             Unduh
@@ -205,8 +209,7 @@
                                         </a>
 
                                         <form action="{{ route('products.destroy', $p->id) }}" method="POST"
-                                            class="flex-1"
-                                            data-confirm-delete>
+                                            class="flex-1" data-confirm-delete>
                                             @csrf
                                             @method('DELETE')
 

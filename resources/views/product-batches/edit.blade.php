@@ -100,9 +100,10 @@
                     {{-- Tanggal Masuk --}}
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700">Tanggal Masuk</label>
-                        <input type="date" name="tanggal_masuk"
+                        <input type="date" name="tanggal_masuk" id="tanggal_masuk"
                                value="{{ old('tanggal_masuk', $productBatch->tanggal_masuk) }}"
                                required
+                               min="{{ date('Y-m-d') }}"
                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                     </div>
 
@@ -199,7 +200,7 @@
         qtySekarangInput.value = qtySekarangBaru >= 0 ? qtySekarangBaru : 0;
     });
 
-    const tanggalMasuk = document.querySelector('input[name="tanggal_masuk"]');
+    const tanggalMasuk = document.getElementById('tanggal_masuk');
     const tanggalExpired = document.getElementById('tanggal_expired');
 
     @if($productBatch->tanggal_expired)
