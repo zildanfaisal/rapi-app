@@ -59,6 +59,13 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Supplier</label>
+                    <div class="mt-1 p-2 border rounded-md bg-gray-100">
+                        {{ $product->supplier }}
+                    </div>
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700">Satuan</label>
                     <div class="mt-1 p-2 border rounded-md bg-gray-100">
                         {{ $product->satuan }}

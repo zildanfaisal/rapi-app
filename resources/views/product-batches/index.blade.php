@@ -53,7 +53,7 @@
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Kadaluwarsa</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Awal Stok</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Sisa Stok</th>
-                                <th class="px-3 py-2 border text-center text-xs uppercase">Supplier</th>
+
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Status</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
                             </tr>
@@ -78,7 +78,6 @@
                                 </td>
                                 <td class="border px-3 py-2">{{ $b->quantity_masuk }}</td>
                                 <td class="border px-3 py-2">{{ $b->quantity_sekarang }}</td>
-                                <td class="border px-3 py-2">{{ $b->supplier }}</td>
                                 <td class="border px-3 py-2">
                                     @php $status = $b->status; @endphp
                                     @if ($status === 'sold_out')
@@ -133,7 +132,6 @@
                                 <div>Kadaluwarsa: {{ \Carbon\Carbon::parse($b->tanggal_expired)->translatedFormat('F') }}</div>
                                 <div>Awal Stok: {{ $b->quantity_masuk }}</div>
                                 <div>Sisa Stok: {{ $b->quantity_sekarang }}</div>
-                                <div>Supplier: {{ $b->supplier }}</div>
                             </div>
 
                             <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
