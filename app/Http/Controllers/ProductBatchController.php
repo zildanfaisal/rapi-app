@@ -40,7 +40,6 @@ class ProductBatchController extends Controller
             'barcode' => 'nullable|string|exists:products,barcode',
             'produk'  => 'nullable|exists:products,id',
             'batch_number' => 'required|string|max:50',
-            'harga_beli' => 'required|numeric',
             'tanggal_masuk' => 'required|date',
             'tanggal_expired' => 'required|date|after_or_equal:tanggal_masuk',
             'quantity_masuk' => 'required|integer|min:1',
@@ -68,7 +67,6 @@ class ProductBatchController extends Controller
         $batch = ProductBatch::create([
             'product_id' => $product->id,
             'batch_number' => $request->batch_number,
-            'harga_beli' => $request->harga_beli,
             'tanggal_masuk' => $request->tanggal_masuk,
             'tanggal_expired' => $request->tanggal_expired,
             'quantity_masuk' => $request->quantity_masuk,
@@ -98,7 +96,6 @@ class ProductBatchController extends Controller
         $request->validate([
             'barcode'           => 'required|string|exists:products,barcode',
             'batch_number'      => 'required|string|max:50',
-            'harga_beli'        => 'required|numeric',
             'tanggal_masuk'     => 'required|date',
             'tanggal_expired'   => 'required|date',
             'quantity_masuk'    => 'required|integer|min:1',
@@ -110,7 +107,6 @@ class ProductBatchController extends Controller
         $oldValues = $productBatch->only([
             'product_id',
             'batch_number',
-            'harga_beli',
             'tanggal_masuk',
             'tanggal_expired',
             'quantity_masuk',
@@ -124,7 +120,6 @@ class ProductBatchController extends Controller
         $productBatch->update([
             'product_id'        => $product->id,
             'batch_number'      => $request->batch_number,
-            'harga_beli'        => $request->harga_beli,
             'tanggal_masuk'     => $request->tanggal_masuk,
             'tanggal_expired'   => $request->tanggal_expired,
             'quantity_masuk'    => $request->quantity_masuk,
@@ -139,7 +134,6 @@ class ProductBatchController extends Controller
         $newValues = $productBatch->only([
             'product_id',
             'batch_number',
-            'harga_beli',
             'tanggal_masuk',
             'tanggal_expired',
             'quantity_masuk',

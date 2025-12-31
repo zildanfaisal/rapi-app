@@ -60,7 +60,7 @@
 
                     {{-- Harga --}}
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Harga</label>
+                        <label class="block text-sm font-medium text-gray-700">Harga Jual</label>
 
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
@@ -82,6 +82,29 @@
                         </div>
 
                         @error('harga')
+                        <p class="text-red-600 text-sm">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Harga Beli --}}
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Harga Beli
+                        </label>
+
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
+
+                            <input type="text" id="harga_display2"
+                                class="mt-1 block w-full px-3 py-2 pl-10 border rounded-md shadow-sm
+                                        focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                placeholder="0">
+
+
+                            <input type="hidden" name="harga_beli" id="harga_beli" value="{{ old('harga_beli') }}"
+                                required>
+                        </div>
+
+                        @error('harga_beli')
                         <p class="text-red-600 text-sm">{{ $message }}</p>
                         @enderror
                     </div>
@@ -180,15 +203,32 @@
     // === HARGA — Format Rupiah ===
     const hargaDisplay = document.getElementById('harga_display');
     const hargaHidden = document.getElementById('harga');
+    // === HARGA – Format Rupiah ===
+    const hargaDisplay2 = document.getElementById('harga_display2');
+    const hargaHidden2 = document.getElementById('harga_beli');
 
     // Jika ada old value → tampilkan terformat
     if (hargaHidden.value) {
         hargaDisplay.value = formatRupiah(hargaHidden.value);
-    }
 
+    }
+    if (hargaHidden2.value) {
+        hargaDisplay2.value = formatRupiah(hargaHidden2.value);
+    }
     hargaDisplay.addEventListener('input', function(e) {
         let value = unformatRupiah(e.target.value);
         hargaHidden.value = value;
+
+        if (value) {
+            e.target.value = formatRupiah(value);
+        } else {
+            e.target.value = '';
+        }
+    });
+
+    hargaDisplay2.addEventListener('input', function(e) {
+        let value = unformatRupiah(e.target.value);
+        hargaHidden2.value = value;
 
         if (value) {
             e.target.value = formatRupiah(value);
