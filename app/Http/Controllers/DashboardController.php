@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\FinanceRecord;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-       $user = $request->user();
+        $user = $request->user();
 
         // Month filter (format: YYYY-MM). Defaults to current month.
         $filterMonth = $request->input('month');
@@ -106,14 +107,14 @@ class DashboardController extends Controller
 
         // Top 5 Produk Terlaris (filtered month)
         $topProducts = InvoiceItem::select(
-                'invoice_items.product_id',
-                'products.nama_produk',
-                DB::raw('SUM(invoice_items.quantity) as total_quantity')
-            )
+            'invoice_items.product_id',
+            'products.nama_produk',
+            DB::raw('SUM(invoice_items.quantity) as total_quantity')
+        )
             ->join('products', 'invoice_items.product_id', '=', 'products.id')
-            ->join('invoices', function($join) {
+            ->join('invoices', function ($join) {
                 $join->on('invoice_items.invoice_id', '=', 'invoices.id')
-                     ->where('invoices.status_pembayaran', '!=', 'cancelled');
+                    ->where('invoices.status_pembayaran', '!=', 'cancelled');
             })
             ->whereMonth('invoices.created_at', (int)$filterMonthNum)
             ->whereYear('invoices.created_at', (int)$filterYear)
@@ -128,9 +129,35 @@ class DashboardController extends Controller
             'quantities' => $topProducts->pluck('total_quantity')->toArray(),
         ];
 
+        $today = now()->toDateString();
+
+        $paidFilter = Invoice::where('status_pembayaran', 'paid')
+            ->whereDate('tanggal_invoice', $today);
+
+        $paidCount = (clone $paidFilter)->count();
+
+        $totalPaid = (clone $paidFilter)->sum('grand_total');
+
+        $totalSetor = (clone $paidFilter)
+            ->where('status_setor', 'sudah')
+            ->sum('grand_total');
+
+        $currentPeriode = now()->format('Y-m');
+
+        $financeCurrentMonth = FinanceRecord::where('periode', $currentPeriode)->get();
+
+        $totalPemasukanCurrent = $financeCurrentMonth->where('tipe', 'income')->sum('jumlah');
+        $totalPengeluaranCurrent = $financeCurrentMonth->where('tipe', 'expense')->sum('jumlah');
+
+        $saldoBulanSekarang = $totalPemasukanCurrent - $totalPengeluaranCurrent;
+
+
+
         return view('dashboard', compact(
             'user',
+            'saldoBulanSekarang',
             'totalProducts',
+            'totalPaid',
             'totalCustomers',
             'totalInvoices',
             'totalPaid',
@@ -188,7 +215,7 @@ class DashboardController extends Controller
                 'satuan' => $product->satuan,
                 'status' => $product->status,
                 'stok' => $stock,
-                'foto_url' => $product->foto_produk ? asset('storage/'.$product->foto_produk) : null,
+                'foto_url' => $product->foto_produk ? asset('storage/' . $product->foto_produk) : null,
                 'batch_terbaru' => $latestBatch ? [
                     'kode_batch' => $latestBatch->kode_batch ?? null,
                     'expired_at' => $latestBatch->expired_at ?? null,
@@ -203,19 +230,19 @@ class DashboardController extends Controller
         $today = \Carbon\Carbon::today()->toDateString();
         $overdueDeposits = \App\Models\Invoice::where('status_pembayaran', 'paid')
             ->whereNull('tanggal_setor')
-            ->where(function($q){
+            ->where(function ($q) {
                 $q->whereNull('status_setor')
-                  ->orWhere('status_setor', '!=', 'sudah');
+                    ->orWhere('status_setor', '!=', 'sudah');
             })
             ->whereDate('tanggal_invoice', '<', $today)
             ->orderBy('tanggal_invoice', 'asc')
             ->limit(10)
-            ->get(['id','invoice_number','tanggal_invoice','grand_total']);
+            ->get(['id', 'invoice_number', 'tanggal_invoice', 'grand_total']);
         if ($overdueDeposits->count() > 0) {
-            $list = $overdueDeposits->map(function($inv){
-                return ($inv->invoice_number ?? ('INV#'.$inv->id)).' • '.($inv->tanggal_invoice).' • Rp '.number_format($inv->grand_total ?? 0, 0, ',', '.');
+            $list = $overdueDeposits->map(function ($inv) {
+                return ($inv->invoice_number ?? ('INV#' . $inv->id)) . ' • ' . ($inv->tanggal_invoice) . ' • Rp ' . number_format($inv->grand_total ?? 0, 0, ',', '.');
             })->join("\n");
-            session()->flash('warning', "Ada ".$overdueDeposits->count()." invoice paid belum disetor sejak kemarin.\n".$list);
+            session()->flash('warning', "Ada " . $overdueDeposits->count() . " invoice paid belum disetor sejak kemarin.\n" . $list);
         }
     }
     /**

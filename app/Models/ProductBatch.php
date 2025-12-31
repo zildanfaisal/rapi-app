@@ -10,7 +10,6 @@ class ProductBatch extends Model
     protected $fillable = [
         'product_id',
         'batch_number',
-        'harga_beli',
         'quantity_masuk',
         'quantity_sekarang',
         'tanggal_masuk',

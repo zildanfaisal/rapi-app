@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('barcode', 191)->unique()->nullable();
             $table->string('kategori')->nullable();
             $table->decimal('harga', 15, 2);
+            $table->decimal('harga_beli', 15, 2);
             $table->string('satuan')->nullable();
             $table->text('foto_produk')->nullable();
             $table->integer('min_stok_alert')->nullable();
