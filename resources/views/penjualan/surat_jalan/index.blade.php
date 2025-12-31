@@ -70,7 +70,7 @@
                                 <th class="px-3 py-2 border text-xs uppercase">Invoice</th>
                                 <th class="px-3 py-2 border text-xs uppercase">Tanggal</th>
                                 <th class="px-3 py-2 border text-xs uppercase">Bukti Pengiriman</th>
-                                <th class="px-3 py-2 border text-xs uppercase">Status Pembayaran</th>
+                                <th class="px-3 py-2 border text-xs uppercase">Status Pengiriman</th>
                                 <th class="px-3 py-2 border text-xs uppercase">Aksi</th>
                             </tr>
                         </thead>

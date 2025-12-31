@@ -62,24 +62,25 @@
                                 placeholder="Klik Generate"
                                 class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
 
-                            <button type="button" onclick="generateBatchCode()"
-                                class="mt-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 whitespace-nowrap">
-                                Generate
-                            </button>
+                                <button type="button" onclick="generateBatchCode()"
+                                    class="mt-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 whitespace-nowrap">
+                                    Generate
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Format: SN-DDMMYY-[Huruf][Jam] (contoh: SN-261225-K1622)
+                            </p>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Format: PB-DDMMYY-[Huruf][Jam] (contoh: PB-261225-K1622)
-                        </p>
-                    </div>
 
 
 
-                    {{-- Tanggal Masuk --}}
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Tanggal Masuk <span
-                                class="text-red-500">*</span></label>
-                        <input type="date" name="tanggal_masuk" required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
+                        {{-- Tanggal Masuk --}}
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700">Tanggal Masuk <span
+                                    class="text-red-500">*</span></label>
+                            <input type="date" name="tanggal_masuk" id="tanggal_masuk" required
+                                min="{{ date('Y-m-d') }}"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                        </div>
 
                     {{-- Tanggal Expired --}}
                     <div class="mb-4">
@@ -167,8 +168,8 @@
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const jam = hours + minutes;
 
-        // Format Final: PB-DDMMYY-[Huruf][Jam]
-        const batchCode = `PB-${tanggal}-${hurufPertama}${jam}`;
+            // Format Final: SN-DDMMYY-[Huruf][Jam]
+            const batchCode = `SN-${tanggal}-${hurufPertama}${jam}`;
 
         // Set ke input
         document.getElementById('batch_number').value = batchCode;
@@ -181,9 +182,9 @@
         document.getElementById('qty_sekarang').value = this.value;
     });
 
-    // Tanggal Expired Logic
-    const tanggalMasuk = document.querySelector('input[name="tanggal_masuk"]');
-    const tanggalExpired = document.getElementById('tanggal_expired');
+        // Tanggal Expired Logic
+        const tanggalMasuk = document.getElementById('tanggal_masuk');
+        const tanggalExpired = document.getElementById('tanggal_expired');
 
     tanggalExpired.disabled = true;
 

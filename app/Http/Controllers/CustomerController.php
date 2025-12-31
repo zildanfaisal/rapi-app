@@ -29,7 +29,7 @@ class CustomerController extends Controller
             'email' => 'nullable|email|max:255',
             'alamat' => 'nullable|string|max:255',
             'point' => 'nullable|integer',
-            'kategori_pelanggan' => 'required|in:Toko,Konsumen,Aplikator/Tukang',
+            'kategori_pelanggan' => 'required|in:Toko,Konsumen,Aplikator/Tukang,Marketing',
         ]);
 
         $customer = Customer::create([
@@ -82,7 +82,7 @@ class CustomerController extends Controller
             'email' => 'nullable|email|max:255',
             'alamat' => 'required|string|max:255',
             'point' => 'nullable|integer',
-            'kategori_pelanggan' => 'required|in:Toko,Konsumen,Aplikator/Tukang',
+            'kategori_pelanggan' => 'required|in:Toko,Konsumen,Aplikator/Tukang,Marketing',
         ]);
 
         $oldValues = $customer->only(['nama_customer', 'no_hp', 'email', 'alamat', 'point']);
