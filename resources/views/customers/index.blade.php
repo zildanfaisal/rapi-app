@@ -13,167 +13,167 @@
         {{-- MAIN WRAPPER --}}
         <div class="bg-white shadow sm:rounded-lg w-full">
             <div class="p-4 sm:p-6 lg:p-8">
-                <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
+                {{--<div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
                     <h3 class="text-lg font-semibold">{{ __('Data Customer') }}</h3>
-                    <a href="{{ route('customers.create') }}"
-                        class="inline-flex items-center justify-center
+                <a href="{{ route('customers.create') }}"
+                    class="inline-flex items-center justify-center
                     px-4 py-2.5 bg-blue-600 text-white
                     rounded-lg hover:bg-blue-700">
-                        + Tambah Customer
-                    </a>
-                </div>
+                    + Tambah Customer
+                </a>
+            </div>
+            --}}
+            {{-- ================= DESKTOP TABLE ================= --}}
+            <div class="hidden lg:block w-full overflow-x-auto" id="desktopWrapper">
+                <table id="dataTables" class="min-w-full border border-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 border text-center text-xs uppercase">No</th>
+                            <th class="px-3 py-2 border text-left text-xs uppercase">Nama Pelanggan</th>
+                            <th class="px-3 py-2 border text-left text-xs uppercase">No. Hp</th>
+                            <th class="px-3 py-2 border text-left text-xs uppercase">E-mail</th>
+                            <th class="px-3 py-2 border text-left text-xs uppercase">Kategori Pelanggan</th>
+                            <th class="px-3 py-2 border text-left text-xs uppercase">Alamat</th>
+                            <th class="px-3 py-2 border text-left text-xs uppercase">Poin</th>
+                            <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-                {{-- ================= DESKTOP TABLE ================= --}}
-                <div class="hidden lg:block w-full overflow-x-auto" id="desktopWrapper">
-                    <table id="dataTables" class="min-w-full border border-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-3 py-2 border text-center text-xs uppercase">No</th>
-                                <th class="px-3 py-2 border text-left text-xs uppercase">Nama Pelanggan</th>
-                                <th class="px-3 py-2 border text-left text-xs uppercase">No. Hp</th>
-                                <th class="px-3 py-2 border text-left text-xs uppercase">E-mail</th>
-                                <th class="px-3 py-2 border text-left text-xs uppercase">Kategori Pelanggan</th>
-                                <th class="px-3 py-2 border text-left text-xs uppercase">Alamat</th>
-                                <th class="px-3 py-2 border text-left text-xs uppercase">Poin</th>
-                                <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                            @foreach ($customers as $customer)
-                            <tr class="hover:bg-gray-50">
-                                <td class="border px-3 py-2 text-center">{{ $loop->iteration }}</td>
-                                <td class="border px-3 py-2">{{ $customer->nama_customer }}</td>
-                                <td class="border px-3 py-2">{{ $customer->no_hp ?? '-' }}</td>
-                                <td class="border px-3 py-2">{{ $customer->email ?? '-' }}</td>
-                                <td class="border px-3 py-2">{{ $customer->kategori_pelanggan }}</td>
-                                <td class="border px-3 py-2">{{ $customer->alamat ?? '-' }}</td>
-                                <td class="border px-3 py-2">{{ $customer->point ?? '0' }}</td>
-                                <td class="border px-3 py-2 text-center">
-                                    <div class="flex justify-center gap-3">
-                                        <a href="{{ route('customers.show', $customer->id) }}"
-                                            class="text-green-600 hover:underline">
-                                            Detail
-                                        </a>
-
-                                        @can('customers.update')
-                                        <a href="{{ route('customers.edit', $customer->id) }}"
-                                            class="text-blue-600 hover:underline">
-                                            Edit
-                                        </a>
-                                        @endcan
-
-                                        @can('customers.delete')
-                                        <form action="{{ route('customers.destroy', $customer->id) }}"
-                                            method="POST" data-confirm-delete>
-                                            @csrf @method('DELETE')
-                                            <button class="text-red-600 hover:underline">
-                                                Hapus
-                                            </button>
-                                        </form>
-                                        @endcan
-                                    </div>
-                                </td>
-
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- ================= MOBILE CARD ================= --}}
-                <div class="block lg:hidden mt-4" id="mobileWrapper">
-
-                    {{-- TOP CONTROL --}}
-                    <div class="flex justify-between mb-3">
-                        <div class="text-sm text-gray-600">
-                            Show
-                            <select id="mobilePerPage" class="border rounded text-sm mx-1">
-                                <option value="5">5</option>
-                                <option value="10">10</option>
-                            </select>
-                            entries
-                        </div>
-                    </div>
-
-                    {{-- CARDS --}}
-                    <div id="mobileCards" class="space-y-3">
                         @foreach ($customers as $customer)
-                        <div class="mobile-card border rounded-lg bg-white shadow">
+                        <tr class="hover:bg-gray-50">
+                            <td class="border px-3 py-2 text-center">{{ $loop->iteration }}</td>
+                            <td class="border px-3 py-2">{{ $customer->nama_customer }}</td>
+                            <td class="border px-3 py-2">{{ $customer->no_hp ?? '-' }}</td>
+                            <td class="border px-3 py-2">{{ $customer->email ?? '-' }}</td>
+                            <td class="border px-3 py-2">{{ $customer->kategori_pelanggan }}</td>
+                            <td class="border px-3 py-2">{{ $customer->alamat ?? '-' }}</td>
+                            <td class="border px-3 py-2">{{ $customer->point ?? '0' }}</td>
+                            <td class="border px-3 py-2 text-center">
+                                <div class="flex justify-center gap-3">
+                                    <a href="{{ route('customers.show', $customer->id) }}"
+                                        class="text-green-600 hover:underline">
+                                        Detail
+                                    </a>
 
-                            <div class="px-4 py-3 bg-gray-50 border-b">
-                                <div class="font-semibold text-gray-900">
-                                    {{ $customer->nama_customer }}
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    Customer #{{ $loop->iteration }}
-                                </div>
-                            </div>
+                                    @can('customers.update')
+                                    <a href="{{ route('customers.edit', $customer->id) }}"
+                                        class="text-blue-600 hover:underline">
+                                        Edit
+                                    </a>
+                                    @endcan
 
-                            <div class="px-4 py-3 text-sm space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Email:</span>
-                                    <span class="text-gray-900">{{ $customer->email ?? '-' }}</span>
+                                    @can('customers.delete')
+                                    <form action="{{ route('customers.destroy', $customer->id) }}"
+                                        method="POST" data-confirm-delete>
+                                        @csrf @method('DELETE')
+                                        <button class="text-red-600 hover:underline">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                    @endcan
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">No. Hp:</span>
-                                    <span class="text-gray-900">{{ $customer->no_hp ?? '-' }}</span>
-                                </div>
+                            </td>
 
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Point:</span>
-                                    <span class="text-gray-900">{{ $customer->point ?? '0' }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Kategori Pelanggan:</span>
-                                    <span class="text-gray-900">{{ $customer->kategori_pelanggan ?? '-' }}</span>
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-gray-600">Alamat:</span>
-                                    <span class="text-gray-900 text-sm">{{ $customer->alamat ?? '-' }}</span>
-                                </div>
-                            </div>
-
-                            <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
-                                <a href="{{ route('customers.show', $customer->id) }}"
-                                    class="flex-1 border border-green-600 text-green-600 rounded text-center py-2 hover:bg-blue-50">
-                                    Detail
-                                </a>
-                                @can('customers.update')
-                                <a href="{{ route('customers.edit', $customer->id) }}"
-                                    class="flex-1 border border-blue-600 text-blue-600 rounded text-center py-2 hover:bg-blue-50">
-                                    Edit
-                                </a>
-                                @endcan
-                                @can('customers.delete')
-                                <form action="{{ route('customers.destroy', $customer->id) }}" method="POST"
-                                    class="flex-1" data-confirm-delete-mobile>
-                                    @csrf @method('DELETE')
-                                    <button type="submit"
-                                        class="w-full border border-red-600 text-red-600 rounded text-center py-2 hover:bg-red-50">
-                                        Hapus
-                                    </button>
-                                </form>
-                                @endcan
-                            </div>
-
-                        </div>
+                        </tr>
                         @endforeach
-                    </div>
+                    </tbody>
+                </table>
+            </div>
 
-                    {{-- INFO + PAGINATION --}}
-                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
-                        <div id="mobileInfo" class="text-sm text-gray-600"></div>
-                        <div id="mobilePagination" class="flex gap-1 flex-wrap justify-center w-full">
+            {{-- ================= MOBILE CARD ================= --}}
+            <div class="block lg:hidden mt-4" id="mobileWrapper">
+
+                {{-- TOP CONTROL --}}
+                <div class="flex justify-between mb-3">
+                    <div class="text-sm text-gray-600">
+                        Show
+                        <select id="mobilePerPage" class="border rounded text-sm mx-1">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                        </select>
+                        entries
+                    </div>
+                </div>
+
+                {{-- CARDS --}}
+                <div id="mobileCards" class="space-y-3">
+                    @foreach ($customers as $customer)
+                    <div class="mobile-card border rounded-lg bg-white shadow">
+
+                        <div class="px-4 py-3 bg-gray-50 border-b">
+                            <div class="font-semibold text-gray-900">
+                                {{ $customer->nama_customer }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                Customer #{{ $loop->iteration }}
+                            </div>
                         </div>
-                    </div>
 
+                        <div class="px-4 py-3 text-sm space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Email:</span>
+                                <span class="text-gray-900">{{ $customer->email ?? '-' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">No. Hp:</span>
+                                <span class="text-gray-900">{{ $customer->no_hp ?? '-' }}</span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Point:</span>
+                                <span class="text-gray-900">{{ $customer->point ?? '0' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Kategori Pelanggan:</span>
+                                <span class="text-gray-900">{{ $customer->kategori_pelanggan ?? '-' }}</span>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <span class="text-gray-600">Alamat:</span>
+                                <span class="text-gray-900 text-sm">{{ $customer->alamat ?? '-' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
+                            <a href="{{ route('customers.show', $customer->id) }}"
+                                class="flex-1 border border-green-600 text-green-600 rounded text-center py-2 hover:bg-blue-50">
+                                Detail
+                            </a>
+                            @can('customers.update')
+                            <a href="{{ route('customers.edit', $customer->id) }}"
+                                class="flex-1 border border-blue-600 text-blue-600 rounded text-center py-2 hover:bg-blue-50">
+                                Edit
+                            </a>
+                            @endcan
+                            @can('customers.delete')
+                            <form action="{{ route('customers.destroy', $customer->id) }}" method="POST"
+                                class="flex-1" data-confirm-delete-mobile>
+                                @csrf @method('DELETE')
+                                <button type="submit"
+                                    class="w-full border border-red-600 text-red-600 rounded text-center py-2 hover:bg-red-50">
+                                    Hapus
+                                </button>
+                            </form>
+                            @endcan
+                        </div>
+
+                    </div>
+                    @endforeach
+                </div>
+
+                {{-- INFO + PAGINATION --}}
+                <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-3">
+                    <div id="mobileInfo" class="text-sm text-gray-600"></div>
+                    <div id="mobilePagination" class="flex gap-1 flex-wrap justify-center w-full">
+                    </div>
                 </div>
 
             </div>
-        </div>
 
+        </div>
     </div>
+
+</div>
 </div>
 @endsection
 
