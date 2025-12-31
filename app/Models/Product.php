@@ -12,6 +12,8 @@ class Product extends Model
         'barcode',
         'kategori',
         'harga',
+        'harga_beli',
+        'supplier',
         'satuan',
         'foto_produk',
         'min_stok_alert',
@@ -25,7 +27,7 @@ class Product extends Model
     public function latestBatch()
     {
         return $this->hasOne(ProductBatch::class)
-            ->latestOfMany('created_at'); 
+            ->latestOfMany('created_at');
     }
 
     public function refreshAvailability(): void
@@ -36,5 +38,4 @@ class Product extends Model
             $this->update(['status' => $newStatus]);
         }
     }
-    
 }

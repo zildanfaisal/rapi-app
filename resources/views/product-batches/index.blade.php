@@ -3,7 +3,7 @@
 @section('title', __('Product Batches'))
 
 @section('header')
-    <h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Product Batches') }}</h2>
+<h2 class="hidden sm:block text-xl font-semibold text-gray-800">{{ __('Product Batches') }}</h2>
 @endsection
 
 @section('content')
@@ -18,26 +18,26 @@
 
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
 
-    <button
-        @click="window.dispatchEvent(new CustomEvent('open-batch-report'))"
-        class="inline-flex items-center justify-center gap-2
+                        <button
+                            @click="window.dispatchEvent(new CustomEvent('open-batch-report'))"
+                            class="inline-flex items-center justify-center gap-2
                px-4 py-2.5
                bg-green-600 text-white text-sm font-medium
                rounded-lg hover:bg-green-700
                w-full sm:w-auto">
-        Export Laporan
-    </button>
+                            Export Laporan
+                        </button>
 
-    <a href="{{ route('product-batches.create') }}"
-       class="inline-flex items-center justify-center gap-2
+                        <a href="{{ route('product-batches.create') }}"
+                            class="inline-flex items-center justify-center gap-2
               px-4 py-2.5
               bg-blue-600 text-white text-sm font-medium
               rounded-lg hover:bg-blue-700
               w-full sm:w-auto">
-        + Tambah Batch
-    </a>
+                            + Tambah Batch
+                        </a>
 
-</div>
+                    </div>
 
                 </div>
 
@@ -49,12 +49,11 @@
                                 <th class="px-3 py-2 border text-center text-xs uppercase">No</th>
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Produk</th>
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Kode Batch</th>
-                                <th class="px-3 py-2 border text-right text-xs uppercase">Harga Beli</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Masuk</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Kadaluwarsa</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Awal Stok</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Sisa Stok</th>
-                                <th class="px-3 py-2 border text-center text-xs uppercase">Supplier</th>
+
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Status</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
                             </tr>
@@ -62,17 +61,15 @@
                         <tbody class="divide-y">
                             @foreach ($batches as $b)
                             @php
-                                $expired = \Carbon\Carbon::parse($b->tanggal_expired);
-                                $now = \Carbon\Carbon::now();
-                                $diffMonths = $now->diffInMonths($expired, false);
+                            $expired = \Carbon\Carbon::parse($b->tanggal_expired);
+                            $now = \Carbon\Carbon::now();
+                            $diffMonths = $now->diffInMonths($expired, false);
                             @endphp
                             <tr class="hover:bg-gray-50 text-center">
                                 <td class="border px-3 py-2">{{ $loop->iteration }}</td>
                                 <td class="border px-3 py-2 text-left">{{ $b->product->nama_produk }}</td>
                                 <td class="border px-3 py-2 font-semibold text-left">{{ $b->batch_number }}</td>
-                                <td class="border px-3 py-2 text-right">
-                                    Rp {{ number_format($b->harga_beli,0,',','.') }}
-                                </td>
+
                                 <td class="border px-3 py-2">
                                     {{ \Carbon\Carbon::parse($b->tanggal_masuk)->translatedFormat('F') }}
                                 </td>
@@ -81,15 +78,14 @@
                                 </td>
                                 <td class="border px-3 py-2">{{ $b->quantity_masuk }}</td>
                                 <td class="border px-3 py-2">{{ $b->quantity_sekarang }}</td>
-                                <td class="border px-3 py-2">{{ $b->supplier }}</td>
                                 <td class="border px-3 py-2">
                                     @php $status = $b->status; @endphp
                                     @if ($status === 'sold_out')
-                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Habis Terjual</span>
+                                    <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Habis Terjual</span>
                                     @elseif ($status === 'expired')
-                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Kadaluwarsa</span>
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Kadaluwarsa</span>
                                     @else
-                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Aktif</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Aktif</span>
                                     @endif
                                 </td>
                                 <td class="border px-3 py-2">
@@ -131,18 +127,17 @@
                             </div>
 
                             <div class="px-4 py-3 text-sm space-y-1">
-                                <div>Harga Beli: <b>Rp {{ number_format($b->harga_beli,0,',','.') }}</b></div>
+
                                 <div>Masuk: {{ \Carbon\Carbon::parse($b->tanggal_masuk)->translatedFormat('F') }}</div>
                                 <div>Kadaluwarsa: {{ \Carbon\Carbon::parse($b->tanggal_expired)->translatedFormat('F') }}</div>
                                 <div>Awal Stok: {{ $b->quantity_masuk }}</div>
                                 <div>Sisa Stok: {{ $b->quantity_sekarang }}</div>
-                                <div>Supplier: {{ $b->supplier }}</div>
                             </div>
 
                             <div class="px-4 py-3 bg-gray-50 border-t flex gap-2">
 
                                 <a href="{{ route('product-batches.edit', $b) }}"
-                                   class="flex-1 text-center
+                                    class="flex-1 text-center
                                           px-3 py-2
                                           border border-blue-600
                                           text-blue-600
@@ -152,13 +147,13 @@
                                 </a>
 
                                 <form action="{{ route('product-batches.destroy', $b) }}"
-                                      method="POST"
-                                      class="flex-1"
-                                      data-confirm-delete>
+                                    method="POST"
+                                    class="flex-1"
+                                    data-confirm-delete>
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
-                                            class="w-full px-3 py-2
+                                        class="w-full px-3 py-2
                                                    border border-red-600
                                                    text-red-600
                                                    rounded-md text-sm
@@ -185,7 +180,7 @@
 </div>
 
 {{-- MODAL LAPORAN --}}
-<div 
+<div
     x-data="{ showBatchModal: false }"
     x-on:open-batch-report.window="showBatchModal = true"
     x-show="showBatchModal"
@@ -193,7 +188,7 @@
     class="fixed inset-0 z-[9999] flex items-center justify-center"
     style="display: none;">
 
-    <div 
+    <div
         x-show="showBatchModal"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0"
@@ -205,7 +200,7 @@
         class="absolute inset-0 bg-black/50 backdrop-blur-sm">
     </div>
 
-    <div 
+    <div
         x-show="showBatchModal"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 scale-90 translate-y-4"
@@ -261,70 +256,85 @@
 @endsection
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
 
-    let dataTableInstance = null;
-    const cards = [...document.querySelectorAll('.mobile-card')];
-    const pagination = document.getElementById('mobilePagination');
-    const info = document.getElementById('mobileInfo');
-    const perPageSelect = document.getElementById('mobilePerPage');
+        let dataTableInstance = null;
+        const cards = [...document.querySelectorAll('.mobile-card')];
+        const pagination = document.getElementById('mobilePagination');
+        const info = document.getElementById('mobileInfo');
+        const perPageSelect = document.getElementById('mobilePerPage');
 
-    let perPage = parseInt(perPageSelect.value);
-    let currentPage = 1;
+        let perPage = parseInt(perPageSelect.value);
+        let currentPage = 1;
 
-    function renderMobile() {
-        const total = cards.length;
-        const totalPages = Math.ceil(total / perPage);
-        const start = (currentPage - 1) * perPage;
-        const end = start + perPage;
+        function renderMobile() {
+            const total = cards.length;
+            const totalPages = Math.ceil(total / perPage);
+            const start = (currentPage - 1) * perPage;
+            const end = start + perPage;
 
-        cards.forEach((c, i) => c.style.display = i >= start && i < end ? 'block' : 'none');
-        info.textContent = `Showing ${start+1} to ${Math.min(end,total)} of ${total} entries`;
-        renderPagination(totalPages);
-    }
+            cards.forEach((c, i) => c.style.display = i >= start && i < end ? 'block' : 'none');
+            info.textContent = `Showing ${start+1} to ${Math.min(end,total)} of ${total} entries`;
+            renderPagination(totalPages);
+        }
 
-    function renderPagination(totalPages) {
-        pagination.innerHTML = '';
-        const max = 5;
-        let s = Math.max(1, currentPage - 2);
-        let e = Math.min(totalPages, s + max - 1);
+        function renderPagination(totalPages) {
+            pagination.innerHTML = '';
+            const max = 5;
+            let s = Math.max(1, currentPage - 2);
+            let e = Math.min(totalPages, s + max - 1);
 
-        const btn = (t,d,a,cb) => {
-            const b = document.createElement('button');
-            b.textContent = t;
-            b.disabled = d;
-            b.className = `px-3 py-1 text-sm border rounded
+            const btn = (t, d, a, cb) => {
+                const b = document.createElement('button');
+                b.textContent = t;
+                b.disabled = d;
+                b.className = `px-3 py-1 text-sm border rounded
                 ${a?'bg-blue-600 text-white':'bg-white'}
                 ${d?'opacity-50':''}`;
-            b.onclick = cb;
-            return b;
+                b.onclick = cb;
+                return b;
+            };
+
+            pagination.appendChild(btn('Prev', currentPage === 1, false, () => {
+                currentPage--;
+                renderMobile();
+            }));
+            for (let i = s; i <= e; i++) {
+                pagination.appendChild(btn(i, false, i === currentPage, () => {
+                    currentPage = i;
+                    renderMobile();
+                }));
+            }
+            pagination.appendChild(btn('Next', currentPage === totalPages, false, () => {
+                currentPage++;
+                renderMobile();
+            }));
+        }
+
+        perPageSelect.onchange = () => {
+            perPage = parseInt(perPageSelect.value);
+            currentPage = 1;
+            renderMobile();
         };
 
-        pagination.appendChild(btn('Prev', currentPage===1,false,()=>{currentPage--;renderMobile();}));
-        for(let i=s;i<=e;i++){
-            pagination.appendChild(btn(i,false,i===currentPage,()=>{currentPage=i;renderMobile();}));
-        }
-        pagination.appendChild(btn('Next', currentPage===totalPages,false,()=>{currentPage++;renderMobile();}));
-    }
-
-    perPageSelect.onchange = () => { perPage=parseInt(perPageSelect.value); currentPage=1; renderMobile(); };
-
-    function handleResponsive() {
-        if (window.innerWidth >= 1024) {
-            if (!dataTableInstance) {
-                dataTableInstance = new DataTable('#dataTables', { responsive:true });
+        function handleResponsive() {
+            if (window.innerWidth >= 1024) {
+                if (!dataTableInstance) {
+                    dataTableInstance = new DataTable('#dataTables', {
+                        responsive: true
+                    });
+                }
+            } else {
+                if (dataTableInstance) {
+                    dataTableInstance.destroy();
+                    dataTableInstance = null;
+                }
+                renderMobile();
             }
-        } else {
-            if (dataTableInstance) {
-                dataTableInstance.destroy();
-                dataTableInstance = null;
-            }
-            renderMobile();
         }
-    }
 
-    handleResponsive();
-    window.addEventListener('resize', handleResponsive);
-});
+        handleResponsive();
+        window.addEventListener('resize', handleResponsive);
+    });
 </script>
 @endpush

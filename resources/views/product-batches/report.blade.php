@@ -27,7 +27,6 @@
             <th>Tanggal Kadaluwarsa</th>
             <th>Sisa Stok</th>
             <th>Awal Stok</th>
-            <th>Supplier</th>
             <th>Status</th>
         </tr>
     </thead>
@@ -40,7 +39,7 @@
                 <td>{{ $b->tanggal_expired }}</td>
                 <td>{{ $b->quantity_sekarang }}</td>
                 <td>{{ $b->quantity_masuk }}</td>
-                <td>{{ $b->supplier }}</td>
+
                 <td>
                     {{ match($b->status) {
                         'active'   => 'Aktif',

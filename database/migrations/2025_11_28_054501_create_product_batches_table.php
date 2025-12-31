@@ -17,10 +17,8 @@ return new class extends Migration
             $table->string('batch_number')->unique();
             $table->integer('quantity_masuk');
             $table->integer('quantity_sekarang')->default(0);
-            $table->decimal('harga_beli', 15, 2);
             $table->date('tanggal_masuk')->nullable();
             $table->date('tanggal_expired')->nullable();
-            $table->string('supplier')->nullable();
             $table->enum('status', ['active', 'expired', 'sold_out'])->default('active');
             $table->timestamps();
         });

@@ -43,6 +43,8 @@ class ProductController extends Controller
             'barcode'          => 'required|string|max:255|unique:products,barcode',
             'kategori'         => 'required|string|max:255',
             'harga'            => 'required|',
+            'harga_beli' => 'required|numeric',
+            'supplier' => 'nullable|string|max:255',
             'satuan'           => 'required|string|max:255',
             'foto_produk'      => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'min_stok_alert'   => 'required|integer',
@@ -57,7 +59,9 @@ class ProductController extends Controller
             'barcode'          => $request->barcode,
             'kategori'         => $request->kategori,
             'harga'            => $request->harga,
+            'harga_beli'       => $request->harga_beli,
             'satuan'           => $request->satuan,
+            'supplier'         => $request->supplier,
             'foto_produk'      => $fotoPath,
             'min_stok_alert'   => $request->min_stok_alert,
             'status'           => $request->status,
@@ -120,7 +124,9 @@ class ProductController extends Controller
             'nama_produk'      => 'required|string|max:255',
             'barcode'          => 'required|string|max:255|unique:products,barcode,' . $product->id,
             'kategori'         => 'required|string|max:255',
-            'harga'            => 'required|',
+            'harga'            => 'required|numeric',
+            'harga_beli'       => 'required|numeric',
+            'supplier' => 'nullable|string|max:255',
             'satuan'           => 'required|string|max:255',
             'foto_produk'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'min_stok_alert'   => 'required|integer',
@@ -128,8 +134,16 @@ class ProductController extends Controller
         ]);
 
         $oldValues = $product->only([
-            'nama_produk', 'deskripsi', 'barcode', 'kategori',
-            'harga', 'satuan', 'min_stok_alert', 'status'
+            'nama_produk',
+            'deskripsi',
+            'barcode',
+            'kategori',
+            'harga',
+            'supplier',
+            'harga_beli',
+            'satuan',
+            'min_stok_alert',
+            'status'
         ]);
 
         if ($request->hasFile('foto_produk')) {
@@ -145,8 +159,16 @@ class ProductController extends Controller
 
 
         $newValues = $product->only([
-            'nama_produk', 'deskripsi', 'barcode', 'kategori',
-            'harga', 'satuan', 'min_stok_alert', 'status'
+            'nama_produk',
+            'deskripsi',
+            'barcode',
+            'kategori',
+            'supplier',
+            'harga',
+            'harga_beli',
+            'satuan',
+            'min_stok_alert',
+            'status'
         ]);
         self::logUpdate($product, 'Produk', $oldValues, $newValues, 'Produk');
 

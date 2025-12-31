@@ -3,7 +3,7 @@
 @section('title', __('Detail Batch Produk'))
 
 @section('header')
-    <h2 class="text-xl font-semibold text-gray-800">{{ __('Detail Batch Produk') }}</h2>
+<h2 class="text-xl font-semibold text-gray-800">{{ __('Detail Batch Produk') }}</h2>
 @endsection
 
 @section('content')
@@ -72,13 +72,7 @@
                     </div>
                 </div>
 
-                {{-- Supplier --}}
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Supplier</label>
-                    <div class="mt-1 p-2 border rounded-md bg-gray-100">
-                        {{ $productBatch->supplier }}
-                    </div>
-                </div>
+
 
                 {{-- Status --}}
                 <div class="mb-6">
@@ -93,15 +87,15 @@
                     </span>
                 </div>
 
-              {{-- Buttons --}}
+                {{-- Buttons --}}
                 <div class="flex items-center gap-3">
                     <a href="{{ route('product-batches.index') }}"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
                         Kembali
                     </a>
 
                     <a href="{{ route('product-batches.edit', $productBatch->id) }}"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                         Edit
                     </a>
                 </div>
