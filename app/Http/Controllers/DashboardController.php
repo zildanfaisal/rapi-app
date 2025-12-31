@@ -39,7 +39,10 @@ class DashboardController extends Controller
             : 0;
 
         // Total Customers
-        $totalCustomers = Customer::count();
+        $totalCustomers = Customer::whereMonth('created_at', (int) $filterMonthNum)
+            ->whereYear('created_at', (int) $filterYear)
+            ->count();
+
         $previousMonthCustomers = Customer::where('created_at', '<', $currentMonth)->count();
         $customerGrowth = $previousMonthCustomers > 0
             ? (($totalCustomers - $previousMonthCustomers) / $previousMonthCustomers) * 100
