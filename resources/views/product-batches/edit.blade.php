@@ -162,7 +162,7 @@
     const tanggalMasuk = document.getElementById('tanggal_masuk');
     const tanggalExpired = document.getElementById('tanggal_expired');
 
-    @if($productBatch - > tanggal_expired)
+    @if($productBatch -> tanggal_expired)
     tanggalExpired.disabled = false;
     tanggalExpired.min = tanggalMasuk.value;
     @else
