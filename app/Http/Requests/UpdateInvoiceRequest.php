@@ -21,7 +21,7 @@ class UpdateInvoiceRequest extends FormRequest
             'customer_type' => ['nullable', 'in:existing,new'],
             'customer_id' => ['nullable', 'required_if:customer_type,existing', 'exists:customers,id'],
             'customer_name' => ['nullable', 'required_if:customer_type,new', 'string', 'max:255'],
-            'kategori_pelanggan' => ['nullable', 'required_if:customer_type,new', 'in:Toko,Konsumen,Aplikator/Tukang'],
+            'kategori_pelanggan' => ['nullable', 'required_if:customer_type,new', 'in:Toko,Konsumen,Aplikator/Tukang,Marketing'],
 
             'user_id' => ['required', 'exists:users,id'],
             'tanggal_invoice' => ['required', 'date'],

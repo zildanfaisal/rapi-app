@@ -76,6 +76,7 @@
                                         <option value="Toko">{{ __('Toko') }}</option>
                                         <option value="Konsumen" selected>{{ __('Konsumen') }}</option>
                                         <option value="Aplikator/Tukang">{{ __('Aplikator/Tukang') }}</option>
+                                        <option value="Marketing">{{ __('Marketing') }}</option>
                                     </select>
                                 </div>
                                 <div>
@@ -102,8 +103,7 @@
                                 <label for="tanggal_invoice"
                                     class="block text-sm font-medium text-gray-700">{{ __('Tanggal Invoice') }}</label>
                                 <input type="date" name="tanggal_invoice" id="tanggal_invoice"
-                                    value="{{ old('tanggal_invoice', date('Y-m-d')) }}"
-                                    min="{{ date('Y-m-d') }}"
+                                    value="{{ old('tanggal_invoice', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                     required>
                             </div>
@@ -737,7 +737,9 @@
             function toggleBuktiPembayaran() {
                 const radios = document.querySelectorAll('.metode-pembayaran-radio');
                 let selected = null;
-                radios.forEach(r => { if (r.checked) selected = r.value; });
+                radios.forEach(r => {
+                    if (r.checked) selected = r.value;
+                });
                 const wrapper = document.getElementById('bukti-pembayaran-wrapper');
 
                 if (selected && selected !== 'tunai') {

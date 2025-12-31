@@ -33,6 +33,7 @@
                                 <option value="Toko" {{ old('kategori_pelanggan', $customer->kategori_pelanggan) == 'Toko' ? 'selected' : '' }}>{{ __('Toko') }}</option>
                                 <option value="Konsumen" {{ old('kategori_pelanggan', $customer->kategori_pelanggan) == 'Konsumen' ? 'selected' : '' }}>{{ __('Konsumen') }}</option>
                                 <option value="Aplikator/Tukang" {{ old('kategori_pelanggan', $customer->kategori_pelanggan) == 'Aplikator/Tukang' ? 'selected' : '' }}>{{ __('Aplikator/Tukang') }}</option>
+                                <option value="Marketing" {{ old('kategori_pelanggan', $customer->kategori_pelanggan) == 'Marketing' ? 'selected' : '' }}>{{ __('Marketing') }}</option>
                             </select>
                         </div>
                         <div class="mb-4">

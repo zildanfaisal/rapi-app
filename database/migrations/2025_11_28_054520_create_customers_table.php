@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->text('alamat')->nullable();
             $table->integer('point')->nullable()->default(0);
-            $table->enum('kategori_pelanggan', ['Toko', 'Konsumen', 'Aplikator/Tukang'])->default('Konsumen');
+            $table->enum('kategori_pelanggan', ['Toko', 'Konsumen', 'Aplikator/Tukang', 'Marketing'])->default('Konsumen');
             $table->timestamps();
         });
     }
