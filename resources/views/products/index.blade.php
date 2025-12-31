@@ -31,10 +31,11 @@
                                 <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Barcode</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium uppercase border">Nama</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium uppercase border">Kategori</th>
-                                <th class="px-3 py-3 text-right text-xs font-medium uppercase border">Harga Jual</th>
                                 <th class="px-3 py-3 text-right text-xs font-medium uppercase border">Harga Beli</th>
+                                <th class="px-3 py-3 text-right text-xs font-medium uppercase border">Harga Jual</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium uppercase border">Supplier</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Stok</th>
+                                <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Satuan</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Status</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Aksi</th>
                             </tr>
@@ -60,15 +61,14 @@
                                 <td class="px-3 py-2 border">{{ $p->kategori }}</td>
 
                                 <td class="px-3 py-2 border text-right">
-                                    Rp {{ number_format($p->harga, 0, ',', '.') }}
-                                </td>
-
-                                <td class="px-3 py-2 border text-right">
 
                                     Rp {{ number_format($p->harga_beli, 0, ',', '.') }}
 
                                 </td>
 
+                                <td class="px-3 py-2 border text-right">
+                                    Rp {{ number_format($p->harga, 0, ',', '.') }}
+                                </td>
 
                                 <td class="px-3 py-2 border text-center">
                                     {{ $p->supplier}}
@@ -78,7 +78,9 @@
                                     {{ $p->batches->sum('quantity_sekarang') }}
                                 </td>
 
-
+                                <td class="px-3 py-2 border text-center">
+                                    {{ $p->satuan}}
+                                </td>
 
                                 <td class="px-3 py-2 border text-center">
                                     @php
