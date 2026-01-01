@@ -31,7 +31,7 @@ class StoreInvoiceRequest extends FormRequest
             'customer_id' => ['nullable', 'required_if:customer_type,existing', 'exists:customers,id'],
             // Jika memilih pelanggan baru, wajib isi nama, kategori, no_hp, alamat
             'customer_name' => ['nullable', 'required_if:customer_type,new', 'string', 'max:255'],
-            'kategori_pelanggan' => ['nullable', 'required_if:customer_type,new', 'in:Toko,Konsumen,Aplikator/Tukang'],
+            'kategori_pelanggan' => ['nullable', 'required_if:customer_type,new', 'in:Toko,Konsumen,Aplikator/Tukang,Marketing'],
             'no_hp' => ['nullable', 'required_if:customer_type,new', 'string', 'max:255'],
             'alamat' => ['nullable', 'required_if:customer_type,new', 'string', 'max:255'],
             'user_id' => ['required', 'exists:users,id'],

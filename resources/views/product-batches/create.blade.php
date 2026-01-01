@@ -67,7 +67,7 @@
                                     Generate
                                 </button>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Format: PB-DDMMYY-[Huruf][Jam] (contoh: PB-261225-K1622)
+                            <p class="text-xs text-gray-500 mt-1">Format: SN-DDMMYY-[Huruf][Jam] (contoh: SN-261225-K1622)
                             </p>
                         </div>
 
@@ -77,7 +77,8 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700">Tanggal Masuk <span
                                     class="text-red-500">*</span></label>
-                            <input type="date" name="tanggal_masuk" required
+                            <input type="date" name="tanggal_masuk" id="tanggal_masuk" required
+                                min="{{ date('Y-m-d') }}"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                         </div>
 
@@ -105,12 +106,6 @@
                             class="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm">
                     </div>
 
-                    {{-- Supplier --}}
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Supplier</label>
-                        <input type="text" name="supplier"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
 
                     {{-- Status --}}
                     <div class="mb-4">
@@ -173,8 +168,8 @@
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const jam = hours + minutes;
 
-            // Format Final: PB-DDMMYY-[Huruf][Jam]
-            const batchCode = `PB-${tanggal}-${hurufPertama}${jam}`;
+            // Format Final: SN-DDMMYY-[Huruf][Jam]
+            const batchCode = `SN-${tanggal}-${hurufPertama}${jam}`;
 
         // Set ke input
         document.getElementById('batch_number').value = batchCode;
@@ -188,7 +183,7 @@
     });
 
         // Tanggal Expired Logic
-        const tanggalMasuk = document.querySelector('input[name="tanggal_masuk"]');
+        const tanggalMasuk = document.getElementById('tanggal_masuk');
         const tanggalExpired = document.getElementById('tanggal_expired');
 
     tanggalExpired.disabled = true;

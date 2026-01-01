@@ -44,7 +44,6 @@ class ProductBatchController extends Controller
             'tanggal_expired' => 'required|date|after_or_equal:tanggal_masuk',
             'quantity_masuk' => 'required|integer|min:1',
             'quantity_sekarang' => 'required|integer|min:0',
-            'supplier' => 'nullable|string|max:255',
             'status' => 'required|in:active,expired,sold_out',
         ]);
 
@@ -71,7 +70,6 @@ class ProductBatchController extends Controller
             'tanggal_expired' => $request->tanggal_expired,
             'quantity_masuk' => $request->quantity_masuk,
             'quantity_sekarang' => $request->quantity_sekarang,
-            'supplier' => $request->supplier,
             'status' => $request->status,
         ]);
 
@@ -100,7 +98,6 @@ class ProductBatchController extends Controller
             'tanggal_expired'   => 'required|date',
             'quantity_masuk'    => 'required|integer|min:1',
             'quantity_sekarang' => 'required|integer|min:0',
-            'supplier'          => 'nullable|string|max:255',
             'status'            => 'required|in:active,expired,sold_out',
         ]);
 
@@ -111,7 +108,6 @@ class ProductBatchController extends Controller
             'tanggal_expired',
             'quantity_masuk',
             'quantity_sekarang',
-            'supplier',
             'status'
         ]);
 
@@ -124,7 +120,6 @@ class ProductBatchController extends Controller
             'tanggal_expired'   => $request->tanggal_expired,
             'quantity_masuk'    => $request->quantity_masuk,
             'quantity_sekarang' => $request->quantity_sekarang,
-            'supplier'          => $request->supplier,
             'status'            => $request->status,
         ]);
 
@@ -138,7 +133,6 @@ class ProductBatchController extends Controller
             'tanggal_expired',
             'quantity_masuk',
             'quantity_sekarang',
-            'supplier',
             'status'
         ]);
         self::logUpdate($productBatch, 'Batch Produk', $oldValues, $newValues, 'Batch Produk');

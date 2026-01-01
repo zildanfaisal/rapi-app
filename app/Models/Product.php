@@ -13,6 +13,7 @@ class Product extends Model
         'kategori',
         'harga',
         'harga_beli',
+        'supplier',
         'satuan',
         'foto_produk',
         'min_stok_alert',

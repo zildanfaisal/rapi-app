@@ -108,6 +108,12 @@
                         <p class="text-red-600 text-sm">{{ $message }}</p>
                         @enderror
                     </div>
+                    {{-- Supplier --}}
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Supplier</label>
+                        <input type="text" name="supplier"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    </div>
 
                     {{-- Satuan --}}
                     <div class="mb-4">

@@ -26,14 +26,15 @@
                             <label for="email" class="block text-sm font-medium text-gray-700">{{ __('E-mail') }}</label>
                             <input type="email" name="email" id="email" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
                         </div>
-                        
-    
+
+
                         <div class="mb-4">
                             <label for="kategori_pelanggan" class="block text-sm font-medium text-gray-700">{{ __('Kategori Pelanggan') }}</label>
                             <select name="kategori_pelanggan" id="kategori_pelanggan" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                 <option value="Toko">{{ __('Toko') }}</option>
                                 <option value="Konsumen" selected>{{ __('Konsumen') }}</option>
                                 <option value="Aplikator/Tukang">{{ __('Aplikator/Tukang') }}</option>
+                                <option value="Marketing">{{ __('Marketing') }}</option>
                             </select>
                         </div>
 

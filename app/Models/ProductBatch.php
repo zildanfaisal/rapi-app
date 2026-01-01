@@ -14,7 +14,6 @@ class ProductBatch extends Model
         'quantity_sekarang',
         'tanggal_masuk',
         'tanggal_expired',
-        'supplier',
         'status',
     ];
 

@@ -276,7 +276,11 @@ trait ActivityLogger
 
         $changeTexts = [];
         foreach ($changes as $field => $values) {
-            $changeTexts[] = "{$field}: '{$values['old']}' → '{$values['new']}'";
+            // Convert array to string if needed
+            $oldValue = is_array($values['old']) ? json_encode($values['old']) : $values['old'];
+            $newValue = is_array($values['new']) ? json_encode($values['new']) : $values['new'];
+
+            $changeTexts[] = "{$field}: '{$oldValue}' → '{$newValue}'";
         }
 
         return 'Perubahan: ' . implode(', ', $changeTexts);
