@@ -100,21 +100,25 @@
                                 </td>
 
                                 <td class="px-3 py-2 border">
-                                    <div class="flex justify-center gap-2">
+                                    <div class="flex flex-col gap-2 text-center">
                                         <button
                                             onclick="openBarcodeModal({{ $p->id }}, '{{ $p->nama_produk }}')"
-                                            class="text-green-600 hover:underline">
+                                            class="text-green-600 hover:underline text-left">
                                             Unduh Barcode
                                         </button>
                                         <a href="{{ route('products.show', $p->id) }}"
-                                            class="text-indigo-600 hover:underline">Detail</a>
+                                            class="text-indigo-600 hover:underline">
+                                            Detail
+                                        </a>
                                         <a href="{{ route('products.edit', $p->id) }}"
-                                            class="text-blue-600 hover:underline">Edit</a>
+                                            class="text-blue-600 hover:underline">
+                                            Edit
+                                        </a>
                                         <form action="{{ route('products.destroy', $p->id) }}" method="POST"
                                             data-confirm-delete>
                                             @csrf
                                             @method('DELETE')
-                                            <button class="text-red-600 hover:underline">Hapus</button>
+                                            <button class="text-red-600 hover:underline text-left">Hapus</button>
                                         </form>
                                     </div>
                                 </td>
