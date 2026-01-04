@@ -25,8 +25,9 @@
             <th>Kode Batch</th>
             <th>Tanggal Masuk</th>
             <th>Tanggal Kadaluwarsa</th>
-            <th>Sisa Stok</th>
             <th>Awal Stok</th>
+            <th>Sisa Stok</th>
+            <th>Harga Beli</th>
             <th>Status</th>
         </tr>
     </thead>
@@ -37,8 +38,9 @@
                 <td>{{ $b->batch_number }}</td>
                 <td>{{ $b->tanggal_masuk }}</td>
                 <td>{{ $b->tanggal_expired }}</td>
-                <td>{{ $b->quantity_sekarang }}</td>
                 <td>{{ $b->quantity_masuk }}</td>
+                <td>{{ $b->quantity_sekarang }}</td>
+                <td>Rp {{ number_format($b->product->harga_beli, 0, ',', '.') }}</td>
 
                 <td>
                     {{ match($b->status) {

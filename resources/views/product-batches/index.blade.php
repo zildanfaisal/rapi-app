@@ -19,13 +19,24 @@
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
 
                         <button
-                            @click="window.dispatchEvent(new CustomEvent('open-batch-report'))"
+                            type="button"
+                            id="excelBtn"
                             class="inline-flex items-center justify-center gap-2
                px-4 py-2.5
                bg-green-600 text-white text-sm font-medium
                rounded-lg hover:bg-green-700
                w-full sm:w-auto">
-                            Export Laporan
+                            Export Excel
+                        </button>
+
+                        <button
+                            @click="window.dispatchEvent(new CustomEvent('open-batch-report'))"
+                            class="inline-flex items-center justify-center gap-2
+               px-4 py-2.5
+               bg-red-600 text-white text-sm font-medium
+               rounded-lg hover:bg-red-700
+               w-full sm:w-auto">
+                            Export PDF
                         </button>
 
                         <a href="{{ route('product-batches.create') }}"
@@ -54,6 +65,9 @@
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Awal Stok</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Sisa Stok</th>
 
+                                <th class="hidden px-3 py-2 border text-center text-xs uppercase">Harga Beli</th>
+                                <th class="hidden px-3 py-2 border text-center text-xs uppercase">Total</th>
+
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Status</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
                             </tr>
@@ -64,6 +78,8 @@
                             $expired = \Carbon\Carbon::parse($b->tanggal_expired);
                             $now = \Carbon\Carbon::now();
                             $diffMonths = $now->diffInMonths($expired, false);
+                            $hargaBeli = (float) ($b->product->harga_beli ?? 0);
+                            $totalNilai = ((int) ($b->quantity_sekarang ?? 0)) * $hargaBeli;
                             @endphp
                             <tr class="hover:bg-gray-50 text-center">
                                 <td class="border px-3 py-2">{{ $loop->iteration }}</td>
@@ -78,6 +94,10 @@
                                 </td>
                                 <td class="border px-3 py-2">{{ $b->quantity_masuk }}</td>
                                 <td class="border px-3 py-2">{{ $b->quantity_sekarang }}</td>
+
+                                <td class="hidden border px-3 py-2">{{ $hargaBeli }}</td>
+                                <td class="hidden border px-3 py-2">{{ $totalNilai }}</td>
+
                                 <td class="border px-3 py-2">
                                     @php $status = $b->status; @endphp
                                     @if ($status === 'sold_out')
@@ -278,6 +298,18 @@
             renderPagination(totalPages);
         }
 
+        if (!dataTableInstance) {
+            dataTableInstance = new DataTable('#dataTables', {
+                columnDefs: [
+                    {
+                        targets: [7, 8], // Index kolom Harga Beli dan Total
+                        visible: false,
+                        searchable: false
+                    }
+                ]
+            });
+        }
+
         function renderPagination(totalPages) {
             pagination.innerHTML = '';
             const max = 5;
@@ -320,9 +352,7 @@
         function handleResponsive() {
             if (window.innerWidth >= 1024) {
                 if (!dataTableInstance) {
-                    dataTableInstance = new DataTable('#dataTables', {
-                        responsive: true
-                    });
+                    dataTableInstance = new DataTable('#dataTables');
                 }
             } else {
                 if (dataTableInstance) {
@@ -335,6 +365,55 @@
 
         handleResponsive();
         window.addEventListener('resize', handleResponsive);
+
+        // ========== Excel Export (XLSX) ==========
+        $('#excelBtn').on('click', function () {
+            var table = $('#dataTables').DataTable();
+
+            // Hitung Grand Total dari kolom Total (index 8)
+            let grandTotal = 0;
+            table.column(8, { search: 'applied' }).data().each(function (value) {
+                grandTotal += parseFloat(value) || 0;
+            });
+
+            var buttons = new $.fn.dataTable.Buttons(table, {
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Laporan Batch Produk',
+                        exportOptions: {
+                            columns: [0, 1, 6, 7, 8] 
+                        },
+                        customize: function (xlsx) {
+                            let sheet = xlsx.xl.worksheets['sheet1.xml'];
+
+                            // Cari baris terakhir
+                            let lastRow = $('row', sheet).last();
+                            let rowNum = parseInt(lastRow.attr('r')) + 1;
+
+                            // Tambah baris Grand Total
+                            let grandTotalRow = `
+                                <row r="${rowNum}">
+                                    <c t="inlineStr" r="A${rowNum}">
+                                        <is><t>GRAND TOTAL</t></is>
+                                    </c>
+                                    <c r="E${rowNum}">
+                                        <v>${grandTotal}</v>
+                                    </c>
+                                </row>
+                            `;
+
+                            sheet.childNodes[0].childNodes[1].innerHTML += grandTotalRow;
+                        }
+                    }
+                ]
+            });
+
+            buttons.container().appendTo('body');
+            $('.buttons-excel').click();
+            buttons.destroy();
+        });
+
     });
 </script>
 @endpush

@@ -173,7 +173,7 @@
 
                             <div class="px-4 py-3 space-y-1 text-sm">
                                 <div>Harga Jual: <b>Rp {{ number_format($p->harga, 0, ',', '.') }}</b></div>
-                                <div>Harga Jual: <b>Rp {{ number_format($p->harga_beli, 0, ',', '.') }}</b></div>
+                                <div>Harga Beli: <b>Rp {{ number_format($p->harga_beli, 0, ',', '.') }}</b></div>
                                 <div>Supplier: {{ $p->supplier }}</div>
                                 <div>Stok: {{ $p->batches->sum('quantity_sekarang') }}</div>
                                 @php
