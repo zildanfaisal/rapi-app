@@ -278,7 +278,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
-        let dataTableInstance = null;
+        // =======================
+        // MOBILE PAGINATION
+        // =======================
         const cards = [...document.querySelectorAll('.mobile-card')];
         const pagination = document.getElementById('mobilePagination');
         const info = document.getElementById('mobileInfo');
@@ -286,29 +288,6 @@
 
         let perPage = parseInt(perPageSelect.value);
         let currentPage = 1;
-
-        function renderMobile() {
-            const total = cards.length;
-            const totalPages = Math.ceil(total / perPage);
-            const start = (currentPage - 1) * perPage;
-            const end = start + perPage;
-
-            cards.forEach((c, i) => c.style.display = i >= start && i < end ? 'block' : 'none');
-            info.textContent = `Showing ${start+1} to ${Math.min(end,total)} of ${total} entries`;
-            renderPagination(totalPages);
-        }
-
-        if (!dataTableInstance) {
-            dataTableInstance = new DataTable('#dataTables', {
-                columnDefs: [
-                    {
-                        targets: [7, 8], // Index kolom Harga Beli dan Total
-                        visible: false,
-                        searchable: false
-                    }
-                ]
-            });
-        }
 
         function renderPagination(totalPages) {
             pagination.innerHTML = '';
@@ -321,8 +300,8 @@
                 b.textContent = t;
                 b.disabled = d;
                 b.className = `px-3 py-1 text-sm border rounded
-                ${a?'bg-blue-600 text-white':'bg-white'}
-                ${d?'opacity-50':''}`;
+                ${a ? 'bg-blue-600 text-white' : 'bg-white'}
+                ${d ? 'opacity-50' : ''}`;
                 b.onclick = cb;
                 return b;
             };
@@ -331,16 +310,29 @@
                 currentPage--;
                 renderMobile();
             }));
+
             for (let i = s; i <= e; i++) {
                 pagination.appendChild(btn(i, false, i === currentPage, () => {
                     currentPage = i;
                     renderMobile();
                 }));
             }
+
             pagination.appendChild(btn('Next', currentPage === totalPages, false, () => {
                 currentPage++;
                 renderMobile();
             }));
+        }
+
+        function renderMobile() {
+            const total = cards.length;
+            const totalPages = Math.ceil(total / perPage);
+            const start = (currentPage - 1) * perPage;
+            const end = start + perPage;
+
+            cards.forEach((c, i) => c.style.display = (i >= start && i < end) ? 'block' : 'none');
+            info.textContent = `Showing ${start + 1} to ${Math.min(end, total)} of ${total} entries`;
+            renderPagination(totalPages);
         }
 
         perPageSelect.onchange = () => {
@@ -349,15 +341,28 @@
             renderMobile();
         };
 
+        // =======================
+        // DESKTOP DATATABLE (JQUERY)
+        // =======================
+        function initDesktopTable() {
+            if (!$.fn.DataTable.isDataTable('#dataTables')) {
+                $('#dataTables').DataTable({
+                    columnDefs: [{
+                        targets: [7, 8], // Harga Beli & Total (hidden)
+                        visible: false,
+                        searchable: false
+                    }]
+                });
+            }
+            return $('#dataTables').DataTable();
+        }
+
         function handleResponsive() {
             if (window.innerWidth >= 1024) {
-                if (!dataTableInstance) {
-                    dataTableInstance = new DataTable('#dataTables');
-                }
+                initDesktopTable();
             } else {
-                if (dataTableInstance) {
-                    dataTableInstance.destroy();
-                    dataTableInstance = null;
+                if ($.fn.DataTable.isDataTable('#dataTables')) {
+                    $('#dataTables').DataTable().destroy();
                 }
                 renderMobile();
             }
@@ -366,52 +371,153 @@
         handleResponsive();
         window.addEventListener('resize', handleResponsive);
 
-        // ========== Excel Export (XLSX) ==========
-        $('#excelBtn').on('click', function () {
-            var table = $('#dataTables').DataTable();
+        // =======================
+        // EXCEL EXPORT (PASTI DOWNLOAD)
+        // =======================
+        $('#excelBtn').off('click').on('click', function() {
 
-            // Hitung Grand Total dari kolom Total (index 8)
+            const table = initDesktopTable(); // <-- INI YANG KAMU KURANG (table harus ada)
+
+            // GRAND TOTAL dari kolom "Total" index 8
             let grandTotal = 0;
-            table.column(8, { search: 'applied' }).data().each(function (value) {
+            table.column(8, {
+                search: 'applied'
+            }).data().each(function(value) {
                 grandTotal += parseFloat(value) || 0;
             });
 
-            var buttons = new $.fn.dataTable.Buttons(table, {
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        title: 'Laporan Batch Produk',
-                        exportOptions: {
-                            columns: [0, 1, 6, 7, 8] 
-                        },
-                        customize: function (xlsx) {
-                            let sheet = xlsx.xl.worksheets['sheet1.xml'];
+            const buttons = new $.fn.dataTable.Buttons(table, {
+                buttons: [{
+                    extend: 'excelHtml5',
+                    title: null,
+                    exportOptions: {
+                        columns: [0, 1, 6, 7, 8]
+                    },
+                    customize: function(xlsx) {
+                        const sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        const styles = xlsx.xl['styles.xml'];
 
-                            // Cari baris terakhir
-                            let lastRow = $('row', sheet).last();
-                            let rowNum = parseInt(lastRow.attr('r')) + 1;
+                        let fonts = $('fonts', styles);
+                        let fills = $('fills', styles);
+                        let borders = $('borders', styles);
+                        let cellXfs = $('cellXfs', styles);
 
-                            // Tambah baris Grand Total
-                            let grandTotalRow = `
-                                <row r="${rowNum}">
-                                    <c t="inlineStr" r="A${rowNum}">
-                                        <is><t>GRAND TOTAL</t></is>
-                                    </c>
-                                    <c r="E${rowNum}">
-                                        <v>${grandTotal}</v>
-                                    </c>
-                                </row>
-                            `;
+                        // Bold font
+                        fonts.append(`<font><b/><sz val="12"/><name val="Calibri"/></font>`);
+                        fonts.attr('count', $('font', fonts).length);
+                        const boldFontId = $('font', fonts).length - 1;
 
-                            sheet.childNodes[0].childNodes[1].innerHTML += grandTotalRow;
+                        // Header bg
+                        fills.append(`
+                      <fill>
+                        <patternFill patternType="solid">
+                          <fgColor rgb="FFE5E7EB"/>
+                          <bgColor indexed="64"/>
+                        </patternFill>
+                      </fill>
+                    `);
+                        fills.attr('count', $('fill', fills).length);
+                        const headerFillId = $('fill', fills).length - 1;
+
+                        // Border
+                        borders.append(`<border><left style="thin"/><right style="thin"/><top style="thin"/><bottom style="thin"/></border>`);
+                        borders.attr('count', $('border', borders).length);
+                        const borderId = $('border', borders).length - 1;
+
+                        // Number format
+                        let numFmts = $('numFmts', styles);
+                        if (!numFmts.length) {
+                            styles.prepend('<numFmts count="0"/>');
+                            numFmts = $('numFmts', styles);
                         }
+                        const fmtCount = parseInt(numFmts.attr('count') || '0', 10);
+                        numFmts.append(`<numFmt numFmtId="200" formatCode="#,##0"/>`);
+                        numFmts.attr('count', fmtCount + 1);
+
+                        const styleTitle = cellXfs.children().length;
+                        const styleHeader = styleTitle + 1;
+                        const styleCell = styleTitle + 2;
+                        const styleNumber = styleTitle + 3;
+                        const styleGrand = styleTitle + 4;
+
+                        cellXfs.append(`<xf xfId="0" fontId="${boldFontId}" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>`);
+                        cellXfs.append(`<xf xfId="0" fontId="${boldFontId}" fillId="${headerFillId}" borderId="${borderId}" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>`);
+                        cellXfs.append(`<xf xfId="0" borderId="${borderId}" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>`);
+                        cellXfs.append(`<xf xfId="0" borderId="${borderId}" numFmtId="200" applyBorder="1" applyNumberFormat="1" applyAlignment="1"><alignment vertical="center"/></xf>`);
+                        cellXfs.append(`<xf xfId="0" fontId="${boldFontId}" fillId="${headerFillId}" borderId="${borderId}" numFmtId="200" applyFont="1" applyFill="1" applyBorder="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>`);
+                        cellXfs.attr('count', cellXfs.children().length);
+
+                        // SHIFT rows (buat judul)
+                        $('row', sheet).each(function() {
+                            const r = parseInt($(this).attr('r'), 10);
+                            $(this).attr('r', r + 2);
+                            $(this).find('c').each(function() {
+                                const ref = $(this).attr('r');
+                                const col = ref.replace(/[0-9]/g, '');
+                                const row = parseInt(ref.replace(/[A-Z]/g, ''), 10);
+                                $(this).attr('r', col + (row + 2));
+                            });
+                        });
+
+                        const now = new Date().toLocaleString('id-ID');
+                        const sheetData = $('sheetData', sheet);
+
+                        sheetData.prepend(`<row r="2"><c r="A2" t="inlineStr" s="${styleTitle}"><is><t>Dicetak: ${now}</t></is></c></row>`);
+                        sheetData.prepend(`<row r="1"><c r="A1" t="inlineStr" s="${styleTitle}"><is><t>LAPORAN BATCH PRODUK</t></is></c></row>`);
+
+                        // Merge title A..E
+                        let mergeCells = $('mergeCells', sheet);
+                        if (!mergeCells.length) {
+                            $('worksheet', sheet).append('<mergeCells count="0"></mergeCells>');
+                            mergeCells = $('mergeCells', sheet);
+                        }
+                        const mergeCount = parseInt(mergeCells.attr('count') || '0', 10);
+                        mergeCells.append('<mergeCell ref="A1:E1"/>');
+                        mergeCells.append('<mergeCell ref="A2:E2"/>');
+                        mergeCells.attr('count', mergeCount + 2);
+
+                        // Style header + body
+                        $('row[r="3"] c', sheet).attr('s', styleHeader);
+                        $('row:gt(2) c', sheet).attr('s', styleCell);
+                        $('row:gt(2) c[r^="E"]', sheet).attr('s', styleNumber);
+
+                        // Column width
+                        let cols = $('cols', sheet);
+                        if (!cols.length) {
+                            $('worksheet', sheet).prepend('<cols></cols>');
+                            cols = $('cols', sheet);
+                        }
+                        cols.html(`
+                      <col min="1" max="1" width="8" customWidth="1"/>
+                      <col min="2" max="2" width="30" customWidth="1"/>
+                      <col min="3" max="3" width="15" customWidth="1"/>
+                      <col min="4" max="4" width="15" customWidth="1"/>
+                      <col min="5" max="5" width="18" customWidth="1"/>
+                    `);
+
+                        // Grand total row
+                        let lastRow = $('row', sheet).last();
+                        let rowNum = parseInt(lastRow.attr('r'), 10) + 1;
+
+                        sheetData.append(`
+                      <row r="${rowNum}">
+                        <c r="A${rowNum}" t="inlineStr" s="${styleGrand}"><is><t>GRAND TOTAL</t></is></c>
+                        <c r="E${rowNum}" s="${styleGrand}"><v>${grandTotal}</v></c>
+                      </row>
+                    `);
+
+                        const mergeCount2 = parseInt(mergeCells.attr('count') || '0', 10);
+                        mergeCells.append(`<mergeCell ref="A${rowNum}:D${rowNum}"/>`);
+                        mergeCells.attr('count', mergeCount2 + 1);
                     }
-                ]
+                }]
             });
 
-            buttons.container().appendTo('body');
-            $('.buttons-excel').click();
+            const $container = buttons.container().appendTo('body');
+            $container.find('.buttons-excel').trigger('click');
+
             buttons.destroy();
+            $container.remove();
         });
 
     });
