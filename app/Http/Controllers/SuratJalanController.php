@@ -10,6 +10,9 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\ActivityLogger;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ProductBatch;;
+
+use App\Models\Product;
 
 class SuratJalanController extends Controller
 {
@@ -129,7 +132,7 @@ class SuratJalanController extends Controller
         $this->syncSuratJalanTotals([$suratJalan->id]);
         $suratJalan->load(['invoice', 'customer']);
         $invoices = Invoice::with(['customer'])->orderByDesc('created_at')->get();
-        print($suratJalan->bukti_pengiriman);
+        // print($suratJalan->bukti_pengiriman);
         return view('penjualan.surat_jalan.edit', compact('suratJalan', 'invoices'));
     }
 
@@ -223,6 +226,34 @@ class SuratJalanController extends Controller
                     }
                 }
             }
+
+            // Jika sebelumnya "sudah dikirim" lalu sekarang BUKAN "sudah dikirim", balikin stok batch
+            if ($wasDispatched && !$willDispatch) {
+                $items = $suratJalan->invoice ? $suratJalan->invoice->items : collect();
+
+                foreach ($items as $item) {
+                    $batchId = $item->batch_id;
+                    $qty = (int) $item->quantity;
+                    if (!$batchId || $qty <= 0) continue;
+
+                    $batch = ProductBatch::find($batchId);
+                    if (!$batch) continue;
+
+                    // Balikin stok
+                    $batch->increment('quantity_sekarang', $qty);
+                    $batch->refresh();
+                    $batch->refreshStatus();
+
+                    if ($batch->product) {
+                        $batch->product->refreshAvailability();
+                    } else {
+                        if ($p = Product::find($batch->product_id)) {
+                            $p->refreshAvailability();
+                        }
+                    }
+                }
+            }
+
 
             $newValues = $suratJalan->only([
                 'customer_id',
