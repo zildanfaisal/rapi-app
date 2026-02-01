@@ -38,7 +38,7 @@ class InvoiceController extends Controller
             ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo))
             ->orderByDesc('created_at');
 
-        $invoices = $query->paginate(20)->appends($request->only('date_from', 'date_to'));
+        $invoices = $query->paginate(50)->appends($request->only('date_from', 'date_to'));
 
         $paidFilter = Invoice::query()
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))

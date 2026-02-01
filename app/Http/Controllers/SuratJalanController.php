@@ -52,7 +52,7 @@ class SuratJalanController extends Controller
 
         $suratJalans = (clone $base)
             ->orderByDesc('created_at')
-            ->paginate(20)
+            ->paginate(50)
             ->appends($request->only('date_from', 'date_to'));
 
         $totalCount = (clone $base)->count();
