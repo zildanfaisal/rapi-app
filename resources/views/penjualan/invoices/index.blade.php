@@ -85,12 +85,22 @@
                 {{-- HEADER TABLE --}}
                 <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
                     <h3 class="text-lg font-semibold">Penjualan</h3>
-                    <a href="{{ route('invoices.create') }}"
-                       class="inline-flex items-center justify-center
-                              px-4 py-2.5 bg-blue-600 text-white
-                              rounded-lg hover:bg-blue-700">
-                        + Tambah Penjualan
-                    </a>
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                        @can('view_reports')
+                        <a href="{{ route('invoices.report.items', array_filter(['date_from' => $dateFrom ?? null, 'date_to' => $dateTo ?? null])) }}"
+                           class="inline-flex items-center justify-center
+                                  px-4 py-2.5 bg-green-600 text-white
+                                  rounded-lg hover:bg-green-700">
+                            Laporan Terjual
+                        </a>
+                        @endcan
+                        <a href="{{ route('invoices.create') }}"
+                           class="inline-flex items-center justify-center
+                                  px-4 py-2.5 bg-blue-600 text-white
+                                  rounded-lg hover:bg-blue-700">
+                            + Tambah Penjualan
+                        </a>
+                    </div>
                 </div>
 
                 {{-- ================= DESKTOP TABLE ================= --}}

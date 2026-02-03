@@ -23,6 +23,33 @@ class InvoiceController extends Controller
 {
     use ActivityLogger;
 
+    public function itemsReport(Request $request)
+    {
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+
+        // Report barang terjual: diambil dari invoice_items yang invoicenya lunas
+        // dan surat jalannya sudah dikirim (stok benar-benar berkurang di tahap ini).
+        $rows = InvoiceItem::query()
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->join('products', 'invoice_items.product_id', '=', 'products.id')
+            ->join('surat_jalans', 'surat_jalans.invoice_id', '=', 'invoices.id')
+            ->where('invoices.status_pembayaran', 'paid')
+            ->where('surat_jalans.status', 'sudah dikirim')
+            ->when($dateFrom, fn($q) => $q->whereDate('surat_jalans.tanggal', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('surat_jalans.tanggal', '<=', $dateTo))
+            ->groupBy('products.nama_produk', 'products.harga_beli', 'invoice_items.harga')
+            ->orderBy('products.nama_produk')
+            ->selectRaw('products.nama_produk as nama_produk')
+            ->selectRaw('products.harga_beli as harga_beli')
+            ->selectRaw('invoice_items.harga as harga_jual')
+            ->selectRaw('SUM(invoice_items.quantity) as terjual')
+            ->selectRaw('SUM(invoice_items.sub_total) as total')
+            ->get();
+
+        return view('penjualan.invoices.items_report', compact('rows', 'dateFrom', 'dateTo'));
+    }
+
     public function index(Request $request)
     {
         $dateFrom = $request->input('date_from');

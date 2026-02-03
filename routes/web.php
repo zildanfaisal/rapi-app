@@ -98,6 +98,7 @@ Route::middleware('auth')->group(function () {
 
     // Penjualan Routes
     Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('permission:invoices.view')->name('invoices.index');
+    Route::get('/invoices/report/items', [InvoiceController::class, 'itemsReport'])->middleware('permission:invoices.view')->name('invoices.report.items');
     Route::get('/invoices/create', [InvoiceController::class, 'create'])->middleware('permission:invoices.create')->name('invoices.create');
     Route::post('/invoices', [InvoiceController::class, 'store'])->middleware('permission:invoices.create')->name('invoices.store');
     Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->middleware('permission:invoices.update')->name('invoices.edit');
