@@ -94,8 +94,15 @@
                                             <select name="items[{{ $i }}][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                                                 <option value="" disabled>{{ __('Pilih Batch') }}</option>
                                                 @foreach($batches as $batch)
-                                                    <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}" @selected(($item['batch_id'] ?? null) == $batch->id)>
-                                                        {{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}
+                                                    @php
+                                                        $isSelectedBatch = (($item['batch_id'] ?? null) == $batch->id);
+                                                        $rowQty = (int) ($item['quantity'] ?? 0);
+                                                        $stockNow = (int) $batch->quantity_sekarang;
+                                                        $displayStock = $stockNow + ($isSelectedBatch ? $rowQty : 0);
+                                                        $prevQtyForThisBatch = $isSelectedBatch ? $rowQty : 0;
+                                                    @endphp
+                                                    <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ $displayStock }}" data-stock-now="{{ $stockNow }}" data-prev-qty="{{ $prevQtyForThisBatch }}" @selected($isSelectedBatch)>
+                                                        {{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $stockNow }}@if($isSelectedBatch)@endif
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -103,6 +110,7 @@
                                         <div>
                                             <label class="block text-xs text-gray-600">{{ __('Qty') }}</label>
                                             <input type="number" name="items[{{ $i }}][quantity]" min="1" value="{{ $item['quantity'] ?? 1 }}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                                            <p class="stock-hint mt-1 text-xs text-gray-500"></p>
                                         </div>
                                         <div>
                                             <label class="block text-xs text-gray-600">{{ __('Harga') }}</label>
@@ -460,13 +468,14 @@
                     <select name="items[${index}][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
                         @foreach($batches as $batch)
-                            <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
+                            <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}" data-stock-now="{{ (int) $batch->quantity_sekarang }}" data-prev-qty="0">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-600">Qty</label>
                     <input type="number" name="items[${index}][quantity]" min="1" value="1" class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                    <p class="stock-hint mt-1 text-xs text-gray-500"></p>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-600">Harga</label>
@@ -516,6 +525,7 @@
                     if (qtyInput) {
                         qtyInput.removeAttribute('max');
                     }
+                    updateStockHint(row);
                 }
             }
             // When batch selected, set qty max from data-stock
@@ -534,6 +544,7 @@
                         qtyInput.value = '0';
                     }
                 }
+                updateStockHint(row);
             }
         });
 
@@ -554,6 +565,8 @@
                 }
 
                 recalc();
+                const row = e.target.closest('.item-row');
+                if (row) updateStockHint(row);
                 return;
             }
             if (e.target.classList.contains('item-price-display')) {
@@ -582,6 +595,64 @@
                     qtyInput.setAttribute('max', '0');
                     qtyInput.value = '0';
                 }
+                updateStockHint(row);
+            });
+        }
+
+        function updateStockHint(row) {
+            const hintEl = row.querySelector('.stock-hint');
+            if (!hintEl) return;
+
+            const batchSelect = row.querySelector('.item-batch');
+            const qtyInput = row.querySelector('input[name$="[quantity]"]');
+            if (!batchSelect || !qtyInput) {
+                hintEl.textContent = '';
+                return;
+            }
+
+            const opt = batchSelect.options[batchSelect.selectedIndex];
+            if (!opt || !opt.value) {
+                hintEl.textContent = '';
+                return;
+            }
+
+            const maxEdit = parseInt(opt.getAttribute('data-stock') || '0', 10);
+            const stockNowAttr = opt.getAttribute('data-stock-now');
+            const stockNow = parseInt((stockNowAttr === null ? (opt.getAttribute('data-stock') || '0') : stockNowAttr), 10);
+            const prevQty = parseInt(opt.getAttribute('data-prev-qty') || '0', 10);
+
+            const stockNowSafe = isNaN(stockNow) ? 0 : stockNow;
+            const prevQtySafe = isNaN(prevQty) ? 0 : prevQty;
+            const maxEditSafe = isNaN(maxEdit) ? 0 : maxEdit;
+
+            // Simpler text: show remaining stock and max qty allowed on edit
+            // Example: prev 70, remaining 10 => max 80
+            const text = prevQtySafe > 0
+                ? `Maks qty: ${new Intl.NumberFormat('id-ID').format(maxEditSafe)} (qty lama ${new Intl.NumberFormat('id-ID').format(prevQtySafe)} + stok ${new Intl.NumberFormat('id-ID').format(stockNowSafe)}).`
+                : `Maks qty: ${new Intl.NumberFormat('id-ID').format(maxEditSafe)}.`;
+
+            hintEl.textContent = text;
+        }
+
+        // On page load (edit), hide batch options that don't match selected product
+        function applyInitialBatchFilter() {
+            wrapper.querySelectorAll('.item-row').forEach(row => {
+                const productSelect = row.querySelector('.item-product');
+                const batchSelect = row.querySelector('.item-batch');
+                if (!productSelect || !batchSelect) return;
+
+                const productId = productSelect.value;
+                if (!productId) return;
+
+                Array.from(batchSelect.options).forEach(opt => {
+                    if (!opt.value) return; // placeholder
+                    const p = opt.getAttribute('data-product');
+                    opt.hidden = (p !== productId);
+                });
+
+                // Ensure currently selected batch stays visible
+                const selectedOpt = batchSelect.options[batchSelect.selectedIndex];
+                if (selectedOpt && selectedOpt.value) selectedOpt.hidden = false;
             });
         }
 
@@ -596,7 +667,8 @@
             }
         });
 
-        // Set initial max constraints and recalc on load
+        // Set initial filters/constraints and recalc on load
+        applyInitialBatchFilter();
         applyInitialQtyMax();
         recalc();
 

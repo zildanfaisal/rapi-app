@@ -219,16 +219,27 @@ class InvoiceController extends Controller
     {
         $customers = \App\Models\Customer::all();
         $products = \App\Models\Product::all();
+        $invoice->load(['items.product', 'items.batch']);
+        $usedBatchIds = $invoice->items
+            ->pluck('batch_id')
+            ->filter()
+            ->unique()
+            ->values();
+
         $batches = \App\Models\ProductBatch::query()
             ->where(function ($q) {
                 $q->whereNull('tanggal_expired')
                     ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
             })
-            ->where('quantity_sekarang', '>', 0)
+            ->where(function ($q) use ($usedBatchIds) {
+                $q->where('quantity_sekarang', '>', 0);
+                if ($usedBatchIds->isNotEmpty()) {
+                    $q->orWhereIn('id', $usedBatchIds);
+                }
+            })
             ->orderByDesc('created_at')
             ->get();
 
-        $invoice->load(['items.product', 'items.batch']);
         return view('penjualan.invoices.edit', compact('invoice', 'customers', 'products', 'batches'));
     }
 

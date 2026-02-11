@@ -97,7 +97,10 @@ class UpdateInvoiceRequest extends FormRequest
                 $availableStock = $stok + $previousQty;
 
                 if ($qty > $availableStock) {
-                    $v->errors()->add("items.$idx.quantity", "Qty melebihi stok tersedia (maks {$availableStock}).");
+                    $v->errors()->add(
+                        "items.$idx.quantity",
+                        "Qty melebihi stok tersedia. Stok saat ini {$stok}, qty invoice sebelumnya {$previousQty}, maksimal {$availableStock}."
+                    );
                 }
             }
         });
