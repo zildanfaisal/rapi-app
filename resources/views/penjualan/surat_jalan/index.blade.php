@@ -221,6 +221,42 @@
 @endsection
 
 @push('scripts')
+<style>
+.swal2-popup.swal-rounded {
+    border-radius: 16px !important;
+    padding: 28px 24px !important;
+    max-width: 420px !important;
+}
+.swal2-popup .swal2-title {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+}
+.swal2-popup .swal2-icon.swal2-warning {
+    border-color: #f59e0b !important;
+    color: #f59e0b !important;
+    width: 56px !important;
+    height: 56px !important;
+}
+.swal2-popup .swal2-icon.swal2-question {
+    border-color: #3b82f6 !important;
+    color: #3b82f6 !important;
+    width: 56px !important;
+    height: 56px !important;
+}
+.swal2-popup .swal2-actions {
+    gap: 10px !important;
+    margin-top: 20px !important;
+}
+.swal2-popup .swal2-confirm,
+.swal2-popup .swal2-deny,
+.swal2-popup .swal2-cancel {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 10px 22px !important;
+    font-size: 14px !important;
+}
+</style>
 <script>
 // ===== DELETE SURAT JALAN WITH CONDITIONAL STOCK RESTORE =====
 function confirmDeleteSJ(sjId, status) {
@@ -249,14 +285,29 @@ function confirmDeleteSJ(sjId, status) {
     } else {
         // Belum dikirim → stok belum berkurang, langsung konfirmasi hapus biasa
         Swal.fire({
-            title: 'Apakah Anda yakin?',
-            text: 'Surat jalan, invoice terkait, dan bukti pembayaran akan ikut dihapus!',
+            title: 'Hapus Surat Jalan?',
+            html: `
+                <div style="text-align:left; padding: 4px 0;">
+                    <p style="color:#6b7280; margin-bottom:12px;">Tindakan ini tidak dapat dibatalkan.</p>
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px;">
+                        <p style="font-weight:600; color:#dc2626; margin-bottom:6px;">⚠️ Data yang ikut terhapus:</p>
+                        <ul style="color:#7f1d1d; font-size:13px; padding-left:16px; margin:0; list-style:disc;">
+                            <li style="margin-bottom:4px;">Data setor &amp; invoice terkait</li>
+                            <li>Surat jalan ini</li>
+                        </ul>
+                    </div>
+                </div>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Ya, hapus!',
             cancelButtonText: 'Batal',
             confirmButtonColor: '#dc2626',
             cancelButtonColor: '#6b7280',
+            customClass: {
+                popup: 'swal-rounded',
+                confirmButton: 'swal-btn-confirm',
+                cancelButton: 'swal-btn-cancel',
+            }
         }).then((finalResult) => {
             if (finalResult.isConfirmed) {
                 submitDeleteSJ(sjId);
@@ -271,17 +322,51 @@ function setRestoreAndConfirm(sjId, restoreValue, willRestore) {
     if (d) d.value = restoreValue;
     if (m) m.value = restoreValue;
 
+    const deletionInfo = `
+        <div style="text-align:left; padding: 4px 0;">
+            <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; margin-top:8px;">
+                <p style="font-weight:600; color:#dc2626; margin-bottom:6px;">⚠️ Data yang ikut terhapus:</p>
+                <ul style="color:#7f1d1d; font-size:13px; padding-left:16px; margin:0; list-style:disc;">
+                    <li style="margin-bottom:4px;">Data setor &amp; invoice terkait</li>
+                    <li>Surat jalan ini</li>
+                </ul>
+            </div>
+        </div>`;
+
     Swal.fire({
-        title: 'Apakah Anda yakin?',
-        text: willRestore
-            ? 'Data dihapus dan stok akan dikembalikan ke batch produk.'
-            : 'Data yang dihapus tidak dapat dikembalikan!',
+        title: willRestore ? 'Hapus &amp; Kembalikan Stok?' : 'Hapus Surat Jalan?',
+        html: willRestore
+            ? `<div style="text-align:left; padding:4px 0;">
+                   <p style="color:#6b7280; margin-bottom:12px;">Stok akan dikembalikan ke batch produk.</p>
+                   <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px;">
+                       <p style="font-weight:600; color:#dc2626; margin-bottom:6px;">⚠️ Data yang ikut terhapus:</p>
+                       <ul style="color:#7f1d1d; font-size:13px; padding-left:16px; margin:0; list-style:disc;">
+                           <li style="margin-bottom:4px;">Data setor &amp; invoice terkait</li>
+                           <li>Surat jalan ini</li>
+                       </ul>
+                   </div>
+               </div>`
+            : `<div style="text-align:left; padding:4px 0;">
+                   <p style="color:#6b7280; margin-bottom:12px;">Tindakan ini tidak dapat dibatalkan.</p>
+                   <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px;">
+                       <p style="font-weight:600; color:#dc2626; margin-bottom:6px;">⚠️ Data yang ikut terhapus:</p>
+                       <ul style="color:#7f1d1d; font-size:13px; padding-left:16px; margin:0; list-style:disc;">
+                           <li style="margin-bottom:4px;">Data setor &amp; invoice terkait</li>
+                           <li>Surat jalan ini</li>
+                       </ul>
+                   </div>
+               </div>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Ya, hapus!',
         cancelButtonText: 'Batal',
         confirmButtonColor: '#dc2626',
         cancelButtonColor: '#6b7280',
+        customClass: {
+            popup: 'swal-rounded',
+            confirmButton: 'swal-btn-confirm',
+            cancelButton: 'swal-btn-cancel',
+        },
     }).then((finalResult) => {
         if (finalResult.isConfirmed) {
             submitDeleteSJ(sjId);
