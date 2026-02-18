@@ -435,9 +435,9 @@
                 width: 100%;
                 box-sizing: border-box;
             ">
-                <span style="font-size: 9px; font-weight: bold; color: #92400e;">NB:</span>
-                <span style="font-size: 9px; color: #78350f; font-style: italic;">
-                    &nbsp;Barang yang sudah dibeli, tidak dapat ditukar atau dikembalikan.
+                <span style="font-size: 12px; font-weight: bold; color: #92400e;">Catatan:</span>
+                <span style="font-size: 12px; color: #78350f; font-style: italic;">
+                    Barang yang sudah dibeli, tidak dapat ditukar atau dikembalikan.
                 </span>
             </div>
         </div>
