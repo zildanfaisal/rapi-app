@@ -325,9 +325,9 @@
                     Jl. Jend. Soeharto No.124, Naikolan, Kec. Maulafa<br>
                     Kota Kupang, Provinsi Nusa Tenggara Timur 85142<br>
                     Telp: 08881930769<br>
-                    Email: <a href="#">rapipvcinterior@gmail.com</a> |
+                    Email: <a href="#"><span class="__cf_email__" data-cfemail="166477667f6660757f786273647f796456717b777f7a3875797b">[email&#160;protected]</span></a> |
                     <img src="{{ public_path('images/facebook.svg') }}" alt="Facebook" style="height:10px;vertical-align:middle;"> Facebook: Rapipvc interiors<br>
-                    <img src="{{ public_path('images/instagram.svg') }}" alt="Instagram" style="height:10px;vertical-align:middle;"> Instagram: Rapipvcinterior | 
+                    <img src="{{ public_path('images/instagram.svg') }}" alt="Instagram" style="height:10px;vertical-align:middle;"> Instagram: Rapipvcinterior |
                     <img src="{{ public_path('images/tiktok.svg') }}" alt="TikTok" style="height:10px;vertical-align:middle;"> TikTok: Rapipvcinterior
                 </div>
             </div>
@@ -421,6 +421,24 @@
             <div class="summary-row summary-total">
                 <span class="summary-label">GRAND TOTAL:</span>
                 <span class="summary-value">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</span>
+            </div>
+        </div>
+
+        <!-- Note / NB -->
+        <div style="clear:both; margin-top: 20px;">
+            <div style="
+                background: #fffbeb;
+                border-left: 4px solid #f59e0b;
+                border-radius: 4px;
+                padding: 8px 12px;
+                display: inline-block;
+                width: 100%;
+                box-sizing: border-box;
+            ">
+                <span style="font-size: 9px; font-weight: bold; color: #92400e;">NB:</span>
+                <span style="font-size: 9px; color: #78350f; font-style: italic;">
+                    &nbsp;Barang yang sudah dibeli, tidak dapat ditukar atau dikembalikan.
+                </span>
             </div>
         </div>
 
