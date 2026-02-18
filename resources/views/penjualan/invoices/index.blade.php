@@ -164,10 +164,18 @@
                                         Edit
                                         </a>
 
-                                        <form action="{{ route('invoices.destroy', $i) }}" method="POST" data-confirm-delete>
+                                        <form
+                                            id="delete-form-{{ $i->id }}"
+                                            action="{{ route('invoices.destroy', $i) }}"
+                                            method="POST"
+                                            class="delete-invoice-form"
+                                            data-invoice-id="{{ $i->id }}"
+                                            data-invoice-qty="{{ $i->items->sum('quantity') }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button
+                                            <input type="hidden" name="restore_stock" id="restore-stock-{{ $i->id }}" value="0">
+                                            <button type="button"
+                                                onclick="confirmDelete({{ $i->id }}, {{ $i->items->sum('quantity') }})"
                                                 class="text-red-600 hover:text-red-800 hover:underline text-left">
                                                 Hapus
                                             </button>
@@ -209,7 +217,7 @@
                         <div>Qty: {{ $i->items->sum('quantity') }}</div>
                         <div>Total: <b>Rp {{ number_format($i->grand_total,0,',','.') }}</b></div>
                         <div>Tanggal: {{ $i->tanggal_invoice }}</div>
-                        <div>Status: 
+                        <div>Status:
                             @if($i->status_pembayaran === 'paid')
                                 <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Lunas</span>
                             @elseif($i->status_pembayaran === 'unpaid')
@@ -220,9 +228,9 @@
                                 <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Batal</span>
                             @else
                                 <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{ ucfirst($i->status_pembayaran) }}</span>
-                            @endif    
+                            @endif
                         </div>
-                        <div>Bukti Pembayaran: 
+                        <div>Bukti Pembayaran:
                             {!! $i->bukti_setor
                                 ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$i->bukti_setor).'">Lihat</a>'
                                 : '-' !!}
@@ -238,10 +246,16 @@
                            class="flex-1 border border-indigo-600 text-indigo-600 rounded text-center py-2">
                             Edit
                         </a>
-                        <form action="{{ route('invoices.destroy',$i) }}" method="POST" class="flex-1"
-                            data-confirm-delete>
+                        <form
+                            id="delete-form-mobile-{{ $i->id }}"
+                            action="{{ route('invoices.destroy',$i) }}"
+                            method="POST"
+                            class="flex-1">
                             @csrf @method('DELETE')
-                            <button class="w-full border border-red-600 text-red-600 rounded py-2">
+                            <input type="hidden" name="restore_stock" id="restore-stock-mobile-{{ $i->id }}" value="0">
+                            <button type="button"
+                                onclick="confirmDelete({{ $i->id }}, {{ $i->items->sum('quantity') }})"
+                                class="w-full border border-red-600 text-red-600 rounded py-2">
                                 Hapus
                             </button>
                         </form>
@@ -267,6 +281,56 @@
 
 @push('scripts')
 <script>
+// ===== DELETE WITH STOCK RESTORE CONFIRMATION =====
+function confirmDelete(invoiceId, qty) {
+    Swal.fire({
+        title: 'Kembalikan stok?',
+        html: `Apakah stok sebanyak <b>${qty}</b> item ingin dikembalikan ke produk?`,
+        icon: 'question',
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: 'Ya, kembalikan stok',
+        denyButtonText: 'Tidak, hapus saja',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#16a34a',
+        denyButtonColor: '#2563eb',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: false,
+    }).then((result) => {
+        if (result.isConfirmed || result.isDenied) {
+            const restoreValue = result.isConfirmed ? '1' : '0';
+
+            // Set nilai restore_stock di SEMUA form dengan id ini (desktop & mobile)
+            const restoreDesktop = document.getElementById(`restore-stock-${invoiceId}`);
+            const restoreMobile  = document.getElementById(`restore-stock-mobile-${invoiceId}`);
+            if (restoreDesktop) restoreDesktop.value = restoreValue;
+            if (restoreMobile)  restoreMobile.value  = restoreValue;
+
+            // Konfirmasi akhir sebelum hapus
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: result.isConfirmed
+                    ? `Data akan dihapus dan stok ${qty} item akan dikembalikan.`
+                    : 'Data yang dihapus tidak dapat dikembalikan!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+            }).then((finalResult) => {
+                if (finalResult.isConfirmed) {
+                    // Submit form yang ditemukan (desktop atau mobile)
+                    const form = document.getElementById(`delete-form-${invoiceId}`)
+                                 || document.getElementById(`delete-form-mobile-${invoiceId}`);
+                    if (form) form.submit();
+                }
+            });
+        }
+    });
+}
+
+// ===== DATATABLE & MOBILE PAGINATION =====
 document.addEventListener('DOMContentLoaded', () => {
 
     let dataTable = null;

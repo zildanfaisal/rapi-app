@@ -107,10 +107,20 @@
                                             Detail
                                         </a>
                                         <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="text-blue-600 hover:text-blue-800 hover:underline">Edit</a>
-                                        <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="inline" onclick="event.stopPropagation();" data-confirm-delete>
+                                        <form
+                                            id="delete-sj-form-{{ $sj->id }}"
+                                            action="{{ route('surat-jalan.destroy', $sj->id) }}"
+                                            method="POST"
+                                            class="inline"
+                                            onclick="event.stopPropagation();">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="text-red-600 hover:text-red-800 hover:underline">Hapus</button>
+                                            <input type="hidden" name="restore_stock" id="restore-sj-stock-{{ $sj->id }}" value="0">
+                                            <button type="button"
+                                                onclick="confirmDeleteSJ({{ $sj->id }}, '{{ $sj->status }}')"
+                                                class="text-red-600 hover:text-red-800 hover:underline">
+                                                Hapus
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
@@ -174,10 +184,17 @@
                                 </a>
                                 <a href="{{ route('surat-jalan.edit', $sj->id) }}" class="flex-1 border border-indigo-600 text-indigo-600 rounded text-center py-2">Edit</a>
 
-                                <form action="{{ route('surat-jalan.destroy', $sj->id) }}" method="POST" class="flex-1" onclick="event.stopPropagation();" data-confirm-delete>
+                                <form
+                                    id="delete-sj-form-mobile-{{ $sj->id }}"
+                                    action="{{ route('surat-jalan.destroy', $sj->id) }}"
+                                    method="POST"
+                                    class="flex-1"
+                                    onclick="event.stopPropagation();">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit"
+                                    <input type="hidden" name="restore_stock" id="restore-sj-stock-mobile-{{ $sj->id }}" value="0">
+                                    <button type="button"
+                                        onclick="confirmDeleteSJ({{ $sj->id }}, '{{ $sj->status }}')"
                                         class="w-full border border-red-600 text-red-600 rounded text-center py-2">
                                         Hapus
                                     </button>
@@ -205,110 +222,169 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+// ===== DELETE SURAT JALAN WITH CONDITIONAL STOCK RESTORE =====
+function confirmDeleteSJ(sjId, status) {
+    const isSudahDikirim = status === 'sudah dikirim';
 
-        let dataTable = null;
-        const cards = [...document.querySelectorAll('.mobile-card')];
-        const info = document.getElementById('mobileInfo');
-        const pagination = document.getElementById('mobilePagination');
-        const perPageSelect = document.getElementById('mobilePerPage');
-
-        let perPage = parseInt(perPageSelect.value);
-        let currentPage = 1;
-
-        function renderMobile() {
-            const total = cards.length;
-            const pages = Math.ceil(total / perPage);
-            const start = (currentPage - 1) * perPage;
-            const end = start + perPage;
-
-            cards.forEach((c, i) => c.style.display = i >= start && i < end ? 'block' : 'none');
-            info.textContent = `Showing ${start+1} to ${Math.min(end,total)} of ${total} entries`;
-            renderPagination(pages);
-        }
-
-        function renderPagination(totalPages) {
-            pagination.innerHTML = '';
-
-            const maxVisible = 5;
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
-            const createBtn = (label, disabled, active, cb) => {
-                const btn = document.createElement('button');
-                btn.textContent = label;
-                btn.disabled = disabled;
-                btn.className = `
-                px-3 py-1 text-sm rounded-md border
-                ${active
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}
-                ${disabled?'opacity-50 cursor-not-allowed':''}
-            `;
-                btn.onclick = cb;
-                return btn;
-            };
-
-            pagination.appendChild(createBtn('Prev', currentPage === 1, false, () => {
-                currentPage--;
-                renderMobile();
-            }));
-
-            for (let i = startPage; i <= endPage; i++) {
-                pagination.appendChild(createBtn(i, false, i === currentPage, () => {
-                    currentPage = i;
-                    renderMobile();
-                }));
+    if (isSudahDikirim) {
+        // Kalau sudah dikirim → stok sudah pernah dikurangi, tanya mau restore atau tidak
+        Swal.fire({
+            title: 'Kembalikan stok?',
+            html: `Status surat jalan ini <b>Sudah Dikirim</b>.<br>Apakah stok ingin dikembalikan ke batch produk?`,
+            icon: 'question',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Ya, kembalikan stok',
+            denyButtonText: 'Tidak, hapus saja',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#16a34a',
+            denyButtonColor: '#2563eb',
+            cancelButtonColor: '#6b7280',
+        }).then((result) => {
+            if (result.isConfirmed || result.isDenied) {
+                const restoreValue = result.isConfirmed ? '1' : '0';
+                setRestoreAndConfirm(sjId, restoreValue, result.isConfirmed);
             }
+        });
+    } else {
+        // Belum dikirim → stok belum berkurang, langsung konfirmasi hapus biasa
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: 'Surat jalan, invoice terkait, dan bukti pembayaran akan ikut dihapus!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+        }).then((finalResult) => {
+            if (finalResult.isConfirmed) {
+                submitDeleteSJ(sjId);
+            }
+        });
+    }
+}
 
-            pagination.appendChild(createBtn('Next', currentPage === totalPages, false, () => {
-                currentPage++;
-                renderMobile();
-            }));
+function setRestoreAndConfirm(sjId, restoreValue, willRestore) {
+    const d = document.getElementById(`restore-sj-stock-${sjId}`);
+    const m = document.getElementById(`restore-sj-stock-mobile-${sjId}`);
+    if (d) d.value = restoreValue;
+    if (m) m.value = restoreValue;
+
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: willRestore
+            ? 'Data dihapus dan stok akan dikembalikan ke batch produk.'
+            : 'Data yang dihapus tidak dapat dikembalikan!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+    }).then((finalResult) => {
+        if (finalResult.isConfirmed) {
+            submitDeleteSJ(sjId);
         }
+    });
+}
 
-        perPageSelect.onchange = () => {
-            perPage = parseInt(perPageSelect.value);
-            currentPage = 1;
-            renderMobile();
+function submitDeleteSJ(sjId) {
+    const form = document.getElementById(`delete-sj-form-${sjId}`)
+                 || document.getElementById(`delete-sj-form-mobile-${sjId}`);
+    if (form) form.submit();
+}
+
+// ===== DATATABLE & MOBILE PAGINATION =====
+document.addEventListener('DOMContentLoaded', () => {
+
+    let dataTable = null;
+    const cards = [...document.querySelectorAll('.mobile-card')];
+    const info = document.getElementById('mobileInfo');
+    const pagination = document.getElementById('mobilePagination');
+    const perPageSelect = document.getElementById('mobilePerPage');
+
+    let perPage = parseInt(perPageSelect.value);
+    let currentPage = 1;
+
+    function renderMobile() {
+        const total = cards.length;
+        const pages = Math.ceil(total / perPage);
+        const start = (currentPage - 1) * perPage;
+        const end = start + perPage;
+
+        cards.forEach((c, i) => c.style.display = i >= start && i < end ? 'block' : 'none');
+        info.textContent = `Showing ${start+1} to ${Math.min(end,total)} of ${total} entries`;
+        renderPagination(pages);
+    }
+
+    function renderPagination(totalPages) {
+        pagination.innerHTML = '';
+
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+        const createBtn = (label, disabled, active, cb) => {
+            const btn = document.createElement('button');
+            btn.textContent = label;
+            btn.disabled = disabled;
+            btn.className = `
+                px-3 py-1 text-sm rounded-md border
+                ${active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}
+                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+            `;
+            btn.onclick = cb;
+            return btn;
         };
 
-        function handleResponsive() {
-            if (window.innerWidth >= 1024) {
-                if (!dataTable) {
-                    dataTable = new DataTable('#dataTablesDesktop', {
-                        responsive: true
-                    });
-                }
-            } else {
-                if (dataTable) {
-                    dataTable.destroy();
-                    dataTable = null;
-                }
-                renderMobile();
-            }
+        pagination.appendChild(createBtn('Prev', currentPage === 1, false, () => { currentPage--; renderMobile(); }));
+
+        for (let i = startPage; i <= endPage; i++) {
+            pagination.appendChild(createBtn(i, false, i === currentPage, () => { currentPage = i; renderMobile(); }));
         }
 
-        handleResponsive();
-        window.addEventListener('resize', handleResponsive);
+        pagination.appendChild(createBtn('Next', currentPage === totalPages, false, () => { currentPage++; renderMobile(); }));
+    }
 
-        // Make mobile cards clickable
-        cards.forEach(c => {
-            c.addEventListener('click', () => {
-                const href = c.getAttribute('data-href');
-                if (href) window.location.href = href;
-            });
+    perPageSelect.onchange = () => {
+        perPage = parseInt(perPageSelect.value);
+        currentPage = 1;
+        renderMobile();
+    };
+
+    function handleResponsive() {
+        if (window.innerWidth >= 1024) {
+            if (!dataTable) {
+                dataTable = new DataTable('#dataTablesDesktop', { responsive: true });
+            }
+        } else {
+            if (dataTable) {
+                dataTable.destroy();
+                dataTable = null;
+            }
+            renderMobile();
+        }
+    }
+
+    handleResponsive();
+    window.addEventListener('resize', handleResponsive);
+
+    cards.forEach(c => {
+        c.addEventListener('click', () => {
+            const href = c.getAttribute('data-href');
+            if (href) window.location.href = href;
         });
-
-        // Desktop table clickable row
-        document.querySelector('#dataTablesDesktop tbody')?.addEventListener('click', function(e) {
-            const tr = e.target.closest('tr[data-href]');
-            if (!tr) return;
-            const href = tr.getAttribute('data-href');
-            if (!href) return;
-            window.location.href = href;
-        });
-
     });
+
+    document.querySelector('#dataTablesDesktop tbody')?.addEventListener('click', function(e) {
+        const tr = e.target.closest('tr[data-href]');
+        if (!tr) return;
+        const href = tr.getAttribute('data-href');
+        if (!href) return;
+        window.location.href = href;
+    });
+
+});
 </script>
 @endpush

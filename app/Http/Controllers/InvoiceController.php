@@ -466,11 +466,23 @@ class InvoiceController extends Controller
         return $pdf->stream($filename);
     }
 
-    public function destroy(Invoice $invoice)
+     public function destroy(Request $request, Invoice $invoice)
     {
         self::logDelete($invoice, 'Invoice', 'Penjualan');
 
-        // Hapus bukti setor jika ada (ini adalah bukti pembayaran dari customer)
+        // Kembalikan stok jika user memilih opsi restore
+        if ($request->input('restore_stock') == '1') {
+            $invoice->load('items.batch');
+
+            foreach ($invoice->items as $item) {
+                // Kembalikan stok ke product_batches.quantity_sekarang
+                if ($item->batch) {
+                    $item->batch->increment('quantity_sekarang', $item->quantity);
+                }
+            }
+        }
+
+        // Hapus bukti setor jika ada
         if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
             Storage::disk('public')->delete($invoice->bukti_setor);
         }
@@ -478,6 +490,7 @@ class InvoiceController extends Controller
         $invoice->delete();
         return redirect()->route('invoices.index')->with('success', 'Invoice deleted successfully');
     }
+
 
     public function indexSetor(Request $request)
     {

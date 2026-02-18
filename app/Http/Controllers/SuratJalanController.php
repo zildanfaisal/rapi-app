@@ -274,14 +274,52 @@ class SuratJalanController extends Controller
                 ->with('success', 'Surat Jalan berhasil diperbarui');
         });
     }
-    public function destroy(SuratJalan $suratJalan)
+    public function destroy(Request $request, SuratJalan $suratJalan)
     {
         self::logDelete($suratJalan, 'Surat Jalan', 'Surat Jalan');
 
-        if ($suratJalan->bukti_pengiriman && Storage::disk('public')->exists($suratJalan->bukti_pengiriman)) {
-            Storage::disk('public')->delete($suratJalan->bukti_pengiriman);
-        }
-        $suratJalan->delete();
+        DB::transaction(function () use ($request, $suratJalan) {
+            // Kembalikan stok jika surat jalan sudah dikirim dan user pilih restore
+            if ($request->input('restore_stock') == '1' && $suratJalan->status === 'sudah dikirim') {
+                $suratJalan->load('invoice.items.batch');
+                $items = $suratJalan->invoice ? $suratJalan->invoice->items : collect();
+
+                foreach ($items as $item) {
+                    if (!$item->batch_id || $item->quantity <= 0) continue;
+                    $batch = ProductBatch::find($item->batch_id);
+                    if (!$batch) continue;
+
+                    $batch->increment('quantity_sekarang', $item->quantity);
+                    $batch->refresh();
+                    $batch->refreshStatus();
+
+                    if ($batch->product) {
+                        $batch->product->refreshAvailability();
+                    } elseif ($p = Product::find($batch->product_id)) {
+                        $p->refreshAvailability();
+                    }
+                }
+            }
+
+            // Hapus bukti pengiriman dari storage
+            if ($suratJalan->bukti_pengiriman && Storage::disk('public')->exists($suratJalan->bukti_pengiriman)) {
+                Storage::disk('public')->delete($suratJalan->bukti_pengiriman);
+            }
+
+            // Hapus invoice terkait beserta bukti setornya
+            if ($suratJalan->invoice_id) {
+                $invoice = \App\Models\Invoice::find($suratJalan->invoice_id);
+                if ($invoice) {
+                    if ($invoice->bukti_setor && Storage::disk('public')->exists($invoice->bukti_setor)) {
+                        Storage::disk('public')->delete($invoice->bukti_setor);
+                    }
+                    $invoice->delete();
+                }
+            }
+
+            $suratJalan->delete();
+        });
+
         return redirect()->route('surat-jalan.index')->with('success', 'Surat Jalan deleted successfully');
     }
 }
