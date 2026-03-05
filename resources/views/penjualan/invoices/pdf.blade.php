@@ -325,7 +325,7 @@
                     Jl. Jend. Soeharto No.124, Naikolan, Kec. Maulafa<br>
                     Kota Kupang, Provinsi Nusa Tenggara Timur 85142<br>
                     Telp: 08881930769<br>
-                    Email: <a href="#"><span class="__cf_email__" data-cfemail="166477667f6660757f786273647f796456717b777f7a3875797b">[email&#160;protected]</span></a> |
+                    Email: <a href="#">rapipvcinterior@gmail.com</a> |
                     <img src="{{ public_path('images/facebook.svg') }}" alt="Facebook" style="height:10px;vertical-align:middle;"> Facebook: Rapipvc interiors<br>
                     <img src="{{ public_path('images/instagram.svg') }}" alt="Instagram" style="height:10px;vertical-align:middle;"> Instagram: Rapipvcinterior |
                     <img src="{{ public_path('images/tiktok.svg') }}" alt="TikTok" style="height:10px;vertical-align:middle;"> TikTok: Rapipvcinterior
