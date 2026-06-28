@@ -48,7 +48,7 @@
                                     Pilih Pelanggan
                                 </label>
                                 <select name="customer_id" id="customer_id"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                    class="tom-select mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
                                     <option value="" disabled selected>Pilih Pelanggan</option>
                                     @foreach ($customers as $customer)
                                         <option value="{{ $customer->id }}">
@@ -147,7 +147,7 @@
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Produk') }}</label>
                                         <select name="items[0][product_id]"
-                                            class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            class="tom-select item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                             required>
                                             <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
                                             @foreach ($products as $product)
@@ -162,7 +162,7 @@
                                     <div>
                                         <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
                                         <select name="items[0][batch_id]"
-                                            class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                            class="tom-select item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                             required>
                                             <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
                                             @foreach ($batches as $batch)
@@ -328,6 +328,7 @@
                             'id' => $p->id,
                             'barcode' => $p->barcode,
                             'price' => $p->harga ?? ($p->price ?? 0),
+                            'name' => $p->nama_produk ?? ($p->nama ?? 'Produk #' . $p->id),
                         ];
                     })->values()->toArray(),
             ) !!};
@@ -459,9 +460,9 @@
                     <label class="block text-xs text-gray-600">{{ __('Produk') }}</label>
                     <select name="items[${index}][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
-                        @foreach ($products as $product)
-                            <option value="{{ $product->id }}" data-barcode="{{ $product->barcode }}" data-price="{{ $product->harga ?? ($product->price ?? 0) }}">{{ $product->nama_produk ?? ($product->nama ?? 'Produk #' . $product->id) }}</option>
-                        @endforeach
+                        ${PRODUCT_CATALOG.map((product) => `
+                            <option value="${product.id}" data-barcode="${product.barcode || ''}" data-price="${product.price || 0}">${product.name}</option>
+                        `).join('')}
                     </select>
                 </div>
                 <div>
@@ -492,6 +493,16 @@
                 </div>
             `;
                 wrapper.appendChild(tpl);
+
+                tpl.querySelectorAll('select.tom-select').forEach(function (el) {
+                    if (el.tomselect) return;
+                    new TomSelect(el, {
+                        create: false,
+                        sortField: { field: 'text', direction: 'asc' },
+                        maxOptions: 100,
+                    });
+                });
+
                 index++;
             });
 
