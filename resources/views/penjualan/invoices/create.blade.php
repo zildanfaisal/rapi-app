@@ -163,7 +163,7 @@
                                         <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
                                         <select name="items[0][batch_id]"
                                             class="tom-select item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                            required>
+                                            required disabled>
                                             <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
                                             @foreach ($batches as $batch)
                                                 <option value="{{ $batch->id }}"
@@ -333,6 +333,17 @@
                     })->values()->toArray(),
             ) !!};
 
+            const BATCH_CATALOG = {!! json_encode(
+                $batches->map(function ($b) {
+                    return [
+                        'id' => $b->id,
+                        'product_id' => $b->product_id,
+                        'stock' => (int) $b->quantity_sekarang,
+                        'label' => $b->batch_number . ' — ' . \Carbon\Carbon::parse($b->tanggal_masuk)->translatedFormat('F') . ' — Stok: ' . $b->quantity_sekarang,
+                    ];
+                })->values()->toArray()
+            ) !!};
+
             radios.forEach(radio => {
                 radio.addEventListener('change', () => {
                     if (radio.value === 'existing') {
@@ -418,10 +429,12 @@
             function selectProductInRow(row, productId) {
                 const sel = row.querySelector('.item-product');
                 if (!sel) return;
-                sel.value = String(productId);
-                sel.dispatchEvent(new Event('change', {
-                    bubbles: true
-                }));
+                if (sel.tomselect) {
+                    sel.tomselect.setValue(String(productId));
+                } else {
+                    sel.value = String(productId);
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                }
                 const qtyInput = row.querySelector('input[name$="[quantity]"]');
                 if (qtyInput && (!qtyInput.value || qtyInput.value === '0')) qtyInput.value = 1;
             }
@@ -458,7 +471,7 @@
                 tpl.innerHTML = `
                 <div>
                     <label class="block text-xs text-gray-600">{{ __('Produk') }}</label>
-                    <select name="items[${index}][product_id]" class="item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                    <select name="items[${index}][product_id]" class="tom-select item-product mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
                         <option value="" disabled selected>{{ __('Pilih Produk') }}</option>
                         ${PRODUCT_CATALOG.map((product) => `
                             <option value="${product.id}" data-barcode="${product.barcode || ''}" data-price="${product.price || 0}">${product.name}</option>
@@ -467,7 +480,7 @@
                 </div>
                 <div>
                     <label class="block text-xs text-gray-600">{{ __('Batch') }}</label>
-                    <select name="items[${index}][batch_id]" class="item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required>
+                    <select name="items[${index}][batch_id]" class="tom-select item-batch mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm" required disabled>
                         <option value="" disabled selected>{{ __('Pilih Batch') }}</option>
                         @foreach ($batches as $batch)
                             <option value="{{ $batch->id }}" data-product="{{ $batch->product_id }}" data-stock="{{ (int) $batch->quantity_sekarang }}">{{ $batch->batch_number }} — {{ \Carbon\Carbon::parse($batch->tanggal_masuk)->translatedFormat('F') }} — Stok: {{ $batch->quantity_sekarang }}</option>
@@ -500,6 +513,12 @@
                         create: false,
                         sortField: { field: 'text', direction: 'asc' },
                         maxOptions: 100,
+                        onItemAdd: function() {
+                            this.control_input.readOnly = true;
+                        },
+                        onItemRemove: function() {
+                            this.control_input.readOnly = false;
+                        },
                     });
                 });
 
@@ -557,14 +576,29 @@
                     const productId = e.target.value;
                     const batchSelect = row.querySelector('.item-batch');
                     if (batchSelect) {
-                        Array.from(batchSelect.options).forEach(opt => {
-                            if (!opt.value) return; // skip placeholder
-                            const p = opt.getAttribute('data-product');
-                            opt.hidden = (p !== productId);
-                        });
-                        // Reset selection
-                        batchSelect.value = '';
-                        // Also reset qty max since batch changed
+                        const filtered = BATCH_CATALOG.filter(b => String(b.product_id) === String(productId));
+                        if (batchSelect.tomselect) {
+                            const ts = batchSelect.tomselect;
+                            ts.clearOptions();
+                            filtered.forEach(b => ts.addOption({ value: String(b.id), text: b.label }));
+                            ts.setValue('');
+                            ts.refreshOptions(false);
+                            if (productId) {
+                                ts.enable();
+                            } else {
+                                ts.clear();
+                                ts.disable();
+                            }
+                        } else {
+                            Array.from(batchSelect.options).forEach(opt => {
+                                if (!opt.value) return;
+                                const p = opt.getAttribute('data-product');
+                                opt.hidden = (p !== String(productId));
+                            });
+                            batchSelect.value = '';
+                            batchSelect.disabled = !productId;
+                        }
+                        // Reset qty max since batch changed
                         const qtyInput = row.querySelector('input[name$="[quantity]"]');
                         if (qtyInput) {
                             qtyInput.removeAttribute('max');
@@ -575,8 +609,15 @@
                 if (e.target.matches('select[name^="items"][name$="[batch_id]"]')) {
                     const row = e.target.closest('.item-row');
                     const qtyInput = row.querySelector('input[name$="[quantity]"]');
-                    const opt = e.target.options[e.target.selectedIndex];
-                    const stock = parseInt(opt?.getAttribute('data-stock') || '0', 10);
+                    const selectedVal = e.target.value;
+                    let stock = 0;
+                    const batchData = BATCH_CATALOG.find(b => String(b.id) === String(selectedVal));
+                    if (batchData) {
+                        stock = batchData.stock;
+                    } else {
+                        const opt = e.target.options[e.target.selectedIndex];
+                        stock = parseInt(opt?.getAttribute('data-stock') || '0', 10);
+                    }
                     if (qtyInput) {
                         if (stock > 0) {
                             qtyInput.setAttribute('max', String(stock));
