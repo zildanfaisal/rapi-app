@@ -52,8 +52,7 @@ class SuratJalanController extends Controller
 
         $suratJalans = (clone $base)
             ->orderByDesc('created_at')
-            ->paginate(50)
-            ->appends($request->only('date_from', 'date_to'));
+            ->get();
 
         $totalCount = (clone $base)->count();
         $paidCount = (clone $base)->where('status', 'sudah dikirim')->count();

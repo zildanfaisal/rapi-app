@@ -54,6 +54,7 @@ class InvoiceController extends Controller
     {
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
+        $statusFilter = $request->input('status_pembayaran');
 
         Invoice::where('status_pembayaran', 'unpaid')
             ->whereNotNull('tanggal_jatuh_tempo')
@@ -63,9 +64,11 @@ class InvoiceController extends Controller
         $query = Invoice::with(['customer', 'user'])
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo))
+            ->when($statusFilter, fn($q) => $q->where('status_pembayaran', $statusFilter))
             ->orderByDesc('created_at');
 
-        $invoices = $query->paginate(50)->appends($request->only('date_from', 'date_to'));
+        // $invoices = $query->paginate(50)->appends($request->only('date_from', 'date_to'));
+        $invoices = $query->get();
 
         $paidFilter = Invoice::query()
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
@@ -78,13 +81,23 @@ class InvoiceController extends Controller
             ->where('status_setor', 'sudah')
             ->sum('grand_total');
 
-        return view('penjualan.invoices.index', compact('invoices', 'totalPaid', 'totalSetor', 'paidCount', 'totalCount', 'dateFrom', 'dateTo'));
+        return view('penjualan.invoices.index', compact('invoices', 'totalPaid', 'totalSetor', 'paidCount', 'totalCount', 'dateFrom', 'dateTo', 'statusFilter'));
     }
 
     public function create()
     {
         $customers = \App\Models\Customer::all();
-        $products = \App\Models\Product::all();
+        $products = \App\Models\Product::query()
+            ->whereHas('batches', function ($q) {
+                $q->where('quantity_sekarang', '>', 0)
+                    ->where(function ($sq) {
+                        $sq->whereNull('tanggal_expired')
+                            ->orWhereDate('tanggal_expired', '>=', now()->toDateString());
+                    });
+            })
+            ->orderBy('nama_produk')
+            ->get();
+
         $batches = \App\Models\ProductBatch::query()
             ->where(function ($q) {
                 $q->whereNull('tanggal_expired')
@@ -528,8 +541,7 @@ class InvoiceController extends Controller
 
         $invoices = (clone $base)
             ->orderByDesc('created_at')
-            ->paginate(20)
-            ->appends($request->only('date_from', 'date_to', 'status_setor'));
+            ->get();
 
         return view('penjualan.invoices.setor_index', compact(
             'invoices',

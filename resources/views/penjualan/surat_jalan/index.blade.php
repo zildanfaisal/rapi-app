@@ -77,7 +77,7 @@
                         <tbody>
                             @foreach($suratJalans as $sj)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-3 py-2 border text-center">{{ $loop->iteration + ($suratJalans->currentPage() - 1) * $suratJalans->perPage() }}</td>
+                                <td class="px-3 py-2 border text-center">{{ $loop->iteration }}</td>
                                 <td class="px-3 py-2 border text-left">{{ $sj->nomor_surat_jalan ?? '-' }}</td>
                                 <td class="px-3 py-2 border text-left">{{ $sj->customer->nama_customer ?? '-' }}</td>
                                 <td class="px-3 py-2 border text-left">{{ $sj->invoice->invoice_number ?? $sj->invoice_id }}</td>

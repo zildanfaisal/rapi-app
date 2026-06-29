@@ -15,6 +15,24 @@
     @stack('head')
     <!-- Tom Select (searchable selects) -->
     <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+    <style>
+        .ts-wrapper .ts-control {
+            padding: 0.5rem 0.5rem;
+            min-height: unset;
+            line-height: 1.25rem;
+            font-size: 0.875rem;
+            border-color: #d1d5db;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        .ts-wrapper.single .ts-control {
+            background-image: none;
+        }
+        .ts-wrapper .ts-control input {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+    </style>
     <!-- DataTables -->
     {{-- <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.tailwindcss.min.css"> --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.5/css/dataTables.dataTables.min.css">
@@ -196,6 +214,12 @@
                     create: false,
                     sortField: {field: "text", direction: "asc"},
                     maxOptions: 100,
+                    onItemAdd: function() {
+                        this.control_input.readOnly = true;
+                    },
+                    onItemRemove: function() {
+                        this.control_input.readOnly = false;
+                    },
                 });
             });
         });

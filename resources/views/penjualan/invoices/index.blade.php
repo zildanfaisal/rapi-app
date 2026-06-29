@@ -85,9 +85,20 @@
                 {{-- HEADER TABLE --}}
                 <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
                     <h3 class="text-lg font-semibold">Penjualan</h3>
-                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto sm:justify-end items-center">
+                        <form method="GET" action="{{ route('invoices.index') }}" class="flex items-center gap-2">
+                            <input type="hidden" name="date_from" value="{{ $dateFrom ?? '' }}">
+                            <input type="hidden" name="date_to" value="{{ $dateTo ?? '' }}">
+                            <select name="status_pembayaran" class="px-3 py-2.5 border rounded-lg text-sm" onchange="this.form.submit()">
+                                <option value="">Semua Status</option>
+                                <option value="paid" @selected(($statusFilter ?? '') === 'paid')>Lunas</option>
+                                <option value="unpaid" @selected(($statusFilter ?? '') === 'unpaid')>Belum Lunas</option>
+                                <option value="cancelled" @selected(($statusFilter ?? '') === 'cancelled')>Batal</option>
+                                <option value="overdue" @selected(($statusFilter ?? '') === 'overdue')>Terlambat</option>
+                            </select>
+                        </form>
                         @can('view_reports')
-                        <a href="{{ route('invoices.report.items', array_filter(['date_from' => $dateFrom ?? null, 'date_to' => $dateTo ?? null])) }}"
+                        <a href="{{ route('invoices.report.items', array_filter(['date_from' => $dateFrom ?? null, 'date_to' => $dateTo ?? null, 'status_pembayaran' => $statusFilter ?? null])) }}"
                            class="inline-flex items-center justify-center
                                   px-4 py-2.5 bg-green-600 text-white
                                   rounded-lg hover:bg-green-700">
