@@ -52,7 +52,7 @@
                                     <option value="" disabled selected>Pilih Pelanggan</option>
                                     @foreach ($customers as $customer)
                                         <option value="{{ $customer->id }}">
-                                            {{ $customer->nama_customer }} - {{ $customer->kategori_pelanggan }}
+                                            {{ $customer->nama_customer }} - {{ $customer->kategori_pelanggan }} - {{ $customer->alamat }}
                                         </option>
                                     @endforeach
                                 </select>
