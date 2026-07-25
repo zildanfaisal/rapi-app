@@ -155,7 +155,7 @@
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700">Metode Pembayaran</label>
                             <label class="flex items-center gap-2 mt-2">
-                                <input type="radio" name="metode_pembayaran" value="tunai"
+                                <input type="radio" name="metode_pembayaran" value="tunai" checked
                                     class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 metode-pembayaran-radio">
                                 <span class="text-sm text-gray-700">Tunai (Cash)</span>
                             </label>
@@ -170,10 +170,46 @@
                                 <span class="text-sm text-gray-700">QRIS</span>
                             </label>
                         </div>
+
+                        <div class="mb-4">
+                            <label for="status_pembayaran" class="block text-sm font-medium text-gray-700">Status Pembayaran</label>
+                            <select name="status_pembayaran" id="status_pembayaran"
+                                class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                <option value="paid" @selected(old('status_pembayaran') == 'paid')>Lunas</option>
+                                <option value="unpaid" @selected(old('status_pembayaran', 'unpaid') == 'unpaid')>Belum Lunas</option>
+                            </select>
+                        </div>
+
+                        {{-- Form Riwayat Pembelian (Cicilan) hanya tampil jika Belum Lunas --}}
+                        <div id="riwayat-cicilan-wrapper" style="display: none;" class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                            <h4 class="text-md font-semibold mb-3">Input Pembayaran / Cicilan (Opsional)</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
+                                <div>
+                                    <label for="cicilan_jumlah_bayar_display" class="block font-medium text-gray-700">Jumlah Bayar</label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-100 text-gray-500">Rp</span>
+                                        <input type="text" id="cicilan_jumlah_bayar_display" class="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:ring-purple-500 focus:border-purple-500 sm:text-sm" autocomplete="off">
+                                        <input type="hidden" name="cicilan_jumlah_bayar" id="cicilan_jumlah_bayar">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="cicilan_tanggal_bayar" class="block font-medium text-gray-700">Tanggal Bayar</label>
+                                    <input type="date" name="cicilan_tanggal_bayar" id="cicilan_tanggal_bayar" value="{{ date('Y-m-d') }}"
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="cicilan_catatan" class="block font-medium text-gray-700">Catatan</label>
+                                    <input type="text" name="cicilan_catatan" id="cicilan_catatan" placeholder="Catatan (Opsional)"
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Unified Bukti Pembayaran Form (moved to the bottom) --}}
                         <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:none;">
                             <label for="bukti_setor" class="block text-sm font-medium text-gray-700">
                                 Bukti Pembayaran
-                                <span class="text-xs text-gray-500">(dari Supplier)</span>
+                                <span class="text-xs text-gray-500">(Wajib untuk Transfer/QRIS)</span>
                             </label>
                             <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*"
                                 class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
@@ -186,17 +222,6 @@
                                         class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-sm">×</button>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="status_pembayaran" class="block text-sm font-medium text-gray-700">Status Pembayaran</label>
-                            <select name="status_pembayaran" id="status_pembayaran"
-                                class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                                <option value="unpaid" @selected(old('status_pembayaran', 'unpaid') == 'unpaid')>Belum Lunas</option>
-                                <option value="paid" @selected(old('status_pembayaran') == 'paid')>Lunas</option>
-                                {{-- <option value="overdue" @selected(old('status_pembayaran') == 'overdue')>Terlambat</option> --}}
-                                {{-- <option value="cancelled" @selected(old('status_pembayaran') == 'cancelled')>Dibatalkan</option> --}}
-                            </select>
                         </div>
 
                         <div class="mb-4">
@@ -392,6 +417,38 @@
         });
     @endif
 
+    // Status Pembayaran & Riwayat Cicilan Logic
+    const statusSelect = document.getElementById('status_pembayaran');
+    const riwayatCicilanWrapper = document.getElementById('riwayat-cicilan-wrapper');
+    const cicilanJumlahDisplay = document.getElementById('cicilan_jumlah_bayar_display');
+    const cicilanJumlahHidden = document.getElementById('cicilan_jumlah_bayar');
+
+    function toggleRiwayatCicilan() {
+        if (statusSelect.value === 'unpaid') {
+            riwayatCicilanWrapper.style.display = 'block';
+        } else {
+            riwayatCicilanWrapper.style.display = 'none';
+        }
+    }
+
+    if (statusSelect) {
+        statusSelect.addEventListener('change', toggleRiwayatCicilan);
+        toggleRiwayatCicilan();
+    }
+
+    if (cicilanJumlahDisplay) {
+        cicilanJumlahDisplay.addEventListener('input', function(e) {
+            let val = unformatRupiah(e.target.value);
+            if (val === '') { 
+                e.target.value = ''; 
+                cicilanJumlahHidden.value = '';
+                return; 
+            }
+            e.target.value = formatRupiah(val);
+            cicilanJumlahHidden.value = val;
+        });
+    }
+
     // Bukti pembayaran toggle & preview
     const buktiFileInput = document.getElementById('bukti_setor');
     if (buktiFileInput) {
@@ -414,9 +471,6 @@
                 document.getElementById('preview-bukti-pembayaran').classList.remove('hidden');
             };
             reader.readAsDataURL(file);
-            const statusSelect = document.getElementById('status_pembayaran');
-            if (statusSelect) statusSelect.value = 'paid';
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Bukti pembayaran berhasil dipilih', text: 'Status pembayaran otomatis diset "Lunas"', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         });
     }
 
@@ -426,7 +480,6 @@
         const bpWrapper = document.getElementById('bukti-pembayaran-wrapper');
         if (selected && selected !== 'tunai') {
             bpWrapper.style.display = '';
-            Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Metode ' + (selected === 'qris' ? 'QRIS' : 'Transfer') + ' dipilih', text: 'Upload bukti pembayaran jika ada', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         } else {
             bpWrapper.style.display = 'none';
             const fi = document.getElementById('bukti_setor');
@@ -437,6 +490,32 @@
     }
     document.querySelectorAll('.metode-pembayaran-radio').forEach(radio => { radio.addEventListener('change', toggleBuktiPembayaran); });
     toggleBuktiPembayaran();
+
+    // Form Submit Validation for Cicilan
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (statusSelect.value === 'unpaid') {
+            const cicilanVal = parseFloat(cicilanJumlahHidden.value || 0);
+            let total = 0;
+            wrapper.querySelectorAll('.item-row').forEach(row => {
+                const qty = parseFloat(row.querySelector('input[name$="[quantity]"]').value || 0);
+                const hargaRawEl = row.querySelector('.item-price');
+                const harga = parseFloat(hargaRawEl?.value || 0);
+                total += (qty * harga);
+            });
+            if (total < 0) total = 0;
+            
+            if (cicilanVal > total) {
+                e.preventDefault();
+                const kelebihan = cicilanVal - total;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kelebihan Pembayaran',
+                    text: `Jumlah bayar (cicilan) tidak boleh melebihi total tagihan (Rp ${formatRupiah(total)}). Kelebihan Rp ${formatRupiah(kelebihan)}.`,
+                    confirmButtonColor: '#2563eb'
+                });
+            }
+        }
+    });
 
     // Initialize TomSelect on first product row after DOM ready (global init skipped since no .tom-select class)
     document.addEventListener('DOMContentLoaded', function() {
@@ -458,9 +537,6 @@
 function cancelPreviewPembayaran() {
     document.getElementById('bukti_setor').value = '';
     document.getElementById('preview-bukti-pembayaran').classList.add('hidden');
-    const s = document.getElementById('status_pembayaran');
-    if (s) s.value = 'unpaid';
-    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Bukti pembayaran dibatalkan', text: 'Status pembayaran direset ke "Belum Lunas"', showConfirmButton: false, timer: 2500, timerProgressBar: true });
 }
 </script>
 @endpush

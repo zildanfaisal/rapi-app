@@ -33,4 +33,15 @@ class Pembelian extends Model
     {
         return $this->hasMany(PembelianItem::class);
     }
+
+    public function pembayarans()
+    {
+        return $this->hasMany(PembayaranPembelian::class);
+    }
+
+    public function getSisaTagihanAttribute()
+    {
+        $totalBayar = $this->pembayarans()->sum('jumlah_bayar');
+        return max(0, $this->grand_total - $totalBayar);
+    }
 }

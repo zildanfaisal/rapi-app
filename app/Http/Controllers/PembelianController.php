@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pembelian;
 use App\Models\PembelianItem;
+use App\Models\PembayaranPembelian;
 use App\Models\Product;
 use App\Models\ProductBatch;
 use App\Models\Supplier;
@@ -23,7 +24,7 @@ class PembelianController extends Controller
         $dateTo = $request->input('date_to');
         $statusFilter = $request->input('status_pembayaran');
 
-        $query = Pembelian::with(['supplier', 'user', 'items.product'])
+        $query = Pembelian::with(['supplier', 'user', 'items.product', 'pembayarans'])
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_pembelian', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('tanggal_pembelian', '<=', $dateTo))
             ->when($statusFilter, fn($q) => $q->where('status_pembayaran', $statusFilter))
@@ -64,14 +65,28 @@ class PembelianController extends Controller
             'supplier_alamat' => 'nullable|string|max:1000',
             'tanggal_pembelian' => 'required|date',
             'metode_pembayaran' => 'nullable|string|max:255',
-            'status_pembayaran' => 'required|in:paid,unpaid,overdue,cancelled',
+            'status_pembayaran' => 'required|in:paid,unpaid,overdue,cancelled,partial',
             'bukti_setor' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.harga' => 'required|numeric|min:0',
             'items.*.tanggal_expired' => 'nullable|date',
+            'cicilan_jumlah_bayar' => 'nullable|numeric|min:1',
+            'cicilan_tanggal_bayar' => 'nullable|date',
+            'cicilan_catatan' => 'nullable|string',
         ]);
+
+        $grandTotal = 0;
+        if ($request->has('items')) {
+            foreach ($request->items as $item) {
+                $grandTotal += (int)($item['quantity'] ?? 0) * (float)($item['harga'] ?? 0);
+            }
+        }
+        if ($request->status_pembayaran === 'unpaid' && $request->filled('cicilan_jumlah_bayar') && $request->cicilan_jumlah_bayar > $grandTotal) {
+            $selisih = $request->cicilan_jumlah_bayar - $grandTotal;
+            return back()->withErrors(['cicilan_jumlah_bayar' => 'Jumlah bayar cicilan tidak boleh melebihi total tagihan (Rp ' . number_format($grandTotal, 0, ',', '.') . '). Kelebihan Rp ' . number_format($selisih, 0, ',', '.') . '.'])->withInput();
+        }
 
         return DB::transaction(function () use ($request) {
             // Handle supplier
@@ -138,6 +153,42 @@ class PembelianController extends Controller
 
             $pembelian->update(['grand_total' => $grandTotal]);
 
+            if ($request->status_pembayaran === 'paid') {
+                if ($grandTotal > 0) {
+                    $pembelian->pembayarans()->create([
+                        'jumlah_bayar' => $grandTotal,
+                        'tanggal_bayar' => $request->tanggal_pembelian,
+                        'metode_pembayaran' => $request->metode_pembayaran ?? 'tunai',
+                        'bukti_setor' => $pembelian->bukti_setor,
+                        'catatan' => 'Pembayaran lunas (Otomatis saat pembuatan)',
+                    ]);
+                }
+            } elseif ($request->status_pembayaran === 'unpaid') {
+                if ($request->filled('cicilan_jumlah_bayar') && $request->cicilan_jumlah_bayar > 0) {
+                    $pembelian->pembayarans()->create([
+                        'jumlah_bayar' => $request->cicilan_jumlah_bayar,
+                        'tanggal_bayar' => $request->cicilan_tanggal_bayar ?? now()->toDateString(),
+                        'metode_pembayaran' => $request->metode_pembayaran ?? 'tunai',
+                        'bukti_setor' => $pembelian->bukti_setor,
+                        'catatan' => $request->cicilan_catatan,
+                    ]);
+                }
+
+                // Update status berdasarkan riwayat pembayaran
+                $totalBayar = $pembelian->pembayarans()->sum('jumlah_bayar');
+                if ($totalBayar >= $grandTotal) {
+                    $pembelian->update([
+                        'status_pembayaran' => 'paid',
+                        'status_setor' => 'sudah',
+                    ]);
+                } elseif ($totalBayar > 0) {
+                    $pembelian->update([
+                        'status_pembayaran' => 'partial',
+                        'status_setor' => 'belum',
+                    ]);
+                }
+            }
+
             self::logCreate($pembelian, 'Pembelian', 'Pembelian');
 
             return redirect()->route('pembelian.index')
@@ -147,9 +198,57 @@ class PembelianController extends Controller
 
     public function show(Pembelian $pembelian)
     {
-        $pembelian->load(['supplier', 'user', 'items.product', 'items.batch']);
+        $pembelian->load(['supplier', 'user', 'items.product', 'items.batch', 'pembayarans']);
 
         return view('pembelian.show', compact('pembelian'));
+    }
+
+    public function storePembayaran(Request $request, Pembelian $pembelian)
+    {
+        $request->validate([
+            'jumlah_bayar' => 'required|numeric|min:1',
+            'tanggal_bayar' => 'required|date',
+            'metode_pembayaran' => 'required|string|max:255',
+            'bukti_setor' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'catatan' => 'nullable|string',
+        ]);
+
+        $sisa = $pembelian->sisa_tagihan;
+
+        if ($request->jumlah_bayar > $sisa) {
+            return back()->withErrors(['jumlah_bayar' => 'Jumlah bayar tidak boleh melebihi sisa tagihan (Rp ' . number_format($sisa, 0, ',', '.') . ')']);
+        }
+
+        DB::transaction(function () use ($request, $pembelian, $sisa) {
+            $buktiSetorPath = null;
+            if ($request->hasFile('bukti_setor')) {
+                $buktiSetorPath = $request->file('bukti_setor')->store('bukti-setor-pembelian', 'public');
+            }
+
+            $pembelian->pembayarans()->create([
+                'jumlah_bayar' => $request->jumlah_bayar,
+                'tanggal_bayar' => $request->tanggal_bayar,
+                'metode_pembayaran' => $request->metode_pembayaran,
+                'bukti_setor' => $buktiSetorPath,
+                'catatan' => $request->catatan,
+            ]);
+
+            // Update status pembayaran
+            $totalBayar = $pembelian->pembayarans()->sum('jumlah_bayar');
+            if ($totalBayar >= $pembelian->grand_total) {
+                $pembelian->update([
+                    'status_pembayaran' => 'paid',
+                    'status_setor' => 'sudah',
+                ]);
+            } else {
+                $pembelian->update([
+                    'status_pembayaran' => 'partial',
+                    'status_setor' => 'belum',
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Pembayaran berhasil ditambahkan!');
     }
 
     public function edit(Pembelian $pembelian)
@@ -168,14 +267,28 @@ class PembelianController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'tanggal_pembelian' => 'required|date',
             'metode_pembayaran' => 'nullable|string|max:255',
-            'status_pembayaran' => 'required|in:paid,unpaid,overdue,cancelled',
+            'status_pembayaran' => 'required|in:paid,unpaid,overdue,cancelled,partial',
             'bukti_setor' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.harga' => 'required|numeric|min:0',
             'items.*.tanggal_expired' => 'nullable|date',
+            'cicilan_jumlah_bayar' => 'nullable|numeric|min:1',
+            'cicilan_tanggal_bayar' => 'nullable|date',
+            'cicilan_catatan' => 'nullable|string',
         ]);
+
+        $grandTotal = 0;
+        if ($request->has('items')) {
+            foreach ($request->items as $item) {
+                $grandTotal += (int)($item['quantity'] ?? 0) * (float)($item['harga'] ?? 0);
+            }
+        }
+        if ($request->status_pembayaran === 'unpaid' && $request->filled('cicilan_jumlah_bayar') && $request->cicilan_jumlah_bayar > $grandTotal) {
+            $selisih = $request->cicilan_jumlah_bayar - $grandTotal;
+            return back()->withErrors(['cicilan_jumlah_bayar' => 'Jumlah bayar cicilan tidak boleh melebihi total tagihan (Rp ' . number_format($grandTotal, 0, ',', '.') . '). Kelebihan Rp ' . number_format($selisih, 0, ',', '.') . '.'])->withInput();
+        }
 
         return DB::transaction(function () use ($request, $pembelian) {
             $oldValues = $pembelian->only([
@@ -242,6 +355,50 @@ class PembelianController extends Controller
 
             $pembelian->update($data);
 
+            if ($request->status_pembayaran === 'paid') {
+                if ($pembelian->sisa_tagihan > 0) {
+                    $pembelian->pembayarans()->create([
+                        'jumlah_bayar' => $pembelian->sisa_tagihan,
+                        'tanggal_bayar' => $request->tanggal_pembelian,
+                        'metode_pembayaran' => $request->metode_pembayaran ?? 'tunai',
+                        'bukti_setor' => $pembelian->bukti_setor,
+                        'catatan' => 'Pelunasan (Otomatis dari ubah status)',
+                    ]);
+                }
+            } elseif ($request->status_pembayaran === 'unpaid') {
+                // Hapus riwayat lama (reset dari 0) jika diubah ke unpaid dari halaman edit
+                $pembelian->pembayarans()->delete();
+
+                if ($request->filled('cicilan_jumlah_bayar') && $request->cicilan_jumlah_bayar > 0) {
+                    $pembelian->pembayarans()->create([
+                        'jumlah_bayar' => $request->cicilan_jumlah_bayar,
+                        'tanggal_bayar' => $request->cicilan_tanggal_bayar ?? now()->toDateString(),
+                        'metode_pembayaran' => $request->metode_pembayaran ?? 'tunai',
+                        'bukti_setor' => $pembelian->bukti_setor,
+                        'catatan' => $request->cicilan_catatan,
+                    ]);
+                }
+
+                // Update status berdasarkan riwayat pembayaran yang ada sekarang (seharusnya menjadi partial atau unpaid)
+                $totalBayar = $pembelian->pembayarans()->sum('jumlah_bayar');
+                if ($totalBayar >= $pembelian->grand_total) {
+                    $pembelian->update([
+                        'status_pembayaran' => 'paid',
+                        'status_setor' => 'sudah',
+                    ]);
+                } elseif ($totalBayar > 0) {
+                    $pembelian->update([
+                        'status_pembayaran' => 'partial',
+                        'status_setor' => 'belum',
+                    ]);
+                } else {
+                    $pembelian->update([
+                        'status_pembayaran' => 'unpaid',
+                        'status_setor' => 'belum',
+                    ]);
+                }
+            }
+
             $newValues = $pembelian->only([
                 'invoice_number', 'supplier_id', 'user_id', 'tanggal_pembelian',
                 'grand_total', 'metode_pembayaran', 'status_pembayaran',
@@ -263,5 +420,62 @@ class PembelianController extends Controller
 
         return redirect()->route('pembelian.index')
             ->with('success', 'Pembelian berhasil dihapus!');
+    }
+
+    public function updatePembayaran(Request $request, PembayaranPembelian $pembayaran)
+    {
+        $request->validate([
+            'jumlah_bayar' => 'required|numeric|min:1',
+            'tanggal_bayar' => 'required|date',
+            'metode_pembayaran' => 'required|string|max:255',
+            'bukti_setor' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'catatan' => 'nullable|string',
+        ]);
+
+        $data = [
+            'jumlah_bayar' => $request->jumlah_bayar,
+            'tanggal_bayar' => $request->tanggal_bayar,
+            'metode_pembayaran' => $request->metode_pembayaran,
+            'catatan' => $request->catatan,
+        ];
+
+        if ($request->metode_pembayaran === 'tunai') {
+            $data['bukti_setor'] = null;
+        } elseif ($request->hasFile('bukti_setor')) {
+            $data['bukti_setor'] = $request->file('bukti_setor')->store('bukti-setor-pembelian', 'public');
+        }
+
+        $pembayaran->update($data);
+
+        // Update status pembelian
+        $pembelian = $pembayaran->pembelian;
+        $totalBayar = $pembelian->pembayarans()->sum('jumlah_bayar');
+        if ($totalBayar >= $pembelian->grand_total) {
+            $pembelian->update(['status_pembayaran' => 'paid', 'status_setor' => 'sudah']);
+        } elseif ($totalBayar > 0) {
+            $pembelian->update(['status_pembayaran' => 'partial', 'status_setor' => 'belum']);
+        } else {
+            $pembelian->update(['status_pembayaran' => 'unpaid', 'status_setor' => 'belum']);
+        }
+
+        return back()->with('success', 'Riwayat pembayaran berhasil diperbarui!');
+    }
+
+    public function destroyPembayaran(PembayaranPembelian $pembayaran)
+    {
+        $pembelian = $pembayaran->pembelian;
+        $pembayaran->delete();
+
+        // Update status pembelian
+        $totalBayar = $pembelian->pembayarans()->sum('jumlah_bayar');
+        if ($totalBayar >= $pembelian->grand_total) {
+            $pembelian->update(['status_pembayaran' => 'paid', 'status_setor' => 'sudah']);
+        } elseif ($totalBayar > 0) {
+            $pembelian->update(['status_pembayaran' => 'partial', 'status_setor' => 'belum']);
+        } else {
+            $pembelian->update(['status_pembayaran' => 'unpaid', 'status_setor' => 'belum']);
+        }
+
+        return back()->with('success', 'Riwayat pembayaran berhasil dihapus!');
     }
 }

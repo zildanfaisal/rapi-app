@@ -91,6 +91,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/pembelian/{pembelian}/edit', [PembelianController::class, 'edit'])->middleware('permission:pembelian.update')->name('pembelian.edit');
     Route::put('/pembelian/{pembelian}', [PembelianController::class, 'update'])->middleware('permission:pembelian.update')->name('pembelian.update');
     Route::delete('/pembelian/{pembelian}', [PembelianController::class, 'destroy'])->middleware('permission:pembelian.delete')->name('pembelian.destroy');
+    Route::post('/pembelian/{pembelian}/bayar', [PembelianController::class, 'storePembayaran'])->middleware('permission:pembelian.update')->name('pembelian.bayar');
+    Route::put('/pembelian/pembayaran/{pembayaran}', [PembelianController::class, 'updatePembayaran'])->middleware('permission:pembelian.update')->name('pembelian.bayar.update');
+    Route::delete('/pembelian/pembayaran/{pembayaran}', [PembelianController::class, 'destroyPembayaran'])->middleware('permission:pembelian.update')->name('pembelian.bayar.destroy');
 
 
     // Product Routes
