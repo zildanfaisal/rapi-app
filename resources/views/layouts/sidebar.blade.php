@@ -260,6 +260,39 @@
                 </li>
                 @endcan
 
+                @can('suppliers.view')
+                <li>
+                  <a href="{{ route('suppliers.index') }}"
+                    title="Suppliers"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('suppliers.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
+                    :class="sidebarCollapsed ? 'justify-center' : ''">
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('suppliers.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 001.5 1.5h4.5a1.5 1.5 0 001.5-1.5V12h1.125a1.125 1.125 0 00.795-1.92l-5.625-5.625a1.125 1.125 0 00-1.59 0L4.83 10.08A1.125 1.125 0 005.625 12H6.75v6.75z" />
+                            </svg>
+                        </span>
+                        <span x-show="!sidebarCollapsed" class="font-medium">Supplier</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('pembelian.view')
+                <li>
+                  <a href="{{ route('pembelian.index') }}"
+                    title="Pembelian"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('pembelian.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
+                    :class="sidebarCollapsed ? 'justify-center' : ''">
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('pembelian.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9.75h7.5M8.25 13.5h7.5" />
+                            </svg>
+                        </span>
+                        <span x-show="!sidebarCollapsed" class="font-medium">Pembelian</span>
+                    </a>
+                </li>
+                @endcan
+
                 <!-- Divider -->
                 <li class="pt-4">
                     <div class="border-t border-white/10"></div>
@@ -572,6 +605,37 @@
                             </svg>
                         </span>
                         <span class="font-medium">Pelanggan</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('suppliers.view')
+                <li>
+                    <a href="{{ route('suppliers.index') }}"
+                        title="Suppliers"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('suppliers.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}">
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('suppliers.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 001.5 1.5h4.5a1.5 1.5 0 001.5-1.5V12h1.125a1.125 1.125 0 00.795-1.92l-5.625-5.625a1.125 1.125 0 00-1.59 0L4.83 10.08A1.125 1.125 0 005.625 12H6.75v6.75z" />
+                            </svg>
+                        </span>
+                        <span class="font-medium">Supplier</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('pembelian.view')
+                <li>
+                    <a href="{{ route('pembelian.index') }}"
+                        title="Pembelian"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('pembelian.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}">
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('pembelian.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9.75h7.5M8.25 13.5h7.5" />
+                            </svg>
+                        </span>
+                        <span class="font-medium">Pembelian</span>
                     </a>
                 </li>
                 @endcan

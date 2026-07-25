@@ -8,7 +8,6 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductBatchController;
-use App\Http\Controllers\UserRoleController;
 use App\Http\Controllers\FinanceRecordController;
 use App\Http\Controllers\BudgetTargetController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +16,8 @@ use App\Http\Controllers\MonthlyTargetController;
 use App\Http\Controllers\SuratJalanController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\RiwayatPenjualanController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\PembelianController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -72,6 +73,24 @@ Route::middleware('auth')->group(function () {
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->middleware('permission:customers.update')->name('customers.update');
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->middleware('permission:customers.delete')->name('customers.destroy');
     Route::get('/customers/{id}', [CustomerController::class, 'show'])->middleware('permission:customers.view')->name('customers.show');
+
+    // Supplier Routes
+    Route::get('/suppliers', [SupplierController::class, 'index'])->middleware('permission:suppliers.view')->name('suppliers.index');
+    Route::get('/suppliers/create', [SupplierController::class, 'create'])->middleware('permission:suppliers.create')->name('suppliers.create');
+    Route::post('/suppliers', [SupplierController::class, 'store'])->middleware('permission:suppliers.create')->name('suppliers.store');
+    Route::get('/suppliers/{supplier}', [SupplierController::class, 'show'])->middleware('permission:suppliers.view')->name('suppliers.show');
+    Route::get('/suppliers/{supplier}/edit', [SupplierController::class, 'edit'])->middleware('permission:suppliers.update')->name('suppliers.edit');
+    Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->middleware('permission:suppliers.update')->name('suppliers.update');
+    Route::delete('/suppliers/{supplier}', [SupplierController::class, 'destroy'])->middleware('permission:suppliers.delete')->name('suppliers.destroy');
+
+    // Pembelian Routes
+    Route::get('/pembelian', [PembelianController::class, 'index'])->middleware('permission:pembelian.view')->name('pembelian.index');
+    Route::get('/pembelian/create', [PembelianController::class, 'create'])->middleware('permission:pembelian.create')->name('pembelian.create');
+    Route::post('/pembelian', [PembelianController::class, 'store'])->middleware('permission:pembelian.create')->name('pembelian.store');
+    Route::get('/pembelian/{pembelian}', [PembelianController::class, 'show'])->middleware('permission:pembelian.view')->name('pembelian.show');
+    Route::get('/pembelian/{pembelian}/edit', [PembelianController::class, 'edit'])->middleware('permission:pembelian.update')->name('pembelian.edit');
+    Route::put('/pembelian/{pembelian}', [PembelianController::class, 'update'])->middleware('permission:pembelian.update')->name('pembelian.update');
+    Route::delete('/pembelian/{pembelian}', [PembelianController::class, 'destroy'])->middleware('permission:pembelian.delete')->name('pembelian.destroy');
 
 
     // Product Routes

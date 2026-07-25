@@ -27,6 +27,7 @@
             <th>Tanggal Kadaluwarsa</th>
             <th>Awal Stok</th>
             <th>Sisa Stok</th>
+            <th>Min Stok Alert</th>
             <th>Harga Beli</th>
             <th>Status</th>
         </tr>
@@ -40,6 +41,7 @@
                 <td>{{ $b->tanggal_expired }}</td>
                 <td>{{ $b->quantity_masuk }}</td>
                 <td>{{ $b->quantity_sekarang }}</td>
+                <td>{{ $b->product->min_stok_alert ?? 0 }}</td>
                 <td>Rp {{ number_format($b->product->harga_beli, 0, ',', '.') }}</td>
 
                 <td>

@@ -132,7 +132,7 @@
                 <div class="block lg:hidden w-full" id="mobileCardWrapper">
 
                     {{-- TOP --}}
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
                         <div class="text-sm text-gray-600">
                             Show
                             <select id="mobilePerPage" class="mx-1 border-gray-300 rounded-md text-sm">
@@ -141,6 +141,15 @@
                                 <option value="25">25</option>
                             </select>
                             entries
+                        </div>
+
+                        <div class="text-sm text-gray-600 flex items-center gap-2">
+                            <label for="mobileStatusFilter">Status</label>
+                            <select id="mobileStatusFilter" class="border-gray-300 rounded-md text-sm">
+                                <option value="">Semua</option>
+                                <option value="Tersedia">Tersedia</option>
+                                <option value="Tidak Tersedia">Tidak Tersedia</option>
+                            </select>
                         </div>
                     </div>
 
@@ -180,11 +189,11 @@
                                 $statusLabel = $p->status === 'available' ? 'Tersedia' : 'Tidak Tersedia';
                                 @endphp
                                 <div>Status: @if ($p->batches->sum('quantity_sekarang') >= $p->min_stok_alert)
-                                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                                    <span data-mobile-status-badge class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
                                         {{ $statusLabel }}
                                     </span>
                                     @else
-                                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">
+                                    <span data-mobile-status-badge class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">
                                         {{ $statusLabel }}
                                     </span>
                                     @endif
@@ -306,32 +315,118 @@
     document.addEventListener('DOMContentLoaded', function() {
 
         let dataTableInstance = null;
+        let selectedStatus = '';
 
         const cards = Array.from(document.querySelectorAll('.mobile-card'));
         const pagination = document.getElementById('mobilePagination');
         const info = document.getElementById('mobileInfo');
         const perPageSelect = document.getElementById('mobilePerPage');
+        const mobileStatusFilter = document.getElementById('mobileStatusFilter');
 
         let perPage = parseInt(perPageSelect.value);
         let currentPage = 1;
+        let mobileSelectedStatus = '';
+
+        function escapeRegex(text) {
+            return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function applyDesktopStatusFilter() {
+            if (!dataTableInstance) {
+                return;
+            }
+
+            const regex = selectedStatus
+                ? `^\\s*${escapeRegex(selectedStatus)}\\s*$`
+                : '';
+
+            dataTableInstance.column(9).search(regex, true, false).draw();
+        }
+
+        function mountDesktopStatusFilter(retry = 0) {
+            const dataTableWrapper = document.getElementById('dataTables_wrapper');
+            const filterContainer = document.getElementById('dataTables_filter') ||
+                (dataTableWrapper ? dataTableWrapper.querySelector('.dt-search') : null);
+            if (!filterContainer) {
+                if (retry < 5) {
+                    setTimeout(() => mountDesktopStatusFilter(retry + 1), 100);
+                }
+                return;
+            }
+
+            const existingSelect = document.getElementById('statusStockFilter');
+            if (existingSelect) {
+                return;
+            }
+
+            filterContainer.classList.add('flex', 'items-center', 'gap-2', 'justify-end', 'flex-wrap');
+
+            const statusFilterWrapper = document.createElement('div');
+            statusFilterWrapper.className = 'text-sm text-gray-700 flex items-center gap-2';
+
+            const filterLabel = document.createElement('label');
+            filterLabel.setAttribute('for', 'statusStockFilter');
+            filterLabel.textContent = 'Status Stok';
+
+            const select = document.createElement('select');
+            select.id = 'statusStockFilter';
+            select.className = 'border-gray-300 rounded-md text-sm';
+            select.innerHTML = `
+                <option value="">Semua</option>
+                <option value="Tersedia">Tersedia</option>
+                <option value="Tidak Tersedia">Tidak Tersedia</option>
+            `;
+            select.value = selectedStatus;
+
+            select.addEventListener('change', function() {
+                selectedStatus = this.value;
+                applyDesktopStatusFilter();
+            });
+
+            statusFilterWrapper.appendChild(filterLabel);
+            statusFilterWrapper.appendChild(select);
+            filterContainer.appendChild(statusFilterWrapper);
+        }
 
         function renderMobile() {
-            const total = cards.length;
+            const filteredCards = cards.filter((card) => {
+                if (!mobileSelectedStatus) {
+                    return true;
+                }
+
+                const statusBadge = card.querySelector('[data-mobile-status-badge]');
+                const statusText = statusBadge ? statusBadge.textContent.trim() : '';
+                return statusText === mobileSelectedStatus;
+            });
+
+            const total = filteredCards.length;
             const totalPages = Math.ceil(total / perPage);
+            if (totalPages > 0 && currentPage > totalPages) {
+                currentPage = totalPages;
+            }
             const start = (currentPage - 1) * perPage;
             const end = start + perPage;
 
             cards.forEach((card, i) => {
-                card.style.display = i >= start && i < end ? 'block' : 'none';
+                card.style.display = 'none';
             });
 
-            info.textContent = `Showing ${start + 1} to ${Math.min(end, total)} of ${total} entries`;
+            filteredCards.slice(start, end).forEach((card) => {
+                card.style.display = 'block';
+            });
+
+            if (total === 0) {
+                info.textContent = 'Showing 0 to 0 of 0 entries';
+            } else {
+                info.textContent = `Showing ${start + 1} to ${Math.min(end, total)} of ${total} entries`;
+            }
             renderPagination(totalPages);
         }
 
         function renderPagination(totalPages) {
             pagination.innerHTML = '';
             const maxVisible = 5;
+            const hasData = totalPages > 0;
 
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, startPage + maxVisible - 1);
@@ -347,7 +442,10 @@
                 return b;
             };
 
-            pagination.appendChild(btn('Prev', currentPage === 1, false, () => {
+            pagination.appendChild(btn('Prev', !hasData || currentPage === 1, false, () => {
+                if (!hasData || currentPage === 1) {
+                    return;
+                }
                 currentPage--;
                 renderMobile();
             }));
@@ -359,7 +457,10 @@
                 }));
             }
 
-            pagination.appendChild(btn('Next', currentPage === totalPages, false, () => {
+            pagination.appendChild(btn('Next', !hasData || currentPage === totalPages, false, () => {
+                if (!hasData || currentPage === totalPages) {
+                    return;
+                }
                 currentPage++;
                 renderMobile();
             }));
@@ -371,6 +472,12 @@
             renderMobile();
         });
 
+        mobileStatusFilter.addEventListener('change', () => {
+            mobileSelectedStatus = mobileStatusFilter.value;
+            currentPage = 1;
+            renderMobile();
+        });
+
         function handleResponsive() {
             if (window.innerWidth >= 1024) {
                 if (!dataTableInstance) {
@@ -378,6 +485,8 @@
                         responsive: true,
                         autoWidth: false
                     });
+                    mountDesktopStatusFilter();
+                    applyDesktopStatusFilter();
                 }
             } else {
                 if (dataTableInstance) {

@@ -65,6 +65,7 @@
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Awal Stok</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Sisa Stok</th>
 
+                                <th class="hidden px-3 py-2 border text-center text-xs uppercase">Min Stok Alert</th>
                                 <th class="hidden px-3 py-2 border text-center text-xs uppercase">Harga Beli</th>
                                 <th class="hidden px-3 py-2 border text-center text-xs uppercase">Total</th>
 
@@ -95,6 +96,7 @@
                                 <td class="border px-3 py-2">{{ $b->quantity_masuk }}</td>
                                 <td class="border px-3 py-2">{{ $b->quantity_sekarang }}</td>
 
+                                <td class="hidden border px-3 py-2">{{ $b->product->min_stok_alert ?? 0 }}</td>
                                 <td class="hidden border px-3 py-2">{{ $hargaBeli }}</td>
                                 <td class="hidden border px-3 py-2">{{ $totalNilai }}</td>
 
@@ -348,7 +350,7 @@
             if (!$.fn.DataTable.isDataTable('#dataTables')) {
                 $('#dataTables').DataTable({
                     columnDefs: [{
-                        targets: [7, 8], // Harga Beli & Total (hidden)
+                        targets: [7, 8, 9], // Min Stok Alert, Harga Beli & Total (hidden)
                         visible: false,
                         searchable: false
                     }]
@@ -378,9 +380,9 @@
 
             const table = initDesktopTable(); // <-- INI YANG KAMU KURANG (table harus ada)
 
-            // GRAND TOTAL dari kolom "Total" index 8
+            // GRAND TOTAL dari kolom "Total" index 9
             let grandTotal = 0;
-            table.column(8, {
+            table.column(9, {
                 search: 'applied'
             }).data().each(function(value) {
                 grandTotal += parseFloat(value) || 0;
@@ -391,7 +393,7 @@
                     extend: 'excelHtml5',
                     title: null,
                     exportOptions: {
-                        columns: [0, 1, 6, 7, 8]
+                        columns: [0, 1, 6, 7, 8, 9]
                     },
                     customize: function(xlsx) {
                         const sheet = xlsx.xl.worksheets['sheet1.xml'];
@@ -465,21 +467,23 @@
                         sheetData.prepend(`<row r="2"><c r="A2" t="inlineStr" s="${styleTitle}"><is><t>Dicetak: ${now}</t></is></c></row>`);
                         sheetData.prepend(`<row r="1"><c r="A1" t="inlineStr" s="${styleTitle}"><is><t>LAPORAN BATCH PRODUK</t></is></c></row>`);
 
-                        // Merge title A..E
+                        // Merge title A..F
                         let mergeCells = $('mergeCells', sheet);
                         if (!mergeCells.length) {
                             $('worksheet', sheet).append('<mergeCells count="0"></mergeCells>');
                             mergeCells = $('mergeCells', sheet);
                         }
                         const mergeCount = parseInt(mergeCells.attr('count') || '0', 10);
-                        mergeCells.append('<mergeCell ref="A1:E1"/>');
-                        mergeCells.append('<mergeCell ref="A2:E2"/>');
+                        mergeCells.append('<mergeCell ref="A1:F1"/>');
+                        mergeCells.append('<mergeCell ref="A2:F2"/>');
                         mergeCells.attr('count', mergeCount + 2);
 
                         // Style header + body
                         $('row[r="3"] c', sheet).attr('s', styleHeader);
                         $('row:gt(2) c', sheet).attr('s', styleCell);
+                        $('row:gt(2) c[r^="D"]', sheet).attr('s', styleNumber);
                         $('row:gt(2) c[r^="E"]', sheet).attr('s', styleNumber);
+                        $('row:gt(2) c[r^="F"]', sheet).attr('s', styleNumber);
 
                         // Column width
                         let cols = $('cols', sheet);
@@ -492,7 +496,8 @@
                       <col min="2" max="2" width="30" customWidth="1"/>
                       <col min="3" max="3" width="15" customWidth="1"/>
                       <col min="4" max="4" width="15" customWidth="1"/>
-                      <col min="5" max="5" width="18" customWidth="1"/>
+                                            <col min="5" max="5" width="18" customWidth="1"/>
+                                            <col min="6" max="6" width="18" customWidth="1"/>
                     `);
 
                         // Grand total row
@@ -502,12 +507,12 @@
                         sheetData.append(`
                       <row r="${rowNum}">
                         <c r="A${rowNum}" t="inlineStr" s="${styleGrand}"><is><t>GRAND TOTAL</t></is></c>
-                        <c r="E${rowNum}" s="${styleGrand}"><v>${grandTotal}</v></c>
+                                                <c r="F${rowNum}" s="${styleGrand}"><v>${grandTotal}</v></c>
                       </row>
                     `);
 
                         const mergeCount2 = parseInt(mergeCells.attr('count') || '0', 10);
-                        mergeCells.append(`<mergeCell ref="A${rowNum}:D${rowNum}"/>`);
+                                                mergeCells.append(`<mergeCell ref="A${rowNum}:E${rowNum}"/>`);
                         mergeCells.attr('count', mergeCount2 + 1);
                     }
                 }]

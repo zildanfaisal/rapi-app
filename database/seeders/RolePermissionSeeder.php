@@ -44,6 +44,12 @@ class RolePermissionSeeder extends Seeder
 
             // Customer
             'customers.view', 'customers.create', 'customers.update', 'customers.delete',
+
+            // Supplier
+            'suppliers.view', 'suppliers.create', 'suppliers.update', 'suppliers.delete',
+
+            // Pembelian
+            'pembelian.view', 'pembelian.create', 'pembelian.update', 'pembelian.delete',
         ];
 
         // Create permissions
@@ -78,6 +84,12 @@ class RolePermissionSeeder extends Seeder
             'finance.history',
             // Customer
             'customers.view',
+
+            // Supplier
+            'suppliers.view', 'suppliers.create', 'suppliers.update', 'suppliers.delete',
+
+            // Pembelian
+            'pembelian.view', 'pembelian.create', 'pembelian.update', 'pembelian.delete',
         ];
         $admin->syncPermissions($adminPermissions);
     }
