@@ -16,6 +16,7 @@ use App\Models\Product;
 use App\Traits\ActivityLogger;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SuratJalan;
+use App\Models\PembayaranInvoice;
 use Illuminate\Support\Facades\Log;
 
 
@@ -61,7 +62,7 @@ class InvoiceController extends Controller
             ->whereDate('tanggal_jatuh_tempo', '<', now()->toDateString())
             ->update(['status_pembayaran' => 'overdue']);
 
-        $query = Invoice::with(['customer', 'user'])
+        $query = Invoice::with(['customer', 'user', 'pembayarans'])
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo))
             ->when($statusFilter, fn($q) => $q->where('status_pembayaran', $statusFilter))
@@ -119,13 +120,16 @@ class InvoiceController extends Controller
         $diskon = (int) preg_replace('/\D/', '', (string) ($request->input('diskon') ?? 0));
         $metodePembayaran = $request->input('metode_pembayaran');
 
-        // Handle upload bukti_setor (ini adalah bukti SETORAN KE BANK, bukan bukti bayar customer)
-        $buktiSetorPath = null;
-        if ($request->hasFile('bukti_setor')) {
-            $buktiSetorPath = $request->file('bukti_setor')->store('setor', 'public');
+        $totalItem = collect($data['items'])->sum(fn ($item) => (int) $item['quantity'] * (float) $item['harga']);
+        $grandTotalInput = max(0, (float) $totalItem + (float) $ongkir - (float) $diskon);
+        if (($data['status_pembayaran'] ?? 'unpaid') === 'unpaid'
+            && (float) ($data['cicilan_jumlah_bayar'] ?? 0) > $grandTotalInput) {
+            return back()->withErrors([
+                'cicilan_jumlah_bayar' => 'Jumlah pembayaran tidak boleh melebihi total tagihan.',
+            ])->withInput();
         }
 
-        return DB::transaction(function () use ($data, $ongkir, $diskon, $metodePembayaran, $buktiSetorPath) {
+        return DB::transaction(function () use ($data, $request, $ongkir, $diskon, $metodePembayaran) {
             // Tentukan customer_id
             $customerId = null;
             if (($data['customer_type'] ?? 'existing') === 'new') {
@@ -140,19 +144,7 @@ class InvoiceController extends Controller
                 $customerId = $data['customer_id'];
             }
 
-            // 🔥 LOGIKA BARU - LEBIH JELAS:
-            // 1. Status Pembayaran: tetap sesuai pilihan user (paid/unpaid/overdue)
-            // 2. Status Setor: HANYA "sudah" jika ada bukti_setor (bukti setoran ke bank)
-
             $statusPembayaran = $data['status_pembayaran'] ?? 'unpaid';
-            $statusSetor = 'belum'; // Default: belum disetor
-            $tanggalSetor = null;
-
-            // Jika ada bukti setor -> status setor = "sudah"
-            if ($buktiSetorPath) {
-                $statusSetor = 'sudah';
-                $tanggalSetor = now()->toDateString();
-            }
 
             $invoice = Invoice::create([
                 'invoice_number' => $data['invoice_number'] ?? Str::upper(Str::random(8)),
@@ -160,10 +152,10 @@ class InvoiceController extends Controller
                 'user_id' => $data['user_id'],
                 'tanggal_invoice' => $data['tanggal_invoice'],
                 'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'],
-                'tanggal_setor' => $tanggalSetor,
+                'tanggal_setor' => null,
                 'status_pembayaran' => $statusPembayaran,
-                'status_setor' => $statusSetor,
-                'bukti_setor' => $buktiSetorPath,
+                'status_setor' => 'belum',
+                'bukti_setor' => null,
                 'alasan_cancel' => $data['alasan_cancel'] ?? null,
                 'grand_total' => 0,
             ]);
@@ -194,6 +186,34 @@ class InvoiceController extends Controller
             // Terapkan ongkos kirim (+) dan diskon (-) ke grand total
             $grandTotal = max(0, (float) $grandTotal + (float) $ongkir - (float) $diskon);
             $invoice->update(['grand_total' => $grandTotal]);
+
+            // Seluruh penerimaan customer dicatat sebagai riwayat pembayaran.
+            // Status "Lunas" membuat satu pembayaran penuh; "Belum Lunas" boleh memiliki pembayaran awal.
+            $jumlahBayarAwal = $statusPembayaran === 'paid'
+                ? $grandTotal
+                : (float) ($data['cicilan_jumlah_bayar'] ?? 0);
+
+            if ($jumlahBayarAwal > 0) {
+                $buktiPembayaranPath = $request->hasFile('cicilan_bukti_pembayaran')
+                    ? $request->file('cicilan_bukti_pembayaran')->store('bukti-pembayaran-invoice', 'public')
+                    : null;
+
+                PembayaranInvoice::create([
+                    'invoice_id' => $invoice->id,
+                    'user_id' => auth()->id(),
+                    'jumlah_bayar' => $jumlahBayarAwal,
+                    'tanggal_bayar' => $data['cicilan_tanggal_bayar'] ?? $data['tanggal_invoice'],
+                    'metode_pembayaran' => $metodePembayaran ?? 'tunai',
+                    'bukti_pembayaran' => $buktiPembayaranPath,
+                    'catatan' => $statusPembayaran === 'paid'
+                        ? 'Pembayaran lunas saat pembuatan invoice'
+                        : ($data['cicilan_catatan'] ?? null),
+                ]);
+
+                $invoice->update([
+                    'status_pembayaran' => $jumlahBayarAwal >= $grandTotal ? 'paid' : 'partial',
+                ]);
+            }
 
             // Tambah poin customer jika lunas
             if (($invoice->status_pembayaran ?? 'unpaid') === 'paid') {
@@ -463,7 +483,7 @@ class InvoiceController extends Controller
     }
     public function show(Invoice $invoice)
     {
-        $invoice->load(['items', 'customer', 'user', 'transactions', 'surat_jalan']);
+        $invoice->load(['items.product', 'customer', 'user', 'pembayarans.user', 'surat_jalan']);
         if (request()->ajax()) {
             return view('penjualan.invoices.partials.show_modal', compact('invoice'));
         }
@@ -511,9 +531,8 @@ class InvoiceController extends Controller
         $dateTo = $request->input('date_to');
         $statusFilter = $request->input('status_setor');
 
-        // ✅ Tampilkan SEMUA invoice
         $base = Invoice::with(['customer', 'user'])
-            // ❌ HAPUS: ->where('status_pembayaran', 'paid')
+            ->where('status_pembayaran', 'paid')
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_invoice', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('tanggal_invoice', '<=', $dateTo))
             ->when($statusFilter, function ($q) use ($statusFilter) {
@@ -554,12 +573,24 @@ class InvoiceController extends Controller
     }
     public function editSetor(Invoice $invoice)
     {
+        if ($invoice->status_pembayaran !== 'paid') {
+            return redirect()->route('invoices.setor')->withErrors([
+                'status_setor' => 'Setor hanya tersedia untuk invoice yang sudah lunas.',
+            ]);
+        }
+
         $invoice->load(['customer', 'user']);
         return view('penjualan.invoices.setor_edit', compact('invoice'));
     }
 
     public function updateSetor(Request $request, Invoice $invoice)
     {
+        if ($invoice->status_pembayaran !== 'paid') {
+            return redirect()->route('invoices.setor')->withErrors([
+                'status_setor' => 'Setor hanya dapat dicatat setelah invoice berstatus lunas.',
+            ]);
+        }
+
         // VALIDASI BARU: Status "sudah" wajib ada bukti setor
         $request->validate([
             'status_setor' => 'required|in:belum,sudah',

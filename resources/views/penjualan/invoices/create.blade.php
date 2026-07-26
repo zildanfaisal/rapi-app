@@ -251,29 +251,6 @@
                                 <span class="text-sm text-gray-700">QRIS</span>
                             </label>
                         </div>
-                        <div class="mb-4" id="bukti-pembayaran-wrapper" style="display:none;">
-                            <label for="bukti_setor" class="block text-sm font-medium text-gray-700">
-                                {{ __('Bukti Pembayaran') }}
-                                <span class="text-xs text-gray-500">(dari Customer)</span>
-                            </label>
-                            <input type="file" name="bukti_setor" id="bukti_setor" accept="image/*"
-                                class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                            <p class="mt-1 text-xs text-gray-500">Format: JPG, PNG, JPEG (Max: 2MB). Bisa diisi untuk semua
-                                metode pembayaran termasuk Tunai.</p>
-
-                            <!-- Preview Image -->
-                            <div class="mt-2 hidden" id="preview-bukti-pembayaran">
-                                <p class="text-xs text-gray-600 mb-1">Preview:</p>
-                                <div class="relative inline-block">
-                                    <img id="preview-img-pembayaran" src="" alt="Preview"
-                                        class="h-32 rounded border">
-                                    <button type="button" onclick="cancelPreviewPembayaran()"
-                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 text-sm">
-                                        ×
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                         <div class="mb-4">
                             <label for="status_pembayaran"
                                 class="block text-sm font-medium text-gray-700">{{ __('Status Pembayaran') }}</label>
@@ -284,6 +261,33 @@
                                 <option value="overdue" @selected(old('status_pembayaran') == 'overdue')>Terlambat</option>
                                 <option value="cancelled" @selected(old('status_pembayaran') == 'cancelled')>Dibatalkan</option>
                             </select>
+                        </div>
+                        <div id="input-pembayaran-wrapper" class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg" style="display: none;">
+                            <h4 class="text-md font-semibold mb-3">Input Pembayaran (Opsional)</h4>
+                            <p class="text-xs text-gray-500 mb-3">Catat uang muka/cicilan pertama. Bukti setoran bank dicatat terpisah setelah invoice lunas.</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="cicilan_jumlah_bayar_display" class="block text-sm font-medium text-gray-700">Jumlah Bayar</label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">Rp</span>
+                                        <input type="text" id="cicilan_jumlah_bayar_display" class="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:ring-purple-500 focus:border-purple-500 sm:text-sm" autocomplete="off">
+                                        <input type="hidden" name="cicilan_jumlah_bayar" id="cicilan_jumlah_bayar" value="{{ old('cicilan_jumlah_bayar') }}">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="cicilan_tanggal_bayar" class="block text-sm font-medium text-gray-700">Tanggal Bayar</label>
+                                    <input type="date" name="cicilan_tanggal_bayar" id="cicilan_tanggal_bayar" value="{{ old('cicilan_tanggal_bayar', date('Y-m-d')) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                </div>
+                                <div>
+                                    <label for="cicilan_bukti_pembayaran" class="block text-sm font-medium text-gray-700">Bukti Pembayaran</label>
+                                    <input type="file" name="cicilan_bukti_pembayaran" id="cicilan_bukti_pembayaran" accept="image/*" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                    <p class="mt-1 text-xs text-gray-500">JPG, JPEG, PNG. Maksimal 2MB.</p>
+                                </div>
+                                <div>
+                                    <label for="cicilan_catatan" class="block text-sm font-medium text-gray-700">Catatan</label>
+                                    <input type="text" name="cicilan_catatan" id="cicilan_catatan" value="{{ old('cicilan_catatan') }}" placeholder="Opsional" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-4">
                             <div class="text-right">
@@ -707,64 +711,25 @@
                 });
             }
 
-            // Handle file input for bukti pembayaran
-            const buktiFileInput = document.getElementById('bukti_setor');
-            if (buktiFileInput) {
-                buktiFileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
+            const statusPembayaranSelect = document.getElementById('status_pembayaran');
+            const inputPembayaranWrapper = document.getElementById('input-pembayaran-wrapper');
+            const cicilanJumlahDisplay = document.getElementById('cicilan_jumlah_bayar_display');
+            const cicilanJumlah = document.getElementById('cicilan_jumlah_bayar');
 
-                    // Validate file type
-                    if (!file.type.startsWith('image/')) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'File Tidak Valid',
-                            text: 'Harap pilih file gambar (JPG, PNG, JPEG).',
-                            confirmButtonColor: '#2563eb'
-                        });
-                        this.value = '';
-                        return;
-                    }
+            function toggleInputPembayaran() {
+                inputPembayaranWrapper.style.display = statusPembayaranSelect.value === 'unpaid' ? '' : 'none';
+            }
 
-                    // Validate file size (max 2MB)
-                    if (file.size > 2 * 1024 * 1024) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'File Terlalu Besar',
-                            text: 'Ukuran file maksimal 2MB.',
-                            confirmButtonColor: '#2563eb'
-                        });
-                        this.value = '';
-                        return;
-                    }
-
-                    // Show preview
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        document.getElementById('preview-img-pembayaran').src = e.target.result;
-                        document.getElementById('preview-bukti-pembayaran').classList.remove('hidden');
-                    };
-                    reader.readAsDataURL(file);
-
-                    // AUTO-SELECT STATUS PEMBAYARAN = 'PAID' (LUNAS)
-                    const statusPembayaranSelect = document.getElementById('status_pembayaran');
-                    if (statusPembayaranSelect) {
-                        statusPembayaranSelect.value = 'paid';
-                    }
-
-                    // Show success toast
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'Bukti pembayaran berhasil dipilih',
-                        text: 'Status pembayaran otomatis diset "Lunas"',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
+            if (cicilanJumlahDisplay) {
+                cicilanJumlahDisplay.addEventListener('input', function () {
+                    const value = this.value.replace(/\D/g, '');
+                    cicilanJumlah.value = value;
+                    this.value = value ? new Intl.NumberFormat('id-ID').format(value) : '';
                 });
             }
+
+            statusPembayaranSelect.addEventListener('change', toggleInputPembayaran);
+            toggleInputPembayaran();
 
             // Show error messages with SweetAlert if exists
             @if ($errors->any())
@@ -784,64 +749,6 @@
                 });
             @endif
 
-
-            // Function to toggle bukti pembayaran visibility based on payment method
-            function toggleBuktiPembayaran() {
-                const radios = document.querySelectorAll('.metode-pembayaran-radio');
-                let selected = null;
-                radios.forEach(r => {
-                    if (r.checked) selected = r.value;
-                });
-                const wrapper = document.getElementById('bukti-pembayaran-wrapper');
-
-                if (selected && selected !== 'tunai') {
-                    // Show form for transfer/qris
-                    wrapper.style.display = '';
-
-                    // Show toast notification
-                    if (selected === 'transfer') {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'info',
-                            title: 'Metode Transfer dipilih',
-                            text: 'Jika ada bukti dari customer, upload untuk auto-set status setor "Sudah"',
-                            showConfirmButton: false,
-                            timer: 4000,
-                            timerProgressBar: true
-                        });
-                    } else if (selected === 'qris') {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'info',
-                            title: 'Metode QRIS dipilih',
-                            text: 'Jika ada bukti dari customer, upload untuk auto-set status setor "Sudah"',
-                            showConfirmButton: false,
-                            timer: 4000,
-                            timerProgressBar: true
-                        });
-                    }
-                } else {
-                    // Hide form for tunai
-                    wrapper.style.display = 'none';
-                    // Clear file input
-                    const fileInput = document.getElementById('bukti_setor');
-                    if (fileInput) fileInput.value = '';
-                    // Hide preview if shown
-                    const preview = document.getElementById('preview-bukti-pembayaran');
-                    if (preview) preview.classList.add('hidden');
-                }
-            }
-
-            // Add event listeners to all metode pembayaran radio buttons
-            document.querySelectorAll('.metode-pembayaran-radio').forEach(radio => {
-                radio.addEventListener('change', toggleBuktiPembayaran);
-            });
-
-            // Run on initial load
-            toggleBuktiPembayaran();
-
             // Also recalc on initial load (in case defaults present)
             recalc();
 
@@ -851,27 +758,5 @@
             }
         })();
 
-        // Function to cancel preview (outside closure so onclick can access it)
-        function cancelPreviewPembayaran() {
-            document.getElementById('bukti_setor').value = '';
-            document.getElementById('preview-bukti-pembayaran').classList.add('hidden');
-
-            // RESET STATUS PEMBAYARAN KE 'UNPAID'
-            const statusPembayaranSelect = document.getElementById('status_pembayaran');
-            if (statusPembayaranSelect) {
-                statusPembayaranSelect.value = 'unpaid';
-            }
-
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'info',
-                title: 'Bukti pembayaran dibatalkan',
-                text: 'Status pembayaran direset ke "Belum Lunas"',
-                showConfirmButton: false,
-                timer: 2500,
-                timerProgressBar: true
-            });
-        }
     </script>
 @endpush

@@ -342,6 +342,7 @@
                     @php
                         $statusLabel = match ($invoice->status_pembayaran) {
                             'paid' => 'Lunas',
+                            'partial' => 'Cicilan',
                             'cancelled' => 'Dibatalkan',
                             'unpaid' => 'Belum Dibayar',
                             'overdue' => 'Terlambat',

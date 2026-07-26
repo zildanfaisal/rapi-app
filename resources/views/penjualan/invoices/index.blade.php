@@ -92,6 +92,7 @@
                             <select name="status_pembayaran" class="px-3 py-2.5 border rounded-lg text-sm" onchange="this.form.submit()">
                                 <option value="">Semua Status</option>
                                 <option value="paid" @selected(($statusFilter ?? '') === 'paid')>Lunas</option>
+                                <option value="partial" @selected(($statusFilter ?? '') === 'partial')>Cicilan</option>
                                 <option value="unpaid" @selected(($statusFilter ?? '') === 'unpaid')>Belum Lunas</option>
                                 <option value="cancelled" @selected(($statusFilter ?? '') === 'cancelled')>Batal</option>
                                 <option value="overdue" @selected(($statusFilter ?? '') === 'overdue')>Terlambat</option>
@@ -148,6 +149,8 @@
                                 <td class="border px-3 py-2">
                                     @if($i->status_pembayaran === 'paid')
                                         <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Lunas</span>
+                                    @elseif($i->status_pembayaran === 'partial')
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Cicilan</span>
                                     @elseif($i->status_pembayaran === 'unpaid')
                                         <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Lunas</span>
                                     @elseif($i->status_pembayaran === 'overdue')
@@ -174,6 +177,17 @@
                                         class="text-blue-600 hover:text-blue-800 hover:underline">
                                         Edit
                                         </a>
+
+                                        @if(in_array($i->status_pembayaran, ['unpaid', 'partial']) && $i->sisa_tagihan > 0)
+                                            <button type="button"
+                                                class="btn-pelunasan text-green-600 hover:text-green-800 hover:underline text-left"
+                                                data-url="{{ route('invoices.pembayaran.store', $i) }}"
+                                                data-sisa="{{ $i->sisa_tagihan }}"
+                                                data-sisa-format="{{ number_format($i->sisa_tagihan, 0, ',', '.') }}"
+                                                data-invoice="{{ $i->invoice_number }}">
+                                                Pelunasan
+                                            </button>
+                                        @endif
 
                                         <form
                                             id="delete-form-{{ $i->id }}"
@@ -231,6 +245,8 @@
                         <div>Status:
                             @if($i->status_pembayaran === 'paid')
                                 <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Lunas</span>
+                            @elseif($i->status_pembayaran === 'partial')
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Cicilan</span>
                             @elseif($i->status_pembayaran === 'unpaid')
                                 <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Belum Lunas</span>
                             @elseif($i->status_pembayaran === 'overdue')
@@ -257,6 +273,16 @@
                            class="flex-1 border border-indigo-600 text-indigo-600 rounded text-center py-2">
                             Edit
                         </a>
+                        @if(in_array($i->status_pembayaran, ['unpaid', 'partial']) && $i->sisa_tagihan > 0)
+                            <button type="button"
+                                class="btn-pelunasan flex-1 border border-green-600 text-green-600 rounded text-center py-2"
+                                data-url="{{ route('invoices.pembayaran.store', $i) }}"
+                                data-sisa="{{ $i->sisa_tagihan }}"
+                                data-sisa-format="{{ number_format($i->sisa_tagihan, 0, ',', '.') }}"
+                                data-invoice="{{ $i->invoice_number }}">
+                                Pelunasan
+                            </button>
+                        @endif
                         <form
                             id="delete-form-mobile-{{ $i->id }}"
                             action="{{ route('invoices.destroy',$i) }}"
@@ -286,6 +312,53 @@
 
         </div>
 
+    </div>
+    <div id="modal-pelunasan" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true" role="dialog">
+        <div class="flex min-h-screen items-center justify-center px-4 py-8">
+            <div class="fixed inset-0 bg-gray-900/50" data-close-pelunasan></div>
+            <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Pelunasan Invoice <span id="pelunasan-invoice"></span></h3>
+                    <button type="button" data-close-pelunasan class="text-2xl text-gray-500 hover:text-gray-700">&times;</button>
+                </div>
+                <p class="mb-4 text-sm text-gray-600">Sisa tagihan: <strong id="pelunasan-sisa"></strong></p>
+                <form id="form-pelunasan" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label for="jumlah_bayar_display" class="block text-sm font-medium text-gray-700">Jumlah Bayar</label>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">Rp</span>
+                            <input type="text" id="jumlah_bayar_display" class="flex-1 w-full rounded-none rounded-r-md border-gray-300" autocomplete="off" required>
+                            <input type="hidden" name="jumlah_bayar" id="jumlah_bayar">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="tanggal_bayar" class="block text-sm font-medium text-gray-700">Tanggal Bayar</label>
+                        <input type="date" name="tanggal_bayar" id="tanggal_bayar" value="{{ date('Y-m-d') }}" class="mt-1 block w-full rounded-md border-gray-300" required>
+                    </div>
+                    <div>
+                        <label for="metode_pembayaran" class="block text-sm font-medium text-gray-700">Metode Pembayaran</label>
+                        <select name="metode_pembayaran" id="metode_pembayaran" class="mt-1 block w-full rounded-md border-gray-300" required>
+                            <option value="tunai">Tunai</option>
+                            <option value="transfer">Transfer</option>
+                            <option value="qris">QRIS</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="bukti_pembayaran" class="block text-sm font-medium text-gray-700">Bukti Pembayaran</label>
+                        <input type="file" name="bukti_pembayaran" id="bukti_pembayaran" accept="image/*" class="mt-1 block w-full rounded-md border-gray-300">
+                    </div>
+                    <div>
+                        <label for="catatan" class="block text-sm font-medium text-gray-700">Catatan</label>
+                        <input type="text" name="catatan" id="catatan" placeholder="Opsional" class="mt-1 block w-full rounded-md border-gray-300">
+                    </div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" data-close-pelunasan class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Simpan Pembayaran</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
@@ -343,6 +416,32 @@ function confirmDelete(invoiceId, qty) {
 
 // ===== DATATABLE & MOBILE PAGINATION =====
 document.addEventListener('DOMContentLoaded', () => {
+
+    const modalPelunasan = document.getElementById('modal-pelunasan');
+    const formPelunasan = document.getElementById('form-pelunasan');
+    const jumlahBayarDisplay = document.getElementById('jumlah_bayar_display');
+    const jumlahBayar = document.getElementById('jumlah_bayar');
+
+    document.querySelectorAll('.btn-pelunasan').forEach((button) => {
+        button.addEventListener('click', () => {
+            formPelunasan.action = button.dataset.url;
+            document.getElementById('pelunasan-invoice').textContent = button.dataset.invoice;
+            document.getElementById('pelunasan-sisa').textContent = `Rp ${button.dataset.sisaFormat}`;
+            jumlahBayar.value = button.dataset.sisa;
+            jumlahBayarDisplay.value = button.dataset.sisaFormat;
+            modalPelunasan.classList.remove('hidden');
+        });
+    });
+
+    document.querySelectorAll('[data-close-pelunasan]').forEach((button) => {
+        button.addEventListener('click', () => modalPelunasan.classList.add('hidden'));
+    });
+
+    jumlahBayarDisplay.addEventListener('input', function () {
+        const value = this.value.replace(/\D/g, '');
+        jumlahBayar.value = value;
+        this.value = value ? new Intl.NumberFormat('id-ID').format(value) : '';
+    });
 
     let dataTable = null;
     const cards = [...document.querySelectorAll('.mobile-card')];

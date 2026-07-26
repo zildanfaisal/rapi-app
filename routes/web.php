@@ -18,6 +18,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\RiwayatPenjualanController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\PembayaranInvoiceController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -123,6 +124,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoices/report/items', [InvoiceController::class, 'itemsReport'])->middleware('permission:invoices.view')->name('invoices.report.items');
     Route::get('/invoices/create', [InvoiceController::class, 'create'])->middleware('permission:invoices.create')->name('invoices.create');
     Route::post('/invoices', [InvoiceController::class, 'store'])->middleware('permission:invoices.create')->name('invoices.store');
+    Route::post('/invoices/{invoice}/pembayaran', [PembayaranInvoiceController::class, 'store'])->middleware('permission:invoices.update')->name('invoices.pembayaran.store');
     Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->middleware('permission:invoices.update')->name('invoices.edit');
     Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])->middleware('permission:invoices.update')->name('invoices.update');
     // Setor Penjualan (place BEFORE catch-all invoice routes)

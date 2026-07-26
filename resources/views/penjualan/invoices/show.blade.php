@@ -14,6 +14,15 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="p-2 sm:p-8 bg-white shadow sm:rounded-lg">
             <div class="max-w-auto">
+                @if ($errors->any())
+                    <div class="mb-4 rounded bg-red-50 p-3 text-sm text-red-700">
+                        <ul class="list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold">{{ __('Detail Penjualan') }}</h3>
                     <div class="flex items-center gap-2">
@@ -44,6 +53,8 @@
                             @php $status = $invoice->status_pembayaran; @endphp
                             @if ($status === 'paid')
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-green-100 text-green-800">Lunas</span>
+                            @elseif ($status === 'partial')
+                                <span class="inline-block px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">Cicilan</span>
                             @elseif ($status === 'unpaid')
                                 <span class="inline-block px-2 py-1 rounded text-xs bg-red-100 text-red-800">Belum Lunas</span>
                             @elseif ($status === 'overdue')
@@ -68,6 +79,21 @@
                             {!! $invoice->bukti_setor
                                 ? '<a target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline" href="'.asset('storage/'.$invoice->bukti_setor).'">Lihat</a>'
                                 : '-' !!}
+                        </div>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                        <div class="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                            <div class="text-gray-600">Total Tagihan</div>
+                            <div class="font-semibold">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</div>
+                        </div>
+                        <div class="p-4 rounded-lg bg-green-50 border border-green-200">
+                            <div class="text-green-700">Total Dibayar</div>
+                            <div class="font-semibold text-green-800">Rp {{ number_format($invoice->total_dibayar, 0, ',', '.') }}</div>
+                        </div>
+                        <div class="p-4 rounded-lg bg-orange-50 border border-orange-200">
+                            <div class="text-orange-700">Sisa Tagihan</div>
+                            <div class="font-semibold text-orange-800">Rp {{ number_format($invoice->sisa_tagihan, 0, ',', '.') }}</div>
                         </div>
                     </div>
 
@@ -122,6 +148,43 @@
                             </tfoot>
                         </table>
                     </div>
+                    <div class="mt-6">
+                        <h4 class="text-md font-semibold mb-3">Riwayat Pembayaran</h4>
+                        @if($invoice->pembayarans->isEmpty())
+                            <p class="text-sm text-gray-500">Belum ada pembayaran yang dicatat.</p>
+                        @else
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full border border-gray-300 text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="px-4 py-2 border">Tanggal</th>
+                                            <th class="px-4 py-2 border text-right">Jumlah</th>
+                                            <th class="px-4 py-2 border">Metode</th>
+                                            <th class="px-4 py-2 border">Catatan</th>
+                                            <th class="px-4 py-2 border">Bukti</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($invoice->pembayarans as $pembayaran)
+                                            <tr>
+                                                <td class="px-4 py-2 border text-center">{{ $pembayaran->tanggal_bayar }}</td>
+                                                <td class="px-4 py-2 border text-right">Rp {{ number_format($pembayaran->jumlah_bayar, 0, ',', '.') }}</td>
+                                                <td class="px-4 py-2 border text-center">{{ ucfirst($pembayaran->metode_pembayaran) }}</td>
+                                                <td class="px-4 py-2 border">{{ $pembayaran->catatan ?? '-' }}</td>
+                                                <td class="px-4 py-2 border text-center">
+                                                    @if($pembayaran->bukti_pembayaran)
+                                                        <a href="{{ asset('storage/'.$pembayaran->bukti_pembayaran) }}" target="_blank" class="text-blue-600 hover:underline">Lihat</a>
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </div>
                     @if($invoice->status_pembayaran === 'cancelled')
                     <div>
                         <div class="text-gray-600">Alasan Batal</div>
@@ -136,4 +199,5 @@
         </div>
     </div>
 </div>
+
 @endsection

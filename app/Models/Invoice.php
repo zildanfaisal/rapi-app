@@ -47,6 +47,21 @@ class Invoice extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    public function pembayarans()
+    {
+        return $this->hasMany(PembayaranInvoice::class);
+    }
+
+    public function getTotalDibayarAttribute()
+    {
+        return (float) $this->pembayarans()->sum('jumlah_bayar');
+    }
+
+    public function getSisaTagihanAttribute()
+    {
+        return max(0, (float) $this->grand_total - $this->total_dibayar);
+    }
     public function invoiceItems()
     {
         return $this->hasMany(InvoiceItem::class, 'invoice_id');
