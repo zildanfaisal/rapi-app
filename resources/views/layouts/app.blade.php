@@ -37,7 +37,6 @@
     {{-- <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.tailwindcss.min.css"> --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.5/css/dataTables.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.7/css/responsive.dataTables.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 
     @stack('styles')
@@ -148,14 +147,12 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     {{-- <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.tailwindcss.min.js"></script> --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.datatables.net/2.3.5/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/3.0.7/js/dataTables.responsive.js"></script>
     <script src="https://cdn.datatables.net/responsive/3.0.7/js/responsive.dataTables.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
@@ -163,10 +160,45 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
-     <script>
-        $(document).ready(function){
-            let table = new DataTable('#dataTables');
-        }
+    <script>
+        (function () {
+            const recalcDataTables = () => {
+                if (!window.jQuery || !jQuery.fn || !jQuery.fn.dataTable) return;
+
+                const tables = jQuery.fn.dataTable.tables({ visible: true, api: true });
+                tables.columns.adjust();
+
+                tables.every(function () {
+                    if (this.responsive && typeof this.responsive.recalc === 'function') {
+                        this.responsive.recalc();
+                    }
+                });
+            };
+
+            const debouncedRecalc = (() => {
+                let timer;
+                return () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(recalcDataTables, 150);
+                };
+            })();
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // Device tertentu melaporkan viewport/layout belakangan, jadi recalc dijalankan ulang.
+                setTimeout(recalcDataTables, 0);
+                setTimeout(recalcDataTables, 350);
+
+                const appShell = document.querySelector('body > div[x-data]');
+                if (appShell) {
+                    const observer = new MutationObserver(debouncedRecalc);
+                    observer.observe(appShell, { attributes: true, attributeFilter: ['class'] });
+                }
+            });
+
+            window.addEventListener('load', recalcDataTables);
+            window.addEventListener('resize', debouncedRecalc);
+            window.addEventListener('orientationchange', debouncedRecalc);
+        })();
     </script>
 
     {{-- Vite: JS --}}

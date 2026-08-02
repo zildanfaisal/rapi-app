@@ -278,7 +278,7 @@
                                     <label for="cicilan_tanggal_bayar" class="block text-sm font-medium text-gray-700">Tanggal Bayar</label>
                                     <input type="date" name="cicilan_tanggal_bayar" id="cicilan_tanggal_bayar" value="{{ old('cicilan_tanggal_bayar', date('Y-m-d')) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                                 </div>
-                                <div>
+                                <div id="cicilan-bukti-pembayaran-wrapper" style="display: none;">
                                     <label for="cicilan_bukti_pembayaran" class="block text-sm font-medium text-gray-700">Bukti Pembayaran</label>
                                     <input type="file" name="cicilan_bukti_pembayaran" id="cicilan_bukti_pembayaran" accept="image/*" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                                     <p class="mt-1 text-xs text-gray-500">JPG, JPEG, PNG. Maksimal 2MB.</p>
@@ -715,9 +715,16 @@
             const inputPembayaranWrapper = document.getElementById('input-pembayaran-wrapper');
             const cicilanJumlahDisplay = document.getElementById('cicilan_jumlah_bayar_display');
             const cicilanJumlah = document.getElementById('cicilan_jumlah_bayar');
+            const cicilanBuktiWrapper = document.getElementById('cicilan-bukti-pembayaran-wrapper');
 
             function toggleInputPembayaran() {
                 inputPembayaranWrapper.style.display = statusPembayaranSelect.value === 'unpaid' ? '' : 'none';
+                toggleCicilanBukti();
+            }
+
+            function toggleCicilanBukti() {
+                const metode = document.querySelector('.metode-pembayaran-radio:checked')?.value;
+                cicilanBuktiWrapper.style.display = metode && metode !== 'tunai' ? '' : 'none';
             }
 
             if (cicilanJumlahDisplay) {
@@ -729,6 +736,9 @@
             }
 
             statusPembayaranSelect.addEventListener('change', toggleInputPembayaran);
+            document.querySelectorAll('.metode-pembayaran-radio').forEach((radio) => {
+                radio.addEventListener('change', toggleCicilanBukti);
+            });
             toggleInputPembayaran();
 
             // Show error messages with SweetAlert if exists

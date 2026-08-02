@@ -427,8 +427,8 @@ document.addEventListener('DOMContentLoaded', () => {
             formPelunasan.action = button.dataset.url;
             document.getElementById('pelunasan-invoice').textContent = button.dataset.invoice;
             document.getElementById('pelunasan-sisa').textContent = `Rp ${button.dataset.sisaFormat}`;
-            jumlahBayar.value = button.dataset.sisa;
-            jumlahBayarDisplay.value = button.dataset.sisaFormat;
+            jumlahBayar.value = '';
+            jumlahBayarDisplay.value = '';
             modalPelunasan.classList.remove('hidden');
         });
     });

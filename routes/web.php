@@ -125,6 +125,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoices/create', [InvoiceController::class, 'create'])->middleware('permission:invoices.create')->name('invoices.create');
     Route::post('/invoices', [InvoiceController::class, 'store'])->middleware('permission:invoices.create')->name('invoices.store');
     Route::post('/invoices/{invoice}/pembayaran', [PembayaranInvoiceController::class, 'store'])->middleware('permission:invoices.update')->name('invoices.pembayaran.store');
+    Route::put('/invoices/pembayaran/{pembayaran}', [PembayaranInvoiceController::class, 'update'])->middleware('permission:invoices.update')->name('invoices.pembayaran.update');
+    Route::delete('/invoices/pembayaran/{pembayaran}', [PembayaranInvoiceController::class, 'destroy'])->middleware('permission:invoices.update')->name('invoices.pembayaran.destroy');
     Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->middleware('permission:invoices.update')->name('invoices.edit');
     Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])->middleware('permission:invoices.update')->name('invoices.update');
     // Setor Penjualan (place BEFORE catch-all invoice routes)

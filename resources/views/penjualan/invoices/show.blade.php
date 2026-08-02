@@ -162,6 +162,7 @@
                                             <th class="px-4 py-2 border">Metode</th>
                                             <th class="px-4 py-2 border">Catatan</th>
                                             <th class="px-4 py-2 border">Bukti</th>
+                                            <th class="px-4 py-2 border">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -177,6 +178,24 @@
                                                     @else
                                                         -
                                                     @endif
+                                                </td>
+                                                <td class="px-4 py-2 border text-center whitespace-nowrap">
+                                                    @can('invoices.update')
+                                                        <button type="button"
+                                                            class="btn-edit-pembayaran text-blue-600 hover:underline"
+                                                            data-url="{{ route('invoices.pembayaran.update', $pembayaran) }}"
+                                                            data-jumlah="{{ $pembayaran->jumlah_bayar }}"
+                                                            data-tanggal="{{ $pembayaran->tanggal_bayar }}"
+                                                            data-metode="{{ $pembayaran->metode_pembayaran }}"
+                                                            data-catatan="{{ $pembayaran->catatan }}">
+                                                            Edit
+                                                        </button>
+                                                        <form action="{{ route('invoices.pembayaran.destroy', $pembayaran) }}" method="POST" class="inline" onsubmit="return confirm('Hapus riwayat pembayaran ini?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="ml-2 text-red-600 hover:underline">Hapus</button>
+                                                        </form>
+                                                    @endcan
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -200,4 +219,95 @@
     </div>
 </div>
 
+<div id="modal-edit-pembayaran" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-modal="true" role="dialog">
+    <div class="flex min-h-screen items-center justify-center px-4 py-8">
+        <div class="fixed inset-0 bg-gray-900/50" data-close-edit-pembayaran></div>
+        <div class="relative w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Edit Riwayat Pembayaran</h3>
+                <button type="button" data-close-edit-pembayaran class="text-2xl text-gray-500 hover:text-gray-700">&times;</button>
+            </div>
+            <form id="form-edit-pembayaran" method="POST" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label for="edit_jumlah_bayar_display" class="block text-sm font-medium text-gray-700">Jumlah Bayar</label>
+                    <div class="mt-1 flex rounded-md shadow-sm">
+                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">Rp</span>
+                        <input type="text" id="edit_jumlah_bayar_display" class="flex-1 w-full rounded-none rounded-r-md border-gray-300" autocomplete="off" required>
+                        <input type="hidden" name="jumlah_bayar" id="edit_jumlah_bayar">
+                    </div>
+                </div>
+                <div>
+                    <label for="edit_tanggal_bayar" class="block text-sm font-medium text-gray-700">Tanggal Bayar</label>
+                    <input type="date" name="tanggal_bayar" id="edit_tanggal_bayar" class="mt-1 block w-full rounded-md border-gray-300" required>
+                </div>
+                <div>
+                    <label for="edit_metode_pembayaran" class="block text-sm font-medium text-gray-700">Metode Pembayaran</label>
+                    <select name="metode_pembayaran" id="edit_metode_pembayaran" class="mt-1 block w-full rounded-md border-gray-300" required>
+                        <option value="tunai">Tunai</option>
+                        <option value="transfer">Transfer</option>
+                        <option value="qris">QRIS</option>
+                    </select>
+                </div>
+                <div id="edit-bukti-pembayaran-wrapper">
+                    <label for="edit_bukti_pembayaran" class="block text-sm font-medium text-gray-700">Ganti Bukti Pembayaran</label>
+                    <input type="file" name="bukti_pembayaran" id="edit_bukti_pembayaran" accept="image/*" class="mt-1 block w-full rounded-md border-gray-300">
+                    <p class="mt-1 text-xs text-gray-500">Opsional; hanya untuk transfer atau QRIS.</p>
+                </div>
+                <div>
+                    <label for="edit_catatan" class="block text-sm font-medium text-gray-700">Catatan</label>
+                    <input type="text" name="catatan" id="edit_catatan" class="mt-1 block w-full rounded-md border-gray-300">
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" data-close-edit-pembayaran class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('modal-edit-pembayaran');
+        const form = document.getElementById('form-edit-pembayaran');
+        const jumlahDisplay = document.getElementById('edit_jumlah_bayar_display');
+        const jumlah = document.getElementById('edit_jumlah_bayar');
+        const metode = document.getElementById('edit_metode_pembayaran');
+        const buktiWrapper = document.getElementById('edit-bukti-pembayaran-wrapper');
+
+        const toggleBukti = () => {
+            buktiWrapper.style.display = metode.value === 'tunai' ? 'none' : '';
+        };
+
+        document.querySelectorAll('.btn-edit-pembayaran').forEach((button) => {
+            button.addEventListener('click', () => {
+                form.action = button.dataset.url;
+                jumlah.value = button.dataset.jumlah;
+                jumlahDisplay.value = new Intl.NumberFormat('id-ID').format(button.dataset.jumlah);
+                document.getElementById('edit_tanggal_bayar').value = button.dataset.tanggal;
+                metode.value = button.dataset.metode;
+                document.getElementById('edit_catatan').value = button.dataset.catatan || '';
+                document.getElementById('edit_bukti_pembayaran').value = '';
+                toggleBukti();
+                modal.classList.remove('hidden');
+            });
+        });
+
+        document.querySelectorAll('[data-close-edit-pembayaran]').forEach((button) => {
+            button.addEventListener('click', () => modal.classList.add('hidden'));
+        });
+
+        jumlahDisplay.addEventListener('input', function () {
+            const value = this.value.replace(/\D/g, '');
+            jumlah.value = value;
+            this.value = value ? new Intl.NumberFormat('id-ID').format(value) : '';
+        });
+        metode.addEventListener('change', toggleBukti);
+    });
+</script>
+@endpush
