@@ -9,6 +9,8 @@ use App\Models\Product;
 use App\Models\ProductBatch;
 use App\Models\Supplier;
 use App\Traits\ActivityLogger;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,17 +22,13 @@ class PembelianController extends Controller
 
     public function index(Request $request)
     {
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
-        $statusFilter = $request->input('status_pembayaran');
+        $dateFrom = $request->string('date_from')->toString();
+        $dateTo = $request->string('date_to')->toString();
+        $statusFilter = $request->string('status_pembayaran')->toString();
 
-        $query = Pembelian::with(['supplier', 'user', 'items.product', 'pembayarans'])
-            ->when($dateFrom, fn($q) => $q->whereDate('tanggal_pembelian', '>=', $dateFrom))
-            ->when($dateTo, fn($q) => $q->whereDate('tanggal_pembelian', '<=', $dateTo))
-            ->when($statusFilter, fn($q) => $q->where('status_pembayaran', $statusFilter))
-            ->orderByDesc('created_at');
-
-        $pembelians = $query->get();
+        $pembelians = $this->filteredPembelianQuery($dateFrom, $dateTo, $statusFilter)
+            ->with(['supplier', 'user', 'items.product', 'pembayarans'])
+            ->get();
 
         $paidFilter = Pembelian::query()
             ->when($dateFrom, fn($q) => $q->whereDate('tanggal_pembelian', '>=', $dateFrom))
@@ -44,6 +42,74 @@ class PembelianController extends Controller
             ->sum('grand_total');
 
         return view('pembelian.index', compact('pembelians', 'totalPaid', 'totalSetor', 'paidCount', 'totalCount', 'dateFrom', 'dateTo', 'statusFilter'));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $dateFrom = $request->string('date_from')->toString();
+        $dateTo = $request->string('date_to')->toString();
+        $statusFilter = $request->string('status_pembayaran')->toString();
+
+        $pembelians = $this->filteredPembelianQuery($dateFrom, $dateTo, $statusFilter)
+            ->with(['supplier', 'user', 'items.product', 'pembayarans'])
+            ->get();
+
+        $statusLabel = match ($statusFilter) {
+            'paid' => 'Lunas',
+            'unpaid' => 'Belum Lunas',
+            'partial' => 'Cicilan',
+            'overdue' => 'Terlambat',
+            'cancelled' => 'Batal',
+            default => 'Semua Status',
+        };
+
+        $pdf = Pdf::loadView('pembelian.export_pdf', compact(
+            'pembelians',
+            'dateFrom',
+            'dateTo',
+            'statusFilter',
+            'statusLabel'
+        ))->setPaper('a4', 'landscape');
+
+        $filename = 'Laporan-Pembelian-' . now()->format('Ymd-His') . '.pdf';
+
+        return $pdf->stream($filename);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $dateFrom = $request->string('date_from')->toString();
+        $dateTo = $request->string('date_to')->toString();
+        $statusFilter = $request->string('status_pembayaran')->toString();
+
+        $pembelians = $this->filteredPembelianQuery($dateFrom, $dateTo, $statusFilter)
+            ->with(['supplier', 'items.product', 'pembayarans'])
+            ->get();
+
+        $statusLabel = match ($statusFilter) {
+            'paid' => 'Lunas',
+            'unpaid' => 'Belum Lunas',
+            'partial' => 'Cicilan',
+            'overdue' => 'Terlambat',
+            'cancelled' => 'Batal',
+            default => 'Semua Status',
+        };
+
+        $content = view('pembelian.export_excel', compact(
+            'pembelians',
+            'dateFrom',
+            'dateTo',
+            'statusLabel'
+        ))->render();
+
+        $filename = 'Laporan-Pembelian-' . now()->format('Ymd-His') . '.xls';
+
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     public function create()
@@ -201,6 +267,18 @@ class PembelianController extends Controller
         $pembelian->load(['supplier', 'user', 'items.product', 'items.batch', 'pembayarans']);
 
         return view('pembelian.show', compact('pembelian'));
+    }
+
+    public function kwitansiPdf(Pembelian $pembelian)
+    {
+        $pembelian->load(['supplier', 'user', 'items.product', 'pembayarans']);
+
+        $pdf = Pdf::loadView('pembelian.kwitansi_pdf', compact('pembelian'))
+            ->setPaper('a4');
+
+        $filename = 'Kwitansi-Pembelian-' . ($pembelian->invoice_number ?? $pembelian->id) . '.pdf';
+
+        return $pdf->stream($filename);
     }
 
     public function storePembayaran(Request $request, Pembelian $pembelian)
@@ -477,5 +555,14 @@ class PembelianController extends Controller
         }
 
         return back()->with('success', 'Riwayat pembayaran berhasil dihapus!');
+    }
+
+    private function filteredPembelianQuery(?string $dateFrom, ?string $dateTo, ?string $statusFilter): Builder
+    {
+        return Pembelian::query()
+            ->when($dateFrom, fn($q) => $q->whereDate('tanggal_pembelian', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('tanggal_pembelian', '<=', $dateTo))
+            ->when($statusFilter, fn($q) => $q->where('status_pembayaran', $statusFilter))
+            ->orderByDesc('created_at');
     }
 }

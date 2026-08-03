@@ -344,7 +344,7 @@
                             <option value="qris">QRIS</option>
                         </select>
                     </div>
-                    <div>
+                    <div id="bukti_pembayaran_wrapper">
                         <label for="bukti_pembayaran" class="block text-sm font-medium text-gray-700">Bukti Pembayaran</label>
                         <input type="file" name="bukti_pembayaran" id="bukti_pembayaran" accept="image/*" class="mt-1 block w-full rounded-md border-gray-300">
                     </div>
@@ -421,6 +421,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const formPelunasan = document.getElementById('form-pelunasan');
     const jumlahBayarDisplay = document.getElementById('jumlah_bayar_display');
     const jumlahBayar = document.getElementById('jumlah_bayar');
+    const metodePembayaran = document.getElementById('metode_pembayaran');
+    const buktiPembayaranWrapper = document.getElementById('bukti_pembayaran_wrapper');
+    const buktiPembayaranInput = document.getElementById('bukti_pembayaran');
+
+    function toggleBuktiPembayaran() {
+        const isTunai = metodePembayaran.value === 'tunai';
+        buktiPembayaranWrapper.style.display = isTunai ? 'none' : '';
+        if (isTunai) {
+            buktiPembayaranInput.value = '';
+        }
+    }
 
     document.querySelectorAll('.btn-pelunasan').forEach((button) => {
         button.addEventListener('click', () => {
@@ -429,6 +440,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('pelunasan-sisa').textContent = `Rp ${button.dataset.sisaFormat}`;
             jumlahBayar.value = '';
             jumlahBayarDisplay.value = '';
+            metodePembayaran.value = 'tunai';
+            toggleBuktiPembayaran();
             modalPelunasan.classList.remove('hidden');
         });
     });
@@ -442,6 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
         jumlahBayar.value = value;
         this.value = value ? new Intl.NumberFormat('id-ID').format(value) : '';
     });
+
+    metodePembayaran.addEventListener('change', toggleBuktiPembayaran);
+    toggleBuktiPembayaran();
 
     let dataTable = null;
     const cards = [...document.querySelectorAll('.mobile-card')];

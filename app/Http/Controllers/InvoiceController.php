@@ -492,7 +492,7 @@ class InvoiceController extends Controller
 
     public function pdf(Invoice $invoice)
     {
-        $invoice->load(['items', 'customer', 'user']);
+        $invoice->load(['items.product', 'customer', 'user', 'pembayarans']);
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('penjualan.invoices.pdf', compact('invoice'))
             ->setPaper('a4');
         $filename = 'Invoice-' . ($invoice->invoice_number ?? $invoice->id) . '.pdf';

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice {{ $invoice->invoice_number }}</title>
+    <title>Kwitansi {{ $pembelian->invoice_number }}</title>
     <style>
         * {
             margin: 0;
@@ -24,7 +24,6 @@
             margin: 0 auto;
         }
 
-        /* Header Section */
         .header {
             display: table;
             width: 100%;
@@ -98,7 +97,6 @@
             color: #333;
         }
 
-        /* Info Section */
         .info-section {
             display: table;
             width: 100%;
@@ -137,11 +135,10 @@
             width: 80px;
         }
 
-        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 0px;
+            margin-bottom: 0;
         }
 
         thead {
@@ -178,11 +175,6 @@
             text-align: right;
         }
 
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        /* Summary Section */
         .summary {
             float: right;
             width: 250px;
@@ -192,7 +184,6 @@
         .summary-row {
             display: table;
             width: 100%;
-            /* padding: 0px 0; */
             font-size: 10px;
         }
 
@@ -241,22 +232,10 @@
             padding: 6px 5px;
         }
 
-        /* Signature Section */
         .signature-section {
             clear: both;
             margin-top: 40px;
             padding-top: 20px;
-        }
-
-        .signature-box {
-            display: inline-block;
-            width: 45%;
-            text-align: center;
-            vertical-align: top;
-        }
-
-        .signature-box:first-child {
-            margin-right: 10%;
         }
 
         .signature-title {
@@ -282,7 +261,6 @@
             color: #666;
         }
 
-        /* Footer */
         .footer {
             margin-top: 30px;
             padding-top: 15px;
@@ -292,7 +270,6 @@
             color: #999;
         }
 
-        /* Status Badge */
         .status-badge {
             display: inline-block;
             padding: 4px 10px;
@@ -316,22 +293,11 @@
             background: #f8d7da;
             color: #721c24;
         }
-
-        @media print {
-            body {
-                padding: 0;
-            }
-
-            .actions {
-                display: none;
-            }
-        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <div class="header-left">
                 <div class="logo-wrapper">
@@ -353,15 +319,13 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="document-title">INVOICE</div>
+                <div class="document-title">KWITANSI</div>
                 <div class="invoice-meta">
-                    <strong>No:</strong> {{ $invoice->invoice_number }}<br>
+                    <strong>No:</strong> {{ $pembelian->invoice_number }}<br>
                     <strong>Tanggal:</strong>
-                    {{ \Carbon\Carbon::parse($invoice->tanggal_invoice)->format('d/m/Y') }}<br>
-                    <strong>Jatuh Tempo:</strong>
-                    {{ \Carbon\Carbon::parse($invoice->tanggal_jatuh_tempo)->format('d/m/Y') }}<br>
+                    {{ \Carbon\Carbon::parse($pembelian->tanggal_pembelian)->format('d/m/Y') }}<br>
                     @php
-                        $statusLabel = match ($invoice->status_pembayaran) {
+                        $statusLabel = match ($pembelian->status_pembayaran) {
                             'paid' => 'Lunas',
                             'partial' => 'Cicilan',
                             'cancelled' => 'Dibatalkan',
@@ -371,9 +335,9 @@
                         };
                     @endphp
 
-                    @if ($invoice->status_pembayaran == 'paid')
+                    @if ($pembelian->status_pembayaran == 'paid')
                         <span class="status-badge status-lunas">{{ $statusLabel }}</span>
-                    @elseif($invoice->status_pembayaran == 'cancelled')
+                    @elseif($pembelian->status_pembayaran == 'cancelled')
                         <span class="status-badge status-cancel">{{ $statusLabel }}</span>
                     @else
                         <span class="status-badge status-belum">{{ $statusLabel }}</span>
@@ -382,28 +346,26 @@
             </div>
         </div>
 
-        <!-- Info Section -->
         <div class="info-section">
             <div class="info-box">
-                <div class="info-title">Kepada</div>
+                <div class="info-title">Dari</div>
                 <div class="info-content">
-                    <strong>Nama:</strong> {{ $invoice->customer->nama_customer ?? '-' }}<br>
-                    <strong>Telepon:</strong> {{ $invoice->customer->no_hp ?? '-' }}<br>
-                    <strong>Alamat:</strong> {{ $invoice->customer->alamat ?? '-' }}
+                    <strong>Supplier:</strong> {{ $pembelian->supplier->nama_supplier ?? '-' }}<br>
+                    <strong>Telepon:</strong> {{ $pembelian->supplier->no_hp ?? '-' }}<br>
+                    <strong>Alamat:</strong> {{ $pembelian->supplier->alamat ?? '-' }}
                 </div>
             </div>
             <div class="info-box">
                 <div class="info-title">Informasi Pembayaran</div>
                 <div class="info-content">
-                    <strong>Metode:</strong> {{ ucfirst($invoice->metode_pembayaran ?? '-') }}<br>
-                    <strong>Bank:</strong> BCA<br>
-                    <strong>No. Rek:</strong> 5870230895<br>
-                    <strong>A/N:</strong> H HERMAWAN WISNU PUTRA
+                    <strong>Metode:</strong> {{ ucfirst($pembelian->metode_pembayaran ?? '-') }}<br>
+                    <strong>Pencatat:</strong> {{ $pembelian->user->name ?? '-' }}<br>
+                    <strong>Status:</strong> {{ $statusLabel }}<br>
+                    <strong>Sisa:</strong> Rp {{ number_format($pembelian->sisa_tagihan, 0, ',', '.') }}
                 </div>
             </div>
         </div>
 
-        <!-- Items Table -->
         <table>
             <thead>
                 <tr>
@@ -415,11 +377,10 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($invoice->items as $index => $item)
+                @foreach ($pembelian->items as $index => $item)
                     <tr>
                         <td class="center">{{ $index + 1 }}</td>
-                        <td>{{ $item->product->nama_produk ?? ($item->product->nama ?? 'Produk #' . $item->product_id) }}
-                        </td>
+                        <td>{{ $item->product->nama_produk ?? ($item->product->nama ?? 'Produk #' . $item->product_id) }}</td>
                         <td class="center">{{ $item->quantity }}</td>
                         <td class="right">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                         <td class="right">Rp {{ number_format($item->sub_total, 0, ',', '.') }}</td>
@@ -428,44 +389,43 @@
             </tbody>
         </table>
 
-        <!-- Summary -->
         <div class="summary">
             <div class="summary-row">
-                <span class="summary-label">Ongkos Kirim:</span>
-                <span class="summary-value">Rp
-                    {{ number_format($invoice->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
+                <span class="summary-label">Total Dibayar:</span>
+                <span class="summary-value">Rp {{ number_format($pembelian->pembayarans->sum('jumlah_bayar'), 0, ',', '.') }}</span>
             </div>
             <div class="summary-row">
-                <span class="summary-label">Diskon:</span>
-                <span class="summary-value">Rp
-                    {{ number_format($invoice->diskon ?? 0, 0, ',', '.') }}</span>
+                <span class="summary-label">Sisa Tagihan:</span>
+                <span class="summary-value">Rp {{ number_format($pembelian->sisa_tagihan, 0, ',', '.') }}</span>
             </div>
             <div class="summary-row summary-total">
                 <span class="summary-label">GRAND TOTAL:</span>
-                <span class="summary-value">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</span>
+                <span class="summary-value">Rp {{ number_format($pembelian->grand_total, 0, ',', '.') }}</span>
             </div>
         </div>
 
-        @if ($invoice->pembayarans->isNotEmpty())
-            <div class="payment-history">
-                <div class="payment-history-title">Riwayat Pembayaran</div>
+        <div class="payment-history">
+            <div class="payment-history-title">Riwayat Pembayaran</div>
+            @if ($pembelian->pembayarans->isEmpty())
+                <div style="font-size:10px; color:#666;">Belum ada riwayat pembayaran.</div>
+            @else
                 <table>
                     <thead>
                         <tr>
                             <th style="width: 5%;">No</th>
-                            <th style="width: 18%;">Tanggal</th>
+                            <th style="width: 20%;">Tanggal</th>
                             <th style="width: 20%;">Metode</th>
-                            <th class="right" style="width: 22%;">Jumlah Bayar</th>
-                            <th class="right" style="width: 22%;">Total Dibayar</th>
-                            <th class="right" style="width: 13%;">Sisa</th>
+                            <th class="right" style="width: 20%;">Jumlah Bayar</th>
+                            <th class="right" style="width: 20%;">Total Dibayar</th>
+                            <th class="right" style="width: 15%;">Sisa</th>
                         </tr>
                     </thead>
                     <tbody>
                         @php $akumulasiBayar = 0; @endphp
-                        @foreach ($invoice->pembayarans->sortBy('tanggal_bayar')->values() as $index => $pembayaran)
+                        @foreach ($pembelian->pembayarans->sortBy('tanggal_bayar')->values() as $index => $pembayaran)
                             @php
                                 $akumulasiBayar += (float) $pembayaran->jumlah_bayar;
-                                $sisaTagihan = max(0, (float) $invoice->grand_total - $akumulasiBayar);
+                                $sisaTagihan = max(0, (float) $pembelian->grand_total - $akumulasiBayar);
                             @endphp
                             <tr>
                                 <td class="center">{{ $index + 1 }}</td>
@@ -478,10 +438,9 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
-        @endif
+            @endif
+        </div>
 
-        <!-- Note / NB -->
         <div style="clear:both; margin-top: 20px;">
             <div style="
                 background: #fffbeb;
@@ -499,30 +458,27 @@
             </div>
         </div>
 
-        <!-- Signature Section -->
         <div class="signature-section">
             <table style="width: 100%; border: none;">
                 <tr>
                     <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
                         <div class="signature-title">Penerima</div>
                         <div class="signature-line">
-                            <div class="signature-name">{{ $invoice->customer->nama_customer ?? '_______________' }}
-                            </div>
-                            <div class="signature-position">Pelanggan</div>
+                            <div class="signature-name">{{ $pembelian->supplier->nama_supplier ?? '_______________' }}</div>
+                            <div class="signature-position">Supplier</div>
                         </div>
                     </td>
                     <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
                         <div class="signature-title">Hormat Kami</div>
                         <div class="signature-line">
-                            <div class="signature-name">{{ $invoice->user->name ?? 'Admin' }}</div>
-                            <div class="signature-position">{{ $invoice->user->jabatan ?? 'Staff Penjualan' }}</div>
+                            <div class="signature-name">{{ $pembelian->user->name ?? 'Admin' }}</div>
+                            <div class="signature-position">{{ $pembelian->user->jabatan ?? 'Staff Pembelian' }}</div>
                         </div>
                     </td>
                 </tr>
             </table>
         </div>
 
-        <!-- Footer -->
         <div class="footer">
             <p>Terima kasih atas kepercayaan Anda. Dokumen ini dicetak secara otomatis</p>
         </div>

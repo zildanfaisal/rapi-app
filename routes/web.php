@@ -86,8 +86,11 @@ Route::middleware('auth')->group(function () {
 
     // Pembelian Routes
     Route::get('/pembelian', [PembelianController::class, 'index'])->middleware('permission:pembelian.view')->name('pembelian.index');
+    Route::get('/pembelian/export/excel', [PembelianController::class, 'exportExcel'])->middleware('permission:pembelian.view')->name('pembelian.export.excel');
+    Route::get('/pembelian/export/pdf', [PembelianController::class, 'exportPdf'])->middleware('permission:pembelian.view')->name('pembelian.export.pdf');
     Route::get('/pembelian/create', [PembelianController::class, 'create'])->middleware('permission:pembelian.create')->name('pembelian.create');
     Route::post('/pembelian', [PembelianController::class, 'store'])->middleware('permission:pembelian.create')->name('pembelian.store');
+    Route::get('/pembelian/{pembelian}/kwitansi/pdf', [PembelianController::class, 'kwitansiPdf'])->middleware('permission:pembelian.view')->name('pembelian.kwitansi.pdf');
     Route::get('/pembelian/{pembelian}', [PembelianController::class, 'show'])->middleware('permission:pembelian.view')->name('pembelian.show');
     Route::get('/pembelian/{pembelian}/edit', [PembelianController::class, 'edit'])->middleware('permission:pembelian.update')->name('pembelian.edit');
     Route::put('/pembelian/{pembelian}', [PembelianController::class, 'update'])->middleware('permission:pembelian.update')->name('pembelian.update');

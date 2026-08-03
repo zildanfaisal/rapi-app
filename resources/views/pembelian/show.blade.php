@@ -190,7 +190,7 @@
 
                     <div class="mt-6 flex flex-wrap gap-3">
                         @can('pembelian.update')
-                        <a href="{{ route('pembelian.edit', $pembelian->id) }}" class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{{ __('Edit Pembelian') }}</a>
+                        <a href="{{ route('pembelian.kwitansi.pdf', $pembelian->id) }}" target="_blank" rel="noopener" class="inline-block px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">{{ __('Export Kwitansi PDF') }}</a>
                         @endcan
                     </div>
                 </div>

@@ -86,6 +86,16 @@
                 <div class="flex flex-col sm:flex-row justify-between gap-3 mb-6">
                     <h3 class="text-lg font-semibold">Pembelian</h3>
                     <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto sm:justify-end items-center">
+                        <a href="{{ route('pembelian.export.excel', request()->query()) }}"
+                           class="inline-flex items-center justify-center px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 w-full sm:w-auto">
+                            Export Excel
+                        </a>
+                        <a href="{{ route('pembelian.export.pdf', request()->query()) }}"
+                           target="_blank"
+                           rel="noopener"
+                           class="inline-flex items-center justify-center px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 w-full sm:w-auto">
+                            Export PDF
+                        </a>
                         <form method="GET" action="{{ route('pembelian.index') }}" class="flex items-center gap-2">
                             <input type="hidden" name="date_from" value="{{ $dateFrom ?? '' }}">
                             <input type="hidden" name="date_to" value="{{ $dateTo ?? '' }}">

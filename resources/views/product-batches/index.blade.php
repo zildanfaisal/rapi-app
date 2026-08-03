@@ -39,14 +39,14 @@
                             Export PDF
                         </button>
 
-                        <a href="{{ route('product-batches.create') }}"
+                        {{-- <a href="{{ route('product-batches.create') }}"
                             class="inline-flex items-center justify-center gap-2
               px-4 py-2.5
               bg-blue-600 text-white text-sm font-medium
               rounded-lg hover:bg-blue-700
               w-full sm:w-auto">
                             + Tambah Batch
-                        </a>
+                        </a> --}}
 
                     </div>
 
