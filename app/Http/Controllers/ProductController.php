@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\ProductBatch;
 use App\Models\InvoiceItem;
 use DNS1D;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Traits\ActivityLogger;
 
 class ProductController extends Controller
@@ -28,6 +29,32 @@ class ProductController extends Controller
         }
 
         return view('products.index', compact('products'));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $products = Product::with(['batches', 'latestBatch'])->get();
+
+        $pdf = Pdf::loadView('products.export_pdf', compact('products'))
+            ->setPaper('a4', 'landscape');
+
+        $filename = 'Laporan-Produk-' . now()->format('Ymd-His') . '.pdf';
+        return $pdf->stream($filename);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $products = Product::with(['batches', 'latestBatch'])->get();
+
+        $content = view('products.export_excel', compact('products'))->render();
+        $filename = 'Laporan-Produk-' . now()->format('Ymd-His') . '.xls';
+
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     public function create()

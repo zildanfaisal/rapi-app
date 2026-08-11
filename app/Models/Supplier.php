@@ -12,4 +12,9 @@ class Supplier extends Model
         'email',
         'alamat',
     ];
+
+    public function pembelians()
+    {
+        return $this->hasMany(Pembelian::class);
+    }
 }
