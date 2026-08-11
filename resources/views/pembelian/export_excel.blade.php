@@ -19,7 +19,7 @@
             <th>Qty</th>
             <th>Total</th>
             <th>Total Bayar</th>
-            <th>Sisa</th>
+            <th>Sisa Tagihan</th>
             <th>Status</th>
         </tr>
     </thead>

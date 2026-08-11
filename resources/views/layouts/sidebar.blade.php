@@ -96,13 +96,13 @@
                 @endcan
 
                 <!-- Master Products -->
-                @canany(['products.view', 'product-batches.view'])
-               <li x-data="{ open: {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*')  ? 'true' : 'false' }} }" class="relative">
+                @canany(['products.view', 'product-batches.view', 'pembelian.view'])
+               <li x-data="{ open: {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') || request()->routeIs('pembelian.*') ? 'true' : 'false' }} }" class="relative">
                 <button @click.prevent="open = !open"
                         :aria-expanded="open.toString()"
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*')  ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') || request()->routeIs('pembelian.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
                         :class="sidebarCollapsed ? 'justify-center' : ''">
-                    <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*')  ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                    <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') || request()->routeIs('pembelian.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                         </svg>
@@ -133,26 +133,14 @@
                                 Batch Produk</a>
                         </li>
                         @endcan
-                       
+                        @can('pembelian.view')
+                        <li>
+                            <a href="{{ route('pembelian.index') }}" class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('pembelian.*') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
+                                Pembelian
+                            </a>
+                        </li>
+                        @endcan
                     </ul>
-                </li>
-                @endcan
-
-                {{-- Pembelian --}}
-                @can('pembelian.view')
-                <li>
-                  <a href="{{ route('pembelian.index') }}"
-                    title="Pembelian"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('pembelian.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}"
-                    :class="sidebarCollapsed ? 'justify-center' : ''">
-                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('pembelian.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9.75h7.5M8.25 13.5h7.5" />
-                            </svg>
-                        </span>
-                        <span x-show="!sidebarCollapsed" class="font-medium">Master Pembelian</span>
-                    </a>
                 </li>
                 @endcan
 
@@ -440,12 +428,12 @@
                 @endcan
 
                 <!-- Master Products -->
-                @canany(['products.view', 'product-batches.view'])
-                <li x-data="{ open: {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') ? 'true' : 'false' }} }" class="relative">
+                @canany(['products.view', 'product-batches.view', 'pembelian.view'])
+                <li x-data="{ open: {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') || request()->routeIs('pembelian.*') ? 'true' : 'false' }} }" class="relative">
                     <button @click.prevent="open = !open"
                         :aria-expanded="open.toString()"
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}">
-                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') || request()->routeIs('pembelian.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}">
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('products.*') || request()->routeIs('product-batches.*') || request()->routeIs('pembelian.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                             </svg>
@@ -474,6 +462,14 @@
                             <a href="{{ route('product-batches.index') }}"
                                 class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('product-batches.index') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
                                 Batch Produk
+                            </a>
+                        </li>
+                        @endcan
+                        @can('pembelian.view')
+                        <li>
+                            <a href="{{ route('pembelian.index') }}"
+                                class="block px-3 py-2 rounded-lg text-sm transition-all duration-200 {{ request()->routeIs('pembelian.*') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
+                                Pembelian
                             </a>
                         </li>
                         @endcan
@@ -625,21 +621,7 @@
                 </li>
                 @endcan
 
-                @can('pembelian.view')
-                <li>
-                    <a href="{{ route('pembelian.index') }}"
-                        title="Pembelian"
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('pembelian.*') ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-50' }}">
-                        <span class="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 {{ request()->routeIs('pembelian.*') ? 'bg-blue-100' : 'bg-slate-100 group-hover:bg-slate-200' }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9.75h7.5M8.25 13.5h7.5" />
-                            </svg>
-                        </span>
-                        <span class="font-medium">Pembelian</span>
-                    </a>
-                </li>
-                @endcan
+
 
                 <!-- Divider -->
                 <li class="pt-4">

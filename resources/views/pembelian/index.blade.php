@@ -130,6 +130,7 @@
                                 <th class="px-3 py-2 border text-left text-xs uppercase">Supplier</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Tanggal</th>
                                 <th class="px-3 py-2 border text-right text-xs uppercase">Total</th>
+                                <th class="px-3 py-2 border text-right text-xs uppercase">Sisa Tagihan</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Status</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Bukti Pembayaran</th>
                                 <th class="px-3 py-2 border text-center text-xs uppercase">Aksi</th>
@@ -148,6 +149,9 @@
                                 <td class="border px-3 py-2">{{ $p->tanggal_pembelian }}</td>
                                 <td class="border px-3 py-2 text-right">
                                     Rp {{ number_format($p->grand_total, 0, ',', '.') }}
+                                </td>
+                                <td class="border px-3 py-2 text-right">
+                                    {{ $p->sisa_tagihan > 0 ? 'Rp ' . number_format($p->sisa_tagihan, 0, ',', '.') : '-' }}
                                 </td>
                                 <td class="border px-3 py-2">
                                     @if($p->status_pembayaran === 'paid')

@@ -102,6 +102,8 @@ Route::middleware('auth')->group(function () {
 
     // Product Routes
     Route::get('/products', [ProductController::class, 'index'])->middleware('permission:products.view')->name('products.index');
+    Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->middleware('permission:products.view')->name('products.export.excel');
+    Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->middleware('permission:products.view')->name('products.export.pdf');
     Route::get('/products/create', [ProductController::class, 'create'])->middleware('permission:products.create')->name('products.create');
     Route::post('/products', [ProductController::class, 'store'])->middleware('permission:products.create')->name('products.store');
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->middleware('permission:products.update')->name('products.edit');

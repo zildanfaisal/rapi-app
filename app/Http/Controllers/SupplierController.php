@@ -46,6 +46,20 @@ class SupplierController extends Controller
 
     public function show(Supplier $supplier)
     {
+        $supplier->load(['pembelians.items.product', 'pembelians.items.batch']);
+
+        foreach ($supplier->pembelians as $pembelian) {
+            $pembelian->items_json = $pembelian->items->map(function ($item) {
+                return [
+                    'batch_number' => $item->batch->batch_number ?? '-',
+                    'produk'       => $item->product->nama_produk,
+                    'qty'          => $item->quantity,
+                    'harga'        => $item->harga,
+                    'subtotal'     => $item->quantity * $item->harga,
+                ];
+            });
+        }
+
         return view('suppliers.show', compact('supplier'));
     }
 
