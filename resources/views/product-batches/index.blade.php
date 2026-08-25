@@ -393,7 +393,7 @@
                     extend: 'excelHtml5',
                     title: null,
                     exportOptions: {
-                        columns: [0, 1, 6, 7, 8, 9]
+                        columns: [0, 1, 3, 4, 6, 7, 8, 9]
                     },
                     customize: function(xlsx) {
                         const sheet = xlsx.xl.worksheets['sheet1.xml'];
@@ -467,23 +467,24 @@
                         sheetData.prepend(`<row r="2"><c r="A2" t="inlineStr" s="${styleTitle}"><is><t>Dicetak: ${now}</t></is></c></row>`);
                         sheetData.prepend(`<row r="1"><c r="A1" t="inlineStr" s="${styleTitle}"><is><t>LAPORAN BATCH PRODUK</t></is></c></row>`);
 
-                        // Merge title A..F
+                        // Merge title A..H
                         let mergeCells = $('mergeCells', sheet);
                         if (!mergeCells.length) {
                             $('worksheet', sheet).append('<mergeCells count="0"></mergeCells>');
                             mergeCells = $('mergeCells', sheet);
                         }
                         const mergeCount = parseInt(mergeCells.attr('count') || '0', 10);
-                        mergeCells.append('<mergeCell ref="A1:F1"/>');
-                        mergeCells.append('<mergeCell ref="A2:F2"/>');
+                        mergeCells.append('<mergeCell ref="A1:H1"/>');
+                        mergeCells.append('<mergeCell ref="A2:H2"/>');
                         mergeCells.attr('count', mergeCount + 2);
 
                         // Style header + body
                         $('row[r="3"] c', sheet).attr('s', styleHeader);
                         $('row:gt(2) c', sheet).attr('s', styleCell);
-                        $('row:gt(2) c[r^="D"]', sheet).attr('s', styleNumber);
                         $('row:gt(2) c[r^="E"]', sheet).attr('s', styleNumber);
                         $('row:gt(2) c[r^="F"]', sheet).attr('s', styleNumber);
+                        $('row:gt(2) c[r^="G"]', sheet).attr('s', styleNumber);
+                        $('row:gt(2) c[r^="H"]', sheet).attr('s', styleNumber);
 
                         // Column width
                         let cols = $('cols', sheet);
@@ -494,10 +495,12 @@
                         cols.html(`
                       <col min="1" max="1" width="8" customWidth="1"/>
                       <col min="2" max="2" width="30" customWidth="1"/>
-                      <col min="3" max="3" width="15" customWidth="1"/>
-                      <col min="4" max="4" width="15" customWidth="1"/>
-                                            <col min="5" max="5" width="18" customWidth="1"/>
-                                            <col min="6" max="6" width="18" customWidth="1"/>
+                      <col min="3" max="3" width="16" customWidth="1"/>
+                      <col min="4" max="4" width="16" customWidth="1"/>
+                      <col min="5" max="5" width="15" customWidth="1"/>
+                      <col min="6" max="6" width="18" customWidth="1"/>
+                      <col min="7" max="7" width="18" customWidth="1"/>
+                      <col min="8" max="8" width="18" customWidth="1"/>
                     `);
 
                         // Grand total row
@@ -507,12 +510,12 @@
                         sheetData.append(`
                       <row r="${rowNum}">
                         <c r="A${rowNum}" t="inlineStr" s="${styleGrand}"><is><t>GRAND TOTAL</t></is></c>
-                                                <c r="F${rowNum}" s="${styleGrand}"><v>${grandTotal}</v></c>
+                        <c r="H${rowNum}" s="${styleGrand}"><v>${grandTotal}</v></c>
                       </row>
                     `);
 
                         const mergeCount2 = parseInt(mergeCells.attr('count') || '0', 10);
-                                                mergeCells.append(`<mergeCell ref="A${rowNum}:E${rowNum}"/>`);
+                        mergeCells.append(`<mergeCell ref="A${rowNum}:G${rowNum}"/>`);
                         mergeCells.attr('count', mergeCount2 + 1);
                     }
                 }]
