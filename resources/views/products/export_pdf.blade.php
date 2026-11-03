@@ -77,7 +77,7 @@
                 <th>Harga Beli</th>
                 <th>Harga Jual</th>
                 <th>Supplier</th>
-                <th>Stok</th>
+                <th>Stok Bersih</th>
                 <th>Satuan</th>
                 <th>Status</th>
             </tr>
@@ -85,7 +85,7 @@
         <tbody>
             @forelse ($products as $index => $p)
                 @php
-                    $stok = $p->batches->sum('quantity_sekarang');
+                    $stok = $p->stok_bersih;
                     $statusLabel = $p->status === 'available' ? 'Tersedia' : 'Tidak Tersedia';
                 @endphp
                 <tr>

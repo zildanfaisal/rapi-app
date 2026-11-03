@@ -38,4 +38,23 @@ class Product extends Model
             $this->update(['status' => $newStatus]);
         }
     }
+
+    /**
+     * Stock balance based on recorded movements, so overselling stays visible.
+     * Sales are counted when recorded on an invoice, unless that invoice is cancelled.
+     */
+    public function getStokBersihAttribute(): int
+    {
+        $stokMasuk = (int) $this->batches()->sum('quantity_masuk');
+        $stokTerjual = (int) $this->invoiceItems()
+            ->whereHas('invoice', fn ($query) => $query->where('status_pembayaran', '!=', 'cancelled'))
+            ->sum('quantity');
+
+        return $stokMasuk - $stokTerjual;
+    }
+
+    public function invoiceItems()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
 }

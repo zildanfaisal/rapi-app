@@ -102,7 +102,7 @@
                         @php
                         $statusLabel = $product->status === 'available' ? 'Tersedia' : 'Tidak Tersedia';
                         @endphp
-                        @if($product->batches->sum('quantity_sekarang') >= $product->min_stok_alert)
+                        @if($product->stok_bersih >= $product->min_stok_alert)
                         <span class="px-3 py-1 bg-green-100 text-green-800 rounded text-sm">
                             {{ $statusLabel }}
                         </span>

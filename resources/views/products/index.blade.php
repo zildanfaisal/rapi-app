@@ -45,7 +45,7 @@
                                 <th class="px-3 py-3 text-right text-xs font-medium uppercase border">Harga Beli</th>
                                 <th class="px-3 py-3 text-right text-xs font-medium uppercase border">Harga Jual</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium uppercase border">Supplier</th>
-                                <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Stok</th>
+                                <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Stok Bersih</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Satuan</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Status</th>
                                 <th class="px-3 py-3 text-center text-xs font-medium uppercase border">Aksi</th>
@@ -86,7 +86,7 @@
                                 </td>
 
                                 <td class="px-3 py-2 border text-center">
-                                    {{ $p->batches->sum('quantity_sekarang') }}
+                                    {{ $p->stok_bersih }}
                                 </td>
 
                                 <td class="px-3 py-2 border text-center">
@@ -99,7 +99,7 @@
                                     $p->status === 'available' ? 'Tersedia' : 'Tidak Tersedia';
                                     @endphp
 
-                                    @if ($p->batches->sum('quantity_sekarang') >= $p->min_stok_alert)
+                                    @if ($p->stok_bersih >= $p->min_stok_alert)
                                     <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
                                         {{ $statusLabel }}
                                     </span>
@@ -195,11 +195,11 @@
                                 <div>Harga Jual: <b>Rp {{ number_format($p->harga, 0, ',', '.') }}</b></div>
                                 <div>Harga Beli: <b>Rp {{ number_format($p->harga_beli, 0, ',', '.') }}</b></div>
                                 <div>Supplier: {{ $p->supplier }}</div>
-                                <div>Stok: {{ $p->batches->sum('quantity_sekarang') }}</div>
+                                <div>Stok bersih: {{ $p->stok_bersih }}</div>
                                 @php
                                 $statusLabel = $p->status === 'available' ? 'Tersedia' : 'Tidak Tersedia';
                                 @endphp
-                                <div>Status: @if ($p->batches->sum('quantity_sekarang') >= $p->min_stok_alert)
+                                <div>Status: @if ($p->stok_bersih >= $p->min_stok_alert)
                                     <span data-mobile-status-badge class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
                                         {{ $statusLabel }}
                                     </span>

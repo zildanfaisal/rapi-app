@@ -204,7 +204,7 @@ class DashboardController extends Controller
             ], 404);
         }
 
-        $stock = (int) $product->batches()->sum('quantity_sekarang');
+        $stock = $product->stok_bersih;
         $latestBatch = $product->latestBatch()->first();
 
         return response()->json([

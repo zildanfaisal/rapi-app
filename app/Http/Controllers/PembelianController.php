@@ -190,16 +190,8 @@ class PembelianController extends Controller
 
                 // Auto-create new batch for this product
                 $product = Product::find($item['product_id']);
-                $now = now();
-                $datePart = $now->format('dmy');
-                $firstLetter = strtoupper(mb_substr($product->nama_produk ?? 'X', 0, 1));
-                $timePart = $now->format('Hi');
-                // Add random digit to avoid collision when multiple items saved same second
-                $batchNumber = 'SN-' . $datePart . '-' . $firstLetter . $timePart . rand(0, 9);
-
-                $batch = ProductBatch::create([
+                $batch = ProductBatch::createForPurchase($product, [
                     'product_id' => $item['product_id'],
-                    'batch_number' => $batchNumber,
                     'quantity_masuk' => $item['quantity'],
                     'quantity_sekarang' => $item['quantity'],
                     'tanggal_masuk' => $request->tanggal_pembelian,
@@ -391,15 +383,8 @@ class PembelianController extends Controller
                 $grandTotal += $subTotal;
 
                 $product = Product::find($item['product_id']);
-                $now = now();
-                $datePart = $now->format('dmy');
-                $firstLetter = strtoupper(mb_substr($product->nama_produk ?? 'X', 0, 1));
-                $timePart = $now->format('Hi');
-                $batchNumber = 'SN-' . $datePart . '-' . $firstLetter . $timePart . rand(0, 9);
-
-                $batch = ProductBatch::create([
+                $batch = ProductBatch::createForPurchase($product, [
                     'product_id' => $item['product_id'],
-                    'batch_number' => $batchNumber,
                     'quantity_masuk' => $item['quantity'],
                     'quantity_sekarang' => $item['quantity'],
                     'tanggal_masuk' => $request->tanggal_pembelian,
